@@ -128,19 +128,19 @@ columns_st = ['str_bot', 'int_id']
 init_var = '#def __init__(self)'
 stock_buy_var = '''"""
 def BuyStrategy(self, *args)
-매수(True), 종목명(str), 종목코드(str), 현재가(int), 시가(int), 고가(int), 저가(int), 등락율(float), 고저평균대비등락율(float),
-당일거래대금(int), 초당거래대금(int), 초당거래대금평균(int), 체결강도(float), 체결강도평균(float), 최고체결강도(float), VI해제시간(datetime),
+매수(True), 종목명(str), 종목코드(str), 현재가(int), 시가(int), 고가(int), 저가(int), 등락율(float), 고저평균대비등락율(float), 당일거래대금(int),
+초당거래대금(int), 초당거래대금평균(int), 체결강도(float), 직전체결강도(float), 체결강도평균(float), 최고체결강도(float), VI해제시간(datetime),
 VI아래5호가(int), 초당매수수량(int), 초당매도수량(int), 매도총잔량(int), 매수총잔량(int), 매도호가5(int), 매도호가4(int), 매도호가3(int),
-매도호가2(int), 매도호가1(int), 매수호가1(int), 매수호가2(int), 매수호가3(int), 매수호가4(int), 매수호가5(int), 매도잔량5(int),
-매도잔량4(int), 매도잔량3(int), 매도잔량2(int), 매도잔량1(int), 매수잔량1(int), 매수잔량2(int), 매수잔량3(int), 매수잔량4(int), 매수잔량5(int)
+매도호가2(int), 매도호가1(int), 매수호가1(int), 매수호가2(int), 매수호가3(int), 매수호가4(int), 매수호가5(int), 매도잔량5(int), 매도잔량4(int),
+매도잔량3(int), 매도잔량2(int), 매도잔량1(int), 매수잔량1(int), 매수잔량2(int), 매수잔량3(int), 매수잔량4(int), 매수잔량5(int)
 """'''
 stock_sell_var = '''"""
 def SellStrategy(self, *args)
 매도(False), 종목명(str), 종목코드(str), 수익률(float), 보유수량(int), 매수시간(datetime), 현재가(int), 등락율(float), 고저평균대비등락율(float),
-초당거래대금(int), 초당거래대금평균(int), 체결강도(float), 체결강도평균(float), 최고체결강도(float), VI해제시간(datetime), VI아래5호가(int),
-매도총잔량(int), 매수총잔량(int), 매도호가5(int), 매도호가4(int), 매도호가3(int), 매도호가2(int), 매도호가1(int), 매수호가1(int), 매수호가2(int),
-매수호가3(int), 매수호가4(int), 매수호가5(int), 매도잔량5(int), 매도잔량4(int), 매도잔량3(int), 매도잔량2(int), 매도잔량1(int), 매수잔량1(int),
-매수잔량2(int), 매수잔량3(int), 매수잔량4(int), 매수잔량5(int)
+초당거래대금(int), 초당거래대금평균(int), 체결강도(float), 직전체결강도(float), 체결강도평균(float), 최고체결강도(float), VI해제시간(datetime),
+VI아래5호가(int), 매도총잔량(int), 매수총잔량(int), 매도호가5(int), 매도호가4(int), 매도호가3(int), 매도호가2(int), 매도호가1(int), 매수호가1(int),
+매수호가2(int), 매수호가3(int), 매수호가4(int), 매수호가5(int), 매도잔량5(int), 매도잔량4(int), 매도잔량3(int), 매도잔량2(int), 매도잔량1(int),
+매수잔량1(int), 매수잔량2(int), 매수잔량3(int), 매수잔량4(int), 매수잔량5(int)
 """'''
 stock_buy_signal = '''
 if 매수:
@@ -185,18 +185,18 @@ if 매도:
 coin_buy_var = '''"""
 def BuyStrategy(self, *args)
 매수(True), 종목명(str), 현재가(int), 시가(int), 고가(int), 저가(int), 등락율(float), 고저평균대비등락율(float), 당일거래대금(int), 초당거래대금(int),
-초당거래대금평균(int), 체결강도(float), 체결강도평균(float), 최고체결강도(float), 초당매수수량(int), 초당매도수량(int), 매도총잔량(float), 매수총잔량(float),
-매도호가5(float), 매도호가4(float), 매도호가3(float), 매도호가2(float), 매도호가1(float), 매수호가1(float), 매수호가2(float), 매수호가3(float),
-매수호가4(float), 매수호가5(float), 매도잔량5(float), 매도잔량4(float), 매도잔량3(float), 매도잔량2(float), 매도잔량1(float), 매수잔량1(float),
-매수잔량2(float), 매수잔량3(float), 매수잔량4(float), 매수잔량5(float)
+초당거래대금평균(int), 체결강도(float), 직전체결강도(float), 체결강도평균(float), 최고체결강도(float), 초당매수수량(int), 초당매도수량(int),
+매도총잔량(float), 매수총잔량(float), 매도호가5(float), 매도호가4(float), 매도호가3(float), 매도호가2(float), 매도호가1(float), 매수호가1(float),
+매수호가2(float), 매수호가3(float), 매수호가4(float), 매수호가5(float), 매도잔량5(float), 매도잔량4(float), 매도잔량3(float), 매도잔량2(float),
+매도잔량1(float), 매수잔량1(float), 매수잔량2(float), 매수잔량3(float), 매수잔량4(float), 매수잔량5(float)
 """'''
 coin_sell_var = '''"""
 def SellStrategy(self, *args)
 매도(False), 종목명(str), 수익률(float), 보유수량(float), 매수시간(datetime), 현재가(float), 등락율(float), 고저평균대비등락율(float),
-초당거래대금(int), 초당거래대금평균(int), 체결강도(float), 체결강도평균(float), 최고체결강도(float), 매도총잔량(float), 매수총잔량(float),
-매도호가5(float), 매도호가4(float), 매도호가3(float), 매도호가2(float), 매도호가1(float), 매수호가1(float), 매수호가2(float), 매수호가3(float),
-매수호가4(float), 매수호가5(float), 매도잔량5(float), 매도잔량4(float), 매도잔량3(float), 매도잔량2(float), 매도잔량1(float), 매수잔량1(float),
-매수잔량2(float), 매수잔량3(float), 매수잔량4(float), 매수잔량5(float)
+초당거래대금(int), 초당거래대금평균(int), 체결강도(float), 직전체결강도(float), 체결강도평균(float), 최고체결강도(float), 매도총잔량(float),
+매수총잔량(float), 매도호가5(float), 매도호가4(float), 매도호가3(float), 매도호가2(float), 매도호가1(float), 매수호가1(float), 매수호가2(float),
+매수호가3(float), 매수호가4(float), 매수호가5(float), 매도잔량5(float), 매도잔량4(float), 매도잔량3(float), 매도잔량2(float), 매도잔량1(float),
+매수잔량1(float), 매수잔량2(float), 매수잔량3(float), 매수잔량4(float), 매수잔량5(float)
 """'''
 coin_buy_signal = '''
 if 매수:

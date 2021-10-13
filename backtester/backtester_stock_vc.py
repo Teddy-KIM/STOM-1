@@ -142,6 +142,7 @@ class BackTesterStockVc:
         초당거래대금 = self.df['초당거래대금'][self.index]
         초당거래대금평균 = self.df['초당거래대금평균'][self.index]
         체결강도 = self.df['체결강도'][self.index]
+        직전체결강도 = self.df['체결강도'][self.indexn - 1]
         체결강도평균 = self.df['체결강도평균'][self.index]
         최고체결강도 = self.df['최고체결강도'][self.index]
 
@@ -232,6 +233,7 @@ class BackTesterStockVc:
         초당거래대금 = self.df['초당거래대금'][self.index]
         초당거래대금평균 = self.df['초당거래대금평균'][self.index]
         체결강도 = self.df['체결강도'][self.index]
+        직전체결강도 = self.df['체결강도'][self.indexn - 1]
         체결강도평균 = self.df['체결강도평균'][self.index]
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
