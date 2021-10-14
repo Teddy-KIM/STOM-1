@@ -255,7 +255,7 @@ class BackTesterCoinStg:
         매수잔량4 = self.df['매수잔량4'][self.index]
         매수잔량5 = self.df['매수잔량5'][self.index]
         남은수량 = self.buycount
-        직전남은수량 = self.buycount
+        직전남은수량 = 남은수량
         매도금액 = 0
         호가정보 = {매수호가1: 매수잔량1, 매수호가2: 매수잔량2, 매수호가3: 매수잔량3, 매수호가4: 매수잔량4, 매수호가5: 매수잔량5}
         for 매수호가, 매수잔량 in 호가정보.items():
@@ -267,7 +267,7 @@ class BackTesterCoinStg:
                 매도금액 += 매수호가 * 매수잔량
                 직전남은수량 = 남은수량
         if 남은수량 <= 0:
-            예상체결가 = round(매도금액 / self.buyprice, 2)
+            예상체결가 = round(매도금액 / self.buycount, 2)
             self.sellprice = 예상체결가
             self.hold = False
             self.CalculationEyun()
