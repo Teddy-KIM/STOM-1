@@ -389,11 +389,11 @@ class Window(QtWidgets.QMainWindow):
             df['체결강도'] = df['체결강도'].apply(lambda x: 500 if x > 500 else round(x, 2))
         df['직전체결강도'] = df['체결강도'].shift(1)
         df['직전당일거래대금'] = df['당일거래대금'].shift(1)
-        df = df.fillna(0)
+        df = df.fillna(method='bfill')
         df['초당거래대금'] = df['당일거래대금'] - df['직전당일거래대금']
         df['초당거래대금'].iloc[0] = 0
         df['직전초당거래대금'] = df['초당거래대금'].shift(1)
-        df = df.fillna(0)
+        df = df.fillna(method='bfill')
         df['초당거래대금평균'] = df['직전초당거래대금'].rolling(window=tickcount).mean()
         df['체결강도평균'] = df['직전체결강도'].rolling(window=tickcount).mean()
         df['최고체결강도'] = df['직전체결강도'].rolling(window=tickcount).max()
