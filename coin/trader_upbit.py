@@ -280,6 +280,7 @@ class TraderUpbit:
 
     """ 시장가 주문의 체결확인은 리턴값중 체결수량만 확인하여 그 수량이 0을 초과할 경우 매도수를 기록한다. """
     def CheckBuyChegeol(self):
+        buy_list = []
         for code, uuid in self.buy_uuid.items():
             ret = self.upbit.get_order(uuid)
             if ret is not None and self.CheckError(ret):
@@ -291,10 +292,14 @@ class TraderUpbit:
                 if cc > 0:
                     cp = round(tg / cc, 2)
                     cc = round(cc, 8)
-                    self.UpdateBuy(code, cp, cc)
+                    buy_list.append([code, cp, cc])
             time.sleep(0.2)
+        if len(buy_list) > 0:
+            for code, cp, cc in buy_list:
+                self.UpdateBuy(code, cp, cc)
 
     def CheckSellChegeol(self):
+        sell_list = []
         for code, uuid in self.sell_uuid.items():
             ret = self.upbit.get_order(uuid)
             if ret is not None and self.CheckError(ret):
@@ -306,8 +311,12 @@ class TraderUpbit:
                 if cc > 0:
                     cp = round(tg / cc, 2)
                     cc = round(cc, 8)
-                    self.UpdateSell(code, cp, cc)
+                    sell_list.append([code, cp, cc])
             time.sleep(0.2)
+            time.sleep(0.2)
+        if len(sell_list) > 0:
+            for code, cp, cc in sell_list:
+                self.UpdateSell(code, cp, cc)
 
     """ 주문과 체결확인의 리턴값에 에러가 있을 경우 에러명과 메세지를 로그에 기록한다."""
     def CheckError(self, ret):
