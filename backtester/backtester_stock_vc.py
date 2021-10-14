@@ -274,8 +274,8 @@ class BackTesterStockVc:
         매수잔량3 = self.df['매수잔량3'][self.index]
         매수잔량4 = self.df['매수잔량4'][self.index]
         매수잔량5 = self.df['매수잔량5'][self.index]
-        남은수량 = self.buyprice
-        직전남은수량 = self.buyprice
+        남은수량 = self.buycount
+        직전남은수량 = self.buycount
         매도금액 = 0
         호가정보 = {매수호가1: 매수잔량1, 매수호가2: 매수잔량2, 매수호가3: 매수잔량3, 매수호가4: 매수잔량4, 매수호가5: 매수잔량5}
         for 매수호가, 매수잔량 in 호가정보.items():
