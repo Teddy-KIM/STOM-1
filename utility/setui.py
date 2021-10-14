@@ -388,7 +388,7 @@ def SetUI(self):
     self.csb_pushButton_07 = setPushbutton('초당거래대금차이', box=self.cs_tab, click=self.ButtonClicked_45)
     self.csb_pushButton_08 = setPushbutton('당일거래대금하한', box=self.cs_tab, click=self.ButtonClicked_46)
     self.csb_pushButton_09 = setPushbutton('호가총잔량비교', box=self.cs_tab, click=self.ButtonClicked_47)
-    self.csb_pushButton_10 = setPushbutton('VI직전매도', box=self.cs_tab, click=self.ButtonClicked_48)
+    self.csb_pushButton_10 = setPushbutton('1호가잔량비교', box=self.cs_tab, click=self.ButtonClicked_48)
     self.csb_pushButton_11 = setPushbutton('', box=self.cs_tab, click=self.ButtonClicked_49)
     self.csb_pushButton_12 = setPushbutton('', box=self.cs_tab, click=self.ButtonClicked_50)
     self.csb_pushButton_13 = setPushbutton('', box=self.cs_tab, click=self.ButtonClicked_51)
