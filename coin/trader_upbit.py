@@ -313,7 +313,6 @@ class TraderUpbit:
                     cc = round(cc, 8)
                     sell_list.append([code, cp, cc])
             time.sleep(0.2)
-            time.sleep(0.2)
         if len(sell_list) > 0:
             for code, cp, cc in sell_list:
                 self.UpdateSell(code, cp, cc)
