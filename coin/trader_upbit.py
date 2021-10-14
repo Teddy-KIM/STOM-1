@@ -436,9 +436,15 @@ class TraderUpbit:
             bct = len(self.df_jg)
             tsp = round(tsg / tbg * 100, 2)
             ttg = self.dict_intg['예수금'] + tpg
-            self.df_tj.at[self.str_today] = ttg, self.dict_intg['예수금'], bct, tsp, tsg, tbg, tpg
+            self.df_tj = pd.DataFrame(
+                [[ttg, self.dict_intg['예수금'], bct, tsp, tsg, tbg, tpg]],
+                columns=columns_tj, index=[self.str_today]
+            )
         else:
-            self.df_tj.at[self.str_today] = self.dict_intg['예수금'], self.dict_intg['예수금'], 0, 0.0, 0, 0, 0
+            self.df_tj = pd.DataFrame(
+                [[self.dict_intg['예수금'], self.dict_intg['예수금'], 0, 0.0, 0, 0, 0]],
+                columns=columns_tj, index=[self.str_today]
+            )
         self.windowQ.put([ui_num['C잔고목록'], self.df_jg])
         self.windowQ.put([ui_num['C잔고평가'], self.df_tj])
 
