@@ -391,6 +391,7 @@ class Window(QtWidgets.QMainWindow):
         df['직전당일거래대금'] = df['당일거래대금'].shift(1)
         df = df.fillna(0)
         df['초당거래대금'] = df['당일거래대금'] - df['직전당일거래대금']
+        df['초당거래대금'].iloc[0] = 0
         df['직전초당거래대금'] = df['초당거래대금'].shift(1)
         df = df.fillna(0)
         df['초당거래대금평균'] = df['직전초당거래대금'].rolling(window=tickcount).mean()
@@ -399,6 +400,9 @@ class Window(QtWidgets.QMainWindow):
         df['검색날짜'] = df.index
         df['검색날짜'] = df['검색날짜'].apply(lambda x: x[:8])
         df = df[(df['검색날짜'] == searchdate) & (df['초당거래대금'] > 0)]
+        df['체결시간'] = df.index
+        df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
+        df = df.set_index('체결시간')
 
         if len(df) == 0:
             QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
@@ -465,9 +469,6 @@ class Window(QtWidgets.QMainWindow):
         self.ctpg_01.clear()
         self.ctpg_02.clear()
         self.ctpg_03.clear()
-        df['체결시간'] = df.index
-        df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
-        df = df.set_index('체결시간')
         unix_ts = [x.timestamp() - 32400 for x in df.index]
         self.ctpg_01.plot(x=unix_ts, y=df['현재가'], pen=(255, 0, 0))
         self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
