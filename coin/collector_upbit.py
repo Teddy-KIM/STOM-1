@@ -16,9 +16,8 @@ class CollectorUpbit:
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
         self.tick5Q = qlist[15]
-
         self.dict_df = {}                   # 틱데이터 저장용 딕셔너리 key: code, value: datafame
-        self.dict_orderbook = {}            # 오더북 저장용 딕셔너리
+        self.dict_ob = {}                   # 오더북 저장용 딕셔너리
         self.time_save = timedelta_sec(60)  # 틱데이터 저장주기 확인용
         self.Start()
 
@@ -36,11 +35,10 @@ class CollectorUpbit:
         receivetime = data[-1]
         del data[-3:]
 
-        if code not in self.dict_orderbook.keys():
+        if code not in self.dict_ob.keys():
             return
 
-        data += self.dict_orderbook[code]
-
+        data += self.dict_ob[code]
         if code not in self.dict_df.keys():
             self.dict_df[code] = pd.DataFrame([data], columns=columns_cc, index=[dt])
         else:
@@ -56,4 +54,4 @@ class CollectorUpbit:
     def UpdateOrderbook(self, data):
         code = data[0]
         del data[0]
-        self.dict_orderbook[code] = data
+        self.dict_ob[code] = data

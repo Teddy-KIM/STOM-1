@@ -61,7 +61,7 @@ class StrategyCoin:
         while True:
             data = self.cstgQ.get()
             if type(data) == int:
-                self.UpdateTotaljasan(data)
+                self.int_tujagm = data
             elif type(data) == list:
                 if len(data) == 2:
                     self.UpdateList(data[0], data[1])
@@ -76,14 +76,6 @@ class StrategyCoin:
             if now() > self.dict_time['관심종목']:
                 self.windowQ.put([ui_num['C관심종목'], self.dict_gsjm])
                 self.dict_time['관심종목'] = timedelta_sec(1)
-
-    def UpdateTotaljasan(self, data):
-        self.int_tujagm = data
-
-    def UpdateOrderbook(self, data):
-        code = data[0]
-        data.remove(code)
-        self.dict_hgjr[code] = data
 
     def UpdateList(self, gubun, code):
         if gubun == '조건진입':
@@ -123,6 +115,11 @@ class StrategyCoin:
                 self.sellstrategy1 = None
             else:
                 self.sellstrategy2 = None
+
+    def UpdateOrderbook(self, data):
+        code = data[0]
+        data.remove(code)
+        self.dict_hgjr[code] = data
 
     def BuyStrategy(self, 현재가, 시가, 고가, 저가, 등락율, 당일거래대금, 초당매수수량, 초당매도수량,
                     누적매수량, 누적매도량, 종목명, 체결시간, 수신시간, 잔고종목):

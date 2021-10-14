@@ -18,7 +18,8 @@ STYLES = {
     'brace': color_format(QColor(230, 230, 235)),
     'defclass': color_format(QColor(255, 100, 0), 'bold'),
     'string': color_format(QColor(0, 255, 0)),
-    'string2': color_format(QColor(0, 180, 0)),
+    'string2': color_format(QColor(0, 225, 0)),
+    'string3': color_format(QColor(0, 255, 0)),
     'comment': color_format(QColor(0, 150, 0), 'italic'),
     'self': color_format(QColor(255, 0, 255)),
     'numbers': color_format(QColor(0, 255, 255)),
@@ -38,6 +39,7 @@ class PythonHighlighter(QSyntaxHighlighter):
     ]
     braces = ['\{', '\}', '\(', '\)', '\[', '\]']
     type = ['int', 'float', 'round', 'str', 'datetime']
+    string3 = ['"""']
 
     def __init__(self, document):
         QSyntaxHighlighter.__init__(self, document)
@@ -49,6 +51,7 @@ class PythonHighlighter(QSyntaxHighlighter):
         rules += [(r'%s' % o, 0, STYLES['operator']) for o in PythonHighlighter.operators]
         rules += [(r'%s' % b, 0, STYLES['brace']) for b in PythonHighlighter.braces]
         rules += [(r'%s' % t, 0, STYLES['type']) for t in PythonHighlighter.type]
+        rules += [(r'%s' % s, 0, STYLES['string3']) for s in PythonHighlighter.string3]
         rules += [
             (r'\bself\b', 0, STYLES['self']),
             (r'"[^"\\]*(\\.[^"\\]*)*"', 0, STYLES['string']),
