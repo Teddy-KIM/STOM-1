@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import *
 from utility.setting import *
 
-BATTING = 20000000     # 종목당 배팅금액
+BETTING = 10000000     # 종목당 배팅금액
 TESTPERIOD = 10        # 백테스팅 기간
 TOTALTIME = 864000     # 백테스팅 시간 총합, 단위 초
 START_TIME = 0
@@ -137,7 +137,7 @@ class BackTesterCoinVc:
         초당거래대금 = self.df['초당거래대금'][self.index]
         초당거래대금평균 = self.df['초당거래대금평균'][self.index]
         체결강도 = self.df['체결강도'][self.index]
-        직전체결강도 = self.df['체결강도'][self.indexn - 1]
+        직전체결강도 = self.df['직전체결강도'][self.index]
         체결강도평균 = self.df['체결강도평균'][self.index]
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
@@ -227,7 +227,7 @@ class BackTesterCoinVc:
         초당거래대금 = self.df['초당거래대금'][self.index]
         초당거래대금평균 = self.df['초당거래대금평균'][self.index]
         체결강도 = self.df['체결강도'][self.index]
-        직전체결강도 = self.df['체결강도'][self.indexn - 1]
+        직전체결강도 = self.df['직전체결강도'][self.index]
         체결강도평균 = self.df['체결강도평균'][self.index]
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
@@ -443,11 +443,11 @@ class Total:
                 avgsp = round(df_back['수익률'].sum() / tc, 2)
                 tsg = int(df_back['수익금'].sum())
                 onedaycount = round(tc / TOTALTIME, 4)
-                onegm = int(BATTING * onedaycount * avghold)
-                if onegm < BATTING:
-                    onegm = BATTING
+                onegm = int(BETTING * onedaycount * avghold)
+                if onegm < BETTING:
+                    onegm = BETTING
                 tsp = round(tsg / onegm * 100, 4)
-                text = f" 종목당 배팅금액 {format(BATTING, ',')}원, 필요자금 {format(onegm, ',')}원, "\
+                text = f" 종목당 배팅금액 {format(BETTING, ',')}원, 필요자금 {format(onegm, ',')}원, "\
                        f" 종목출현빈도수 {onedaycount}개/초, 거래횟수 {tc}회, 평균보유기간 {avghold}초,\n 익절 {pc}회, "\
                        f" 손절 {mc}회, 승률 {pper}%, 평균수익률 {avgsp}%, 수익률합계 {tsp}%, 수익금합계 {format(tsg, ',')}원"
                 print(text)

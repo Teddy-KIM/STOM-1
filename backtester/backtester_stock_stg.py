@@ -6,6 +6,8 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import *
 from utility.setting import *
 
+BETTING = 10000000     # 종목당 배팅금액
+
 
 class BackTesterStockStg:
     def __init__(self, q_, code_list_, var_, buystg_, sellstg_, df1_, df2_):
@@ -127,7 +129,7 @@ class BackTesterStockStg:
         초당거래대금 = self.df['초당거래대금'][self.index]
         초당거래대금평균 = self.df['초당거래대금평균'][self.index]
         체결강도 = self.df['체결강도'][self.index]
-        직전체결강도 = self.df['체결강도'][self.indexn - 1]
+        직전체결강도 = self.df['직전체결강도'][self.index]
         체결강도평균 = self.df['체결강도평균'][self.index]
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
@@ -170,7 +172,7 @@ class BackTesterStockStg:
         매도잔량2 = self.df['매도잔량2'][self.index]
         매도잔량1 = self.df['매도잔량1'][self.index]
         현재가 = self.df['현재가'][self.index]
-        매수수량 = round(10000000 / 현재가, 8)
+        매수수량 = round(BETTING / 현재가, 8)
         if 매수수량 > 0.00000001:
             남은수량 = 매수수량
             직전남은수량 = 매수수량
@@ -218,7 +220,7 @@ class BackTesterStockStg:
         초당거래대금 = self.df['초당거래대금'][self.index]
         초당거래대금평균 = self.df['초당거래대금평균'][self.index]
         체결강도 = self.df['체결강도'][self.index]
-        직전체결강도 = self.df['체결강도'][self.indexn - 1]
+        직전체결강도 = self.df['직전체결강도'][self.index]
         체결강도평균 = self.df['체결강도평균'][self.index]
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
@@ -408,11 +410,11 @@ class Total:
                 avgsp = round(df_back['수익률'].sum() / tc, 2)
                 tsg = int(df_back['수익금'].sum())
                 onedaycount = round(tc / self.totaltime, 4)
-                onegm = int(10000000 * onedaycount * avghold)
-                if onegm < 10000000:
-                    onegm = 10000000
+                onegm = int(BETTING * onedaycount * avghold)
+                if onegm < BETTING:
+                    onegm = BETTING
                 tsp = round(tsg / onegm * 100, 4)
-                text = f" 종목당 배팅금액 {format(10000000, ',')}원, 필요자금 {format(onegm, ',')}원, "\
+                text = f" 종목당 배팅금액 {format(BETTING, ',')}원, 필요자금 {format(onegm, ',')}원, "\
                        f" 종목출현빈도수 {onedaycount}개/초, 거래횟수 {tc}회, 평균보유기간 {avghold}초,\n 익절 {pc}회, "\
                        f" 손절 {mc}회, 승률 {pper}%, 평균수익률 {avgsp}%, 수익률합계 {tsp}%, 수익금합계 {format(tsg, ',')}원"
                 print(text)
