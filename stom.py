@@ -38,7 +38,7 @@ class Window(QtWidgets.QMainWindow):
 
         SetUI(self)
 
-        if int(strf_time('%H%M%S')) < 80000 or 160000 < int(strf_time('%H%M%S')):
+        if int(strf_time('%H%M%S')) < 83000 or 160000 < int(strf_time('%H%M%S')):
             self.main_tabWidget.setCurrentWidget(self.ct_tab)
 
         self.counter = 0
@@ -1533,19 +1533,19 @@ class Window(QtWidgets.QMainWindow):
             smavg = dict_df[code]['초당거래대금'][avgindex]
             item = QtWidgets.QTableWidgetItem(changeFormat(smavg).split('.')[0])
             item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-            gj_tableWidget.setItem(j, columns_gj3.index('sm_avg'), item)
+            gj_tableWidget.setItem(j, columns_gj_.index('sm_avg'), item)
 
             chavg = dict_df[code]['체결강도'][avgindex]
             item = QtWidgets.QTableWidgetItem(changeFormat(chavg))
             item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-            gj_tableWidget.setItem(j, columns_gj3.index('ch_avg'), item)
+            gj_tableWidget.setItem(j, columns_gj_.index('ch_avg'), item)
 
             chhigh = dict_df[code]['최고체결강도'][avgindex]
             item = QtWidgets.QTableWidgetItem(changeFormat(chhigh))
             item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-            gj_tableWidget.setItem(j, columns_gj3.index('ch_high'), item)
+            gj_tableWidget.setItem(j, columns_gj_.index('ch_high'), item)
 
-            for i, column in enumerate(columns_gj2):
+            for i, column in enumerate(columns_gj[:-1]):
                 if column in ['초당거래대금', '당일거래대금']:
                     item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0], dotdowndel=True))
                 else:

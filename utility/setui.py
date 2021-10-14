@@ -266,7 +266,7 @@ def SetUI(self):
     self.std_tableWidget = setTablewidget(self.st_tab, columns_td, 13, clicked=self.CellClicked_01)
     self.stj_tableWidget = setTablewidget(self.st_tab, columns_tj, 1)
     self.sjg_tableWidget = setTablewidget(self.st_tab, columns_jg, 13, clicked=self.CellClicked_02)
-    self.sgj_tableWidget = setTablewidget(self.st_tab, columns_gj3, 15, clicked=self.CellClicked_01)
+    self.sgj_tableWidget = setTablewidget(self.st_tab, columns_gj_, 15, clicked=self.CellClicked_01)
     self.scj_tableWidget = setTablewidget(self.st_tab, columns_cj, 15, clicked=self.CellClicked_01)
 
     self.s_calendarWidget = QtWidgets.QCalendarWidget(self.st_tab)
@@ -295,7 +295,7 @@ def SetUI(self):
     self.ctd_tableWidget = setTablewidget(self.ct_tab, columns_td, 13, clicked=self.CellClicked_01)
     self.ctj_tableWidget = setTablewidget(self.ct_tab, columns_tj, 1)
     self.cjg_tableWidget = setTablewidget(self.ct_tab, columns_jg, 13, clicked=self.CellClicked_03)
-    self.cgj_tableWidget = setTablewidget(self.ct_tab, columns_gj3, 15, clicked=self.CellClicked_01)
+    self.cgj_tableWidget = setTablewidget(self.ct_tab, columns_gj_, 15, clicked=self.CellClicked_01)
     self.ccj_tableWidget = setTablewidget(self.ct_tab, columns_cj, 15, clicked=self.CellClicked_01)
 
     self.c_calendarWidget = QtWidgets.QCalendarWidget(self.ct_tab)

@@ -84,10 +84,10 @@ class StrategyStock:
         if '조건진입' in gubun:
             if code not in self.dict_gsjm.keys():
                 if int(strf_time('%H%M%S')) < 100000:
-                    data = np.zeros((DICT_SET['주식장초평균값계산틱수'] + 2, len(columns_gj1))).tolist()
+                    data = np.zeros((DICT_SET['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
                 else:
-                    data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj1))).tolist()
-                df = pd.DataFrame(data, columns=columns_gj1)
+                    data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                df = pd.DataFrame(data, columns=columns_gj)
                 self.dict_gsjm[code] = df.copy()
         elif gubun == '조건이탈':
             if code in self.dict_gsjm.keys():
@@ -229,6 +229,6 @@ class StrategyStock:
 
     def UpdateGoansimJongmok(self):
         for code in list(self.dict_gsjm.keys()):
-            data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj1))).tolist()
-            df = pd.DataFrame(data, columns=columns_gj1)
+            data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+            df = pd.DataFrame(data, columns=columns_gj)
             self.dict_gsjm[code] = df.copy()
