@@ -465,12 +465,16 @@ class Window(QtWidgets.QMainWindow):
         self.ctpg_01.clear()
         self.ctpg_02.clear()
         self.ctpg_03.clear()
-        self.ctpg_01.plot(df['현재가'], pen=(255, 0, 0))
-        self.ctpg_02.plot(df['체결강도'], pen=(0, 255, 0))
-        self.ctpg_02.plot(df['체결강도평균'], pen=(0, 180, 180))
-        self.ctpg_02.plot(df['최고체결강도'], pen=(180, 0, 0))
-        self.ctpg_03.plot(df['초당거래대금'], pen=(0, 0, 255))
-        self.ctpg_03.plot(df['체결강도평균'], pen=(0, 180, 180))
+        df['체결시간'] = df.index
+        df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
+        df = df.set_index('체결시간')
+        unix_ts = [x.timestamp() for x in df.index]
+        self.ctpg_01.plot(x=unix_ts, y=df['현재가'], pen=(255, 0, 0))
+        self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
+        self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
+        self.ctpg_02.plot(x=unix_ts, y=df['최고체결강도'], pen=(180, 0, 0))
+        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(0, 0, 255))
+        self.ctpg_03.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
         self.ctpg_01.getAxis('bottom').setLabel(text=name)
         crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
 

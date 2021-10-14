@@ -554,9 +554,9 @@ def SetUI(self):
     self.ct_pushButton_01 = setPushbutton('검색하기', box=self.ct_groupBox_01, click=self.ReturnPress_01)
 
     ctpg = pyqtgraph.GraphicsLayoutWidget()
-    self.ctpg_01 = ctpg.addPlot(row=0, col=0, viewBox=CustomViewBox())
-    self.ctpg_02 = ctpg.addPlot(row=1, col=0, viewBox=CustomViewBox())
-    self.ctpg_03 = ctpg.addPlot(row=2, col=0, viewBox=CustomViewBox())
+    self.ctpg_01 = ctpg.addPlot(row=0, col=0, viewBox=CustomViewBox(), axisItems={'bottom': pyqtgraph.DateAxisItem()})
+    self.ctpg_02 = ctpg.addPlot(row=1, col=0, viewBox=CustomViewBox(), axisItems={'bottom': pyqtgraph.DateAxisItem()})
+    self.ctpg_03 = ctpg.addPlot(row=2, col=0, viewBox=CustomViewBox(), axisItems={'bottom': pyqtgraph.DateAxisItem()})
     self.ctpg_01.showAxis('left', False)
     self.ctpg_01.showAxis('right', True)
     self.ctpg_01.getAxis('right').setStyle(tickTextWidth=45, autoExpandTextSpace=False)
