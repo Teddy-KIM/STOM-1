@@ -9,7 +9,6 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import *
 from utility.setting import *
 
-MONEYTOP_CHANGE = 100000    # 최근거래대금순위로 변경할 시간
 MONEYTOP_MINUTE = 10        # 최근거래대금순위을 집계할 시간
 MONEYTOP_RANK = 10          # 최근거래대금순위중 관심종목으로 선정할 순위
 
@@ -51,6 +50,7 @@ class ReceiverKiwoom:
         self.dict_hoga = {}
         self.dict_cond = {}
         self.dict_name = {}
+        self.dict_code = {}
 
         self.list_gsjm = []
         self.list_gsjm2 = []
@@ -111,13 +111,12 @@ class ReceiverKiwoom:
 
         self.list_kosd = self.GetCodeListByMarket('10')
         list_code = self.GetCodeListByMarket('0') + self.list_kosd
-        dict_code = {}
         df = pd.DataFrame(columns=['종목명'])
         for code in list_code:
             name = self.GetMasterCodeName(code)
             df.at[code] = name
             self.dict_name[code] = name
-            dict_code[name] = code
+            self.dict_code[name] = code
 
         self.query2Q.put([1, df, 'codename', 'replace'])
 
@@ -150,10 +149,10 @@ class ReceiverKiwoom:
             if self.operation == 1 and now() > self.dict_time['휴무종료']:
                 break
             if self.operation == 3:
-                if int(strf_time('%H%M%S')) < MONEYTOP_CHANGE:
+                if int(strf_time('%H%M%S')) < 100000:
                     if not self.dict_bool['실시간조건검색시작']:
                         self.ConditionSearchStart()
-                if MONEYTOP_CHANGE <= int(strf_time('%H%M%S')):
+                if 100000 <= int(strf_time('%H%M%S')):
                     if self.dict_bool['실시간조건검색시작'] and not self.dict_bool['실시간조건검색중단']:
                         self.ConditionSearchStop()
                     if not self.dict_bool['장중단타전략시작']:
@@ -288,7 +287,7 @@ class ReceiverKiwoom:
         con.close()
         codes = []
         for index in df.index:
-            code = self.dict_name[df['종목명'][index]]
+            code = self.dict_code[df['종목명'][index]]
             if code not in codes:
                 codes.append(code)
         self.tick1Q.put(['콜렉터종료', codes])
@@ -335,7 +334,7 @@ class ReceiverKiwoom:
     def OnReceiveRealCondition(self, code, IorD, cname, cindex):
         if cname == '' and cindex == '':
             return
-        if int(strf_time('%H%M%S')) > MONEYTOP_CHANGE:
+        if int(strf_time('%H%M%S')) > 100000:
             return
 
         if IorD == 'I':

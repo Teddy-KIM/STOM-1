@@ -15,39 +15,33 @@ class StrategyStock:
                    11       12      13     14      15
         """
         self.windowQ = qlist[0]
-        self.soundQ = qlist[1]
         self.teleQ = qlist[4]
         self.stockQ = qlist[7]
         self.sstgQ = qlist[9]
 
         con = sqlite3.connect(DB_STOCK_STRETEGY)
-        df = pd.read_sql('SELECT * FROM init', con).set_index('index')
-        if len(df) > 0 and '현재전략' in df.index:
-            self.init_var = compile(df['전략코드']['현재전략'], '<string>', 'exec')
-        else:
-            self.init_var = None
-
-        df = pd.read_sql('SELECT * FROM buy', con).set_index('index')
-        if len(df) > 0 and '현재전략' in df.index:
-            self.buystrategy = compile(df['전략코드']['현재전략'], '<string>', 'exec')
-        else:
-            self.buystrategy = None
-
-        df = pd.read_sql('SELECT * FROM sell', con).set_index('index')
+        dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
+        dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')
         con.close()
-        if len(df) > 0 and '현재전략' in df.index:
-            self.sellstrategy = compile(df['전략코드']['현재전략'], '<string>', 'exec')
-        else:
-            self.sellstrategy = None
 
-        if self.init_var is not None:
-            try:
-                exec(self.init_var, None, globals())
-            except Exception as e:
-                self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - __init__ {e}'])
+        self.buystrategy1 = None
+        if DICT_SET['주식장초매수전략'] != '':
+            self.buystrategy1 = compile(dfb['전략코드'][DICT_SET['주식장초매수전략']], '<string>', 'exec')
+        self.sellstrategy1 = None
+        if DICT_SET['주식장초매도전략'] != '':
+            self.sellstrategy1 = compile(dfs['전략코드'][DICT_SET['주식장초매도전략']], '<string>', 'exec')
+
+        self.buystrategy2 = None
+        if DICT_SET['주식장중매수전략'] != '':
+            self.buystrategy2 = compile(dfb['전략코드'][DICT_SET['주식장중매수전략']], '<string>', 'exec')
+        self.sellstrategy2 = None
+        if DICT_SET['주식장중매도전략'] != '':
+            self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['주식장중매도전략']], '<string>', 'exec')
 
         self.list_buy = []
         self.list_sell = []
+
+        self.startjjstg = False
         self.int_tujagm = 0
 
         self.dict_gsjm = {}     # key: 종목코드, value: DataFrame
@@ -74,17 +68,14 @@ class StrategyStock:
                                      data[33], data[34], data[35], data[36], data[37])
                 elif len(data) == 6:
                     self.SellStrategy(data[0], data[1], data[2], data[3], data[4], data[5])
-            elif data == '잔략프로세스종료':
+            elif data == '전략프로세스종료':
                 break
 
             if now() > self.dict_time['관심종목']:
                 self.windowQ.put([ui_num['S관심종목'], self.dict_gsjm])
                 self.dict_time['관심종목'] = timedelta_sec(1)
 
-        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더를 종료합니다.'])
-        if DICT_SET['알림소리1']:
-            self.soundQ.put('주식 전략 연산 프로세스를 종료합니다.')
-        self.teleQ.put('주식 전략 연산 프로세스를 종료하였습니다.')
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
 
     def UpdateTotaljasan(self, data):
         self.int_tujagm = data
@@ -92,7 +83,10 @@ class StrategyStock:
     def UpdateList(self, gubun, code):
         if '조건진입' in gubun:
             if code not in self.dict_gsjm.keys():
-                data = np.zeros((DICT_SET['평균값계산틱수1'] + 2, len(columns_gj1))).tolist()
+                if int(strf_time('%H%M%S')) < 100000:
+                    data = np.zeros((DICT_SET['주식장초평균값계산틱수'] + 2, len(columns_gj1))).tolist()
+                else:
+                    data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj1))).tolist()
                 df = pd.DataFrame(data, columns=columns_gj1)
                 self.dict_gsjm[code] = df.copy()
         elif gubun == '조건이탈':
@@ -105,13 +99,25 @@ class StrategyStock:
             if code in self.list_sell:
                 self.list_sell.remove(code)
         elif gubun == '매수전략':
-            self.buystrategy = compile(code, '<string>', 'exec')
+            if int(strf_time('%H%M%S')) < 100000:
+                self.buystrategy1 = compile(code, '<string>', 'exec')
+            else:
+                self.buystrategy2 = compile(code, '<string>', 'exec')
         elif gubun == '매도전략':
-            self.sellstrategy = compile(code, '<string>', 'exec')
+            if int(strf_time('%H%M%S')) < 100000:
+                self.sellstrategy1 = compile(code, '<string>', 'exec')
+            else:
+                self.sellstrategy2 = compile(code, '<string>', 'exec')
         elif gubun == '매수전략중지':
-            self.buystrategy = None
+            if int(strf_time('%H%M%S')) < 100000:
+                self.buystrategy1 = None
+            else:
+                self.buystrategy2 = None
         elif gubun == '매도전략중지':
-            self.sellstrategy = None
+            if int(strf_time('%H%M%S')) < 100000:
+                self.sellstrategy1 = None
+            else:
+                self.sellstrategy2 = None
 
     def BuyStrategy(self, 현재가, 시가, 고가, 저가, 등락율, 당일거래대금, 체결강도,
                     초당매수수량, 초당매도수량, VI해제시간, VI아래5호가, 매도총잔량, 매수총잔량,
@@ -121,10 +127,18 @@ class StrategyStock:
         if 종목코드 not in self.dict_gsjm.keys():
             return
 
+        self.CheckStrategy()
+
         고저평균 = round((고가 + 저가) / 2)
         고저평균대비등락율 = round((현재가 / 고저평균 - 1) * 100, 2)
         직전당일거래대금 = self.dict_gsjm[종목코드]['당일거래대금'][0]
         초당거래대금 = 0 if 직전당일거래대금 == 0 else int(당일거래대금 - 직전당일거래대금)
+
+        if int(strf_time('%H%M%S')) < 100000:
+            평균값계산틱수 = DICT_SET['코인장초평균값계산틱수']
+        else:
+            평균값계산틱수 = DICT_SET['코인장중평균값계산틱수']
+        평균값인덱스 = 평균값계산틱수 + 1
 
         self.dict_hgjr[종목코드] = \
             [매도총잔량, 매수총잔량,
@@ -132,8 +146,7 @@ class StrategyStock:
              매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, 매수잔량5]
         self.dict_gsjm[종목코드] = self.dict_gsjm[종목코드].shift(1)
         self.dict_gsjm[종목코드].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 당일거래대금, 체결강도, 0.
-        if self.dict_gsjm[종목코드]['체결강도'][DICT_SET['평균값계산틱수1']] != 0.:
-            평균값인덱스 = DICT_SET['평균값계산틱수1'] + 1
+        if self.dict_gsjm[종목코드]['체결강도'][평균값계산틱수] != 0.:
             초당거래대금평균 = int(self.dict_gsjm[종목코드]['초당거래대금'][1:평균값인덱스].mean())
             체결강도평균 = round(self.dict_gsjm[종목코드]['체결강도'][1:평균값인덱스].mean(), 2)
             최고체결강도 = round(self.dict_gsjm[종목코드]['체결강도'][1:평균값인덱스].max(), 2)
@@ -145,12 +158,20 @@ class StrategyStock:
                 return
 
             매수 = True
+            직전체결강도 = self.dict_gsjm[종목코드]['체결강도'][1]
 
-            if self.buystrategy is not None:
-                try:
-                    exec(self.buystrategy, None, locals())
-                except Exception as e:
-                    self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - BuyStrategy {e}'])
+            if int(strf_time('%H%M%S')) < 100000:
+                if self.buystrategy1 is not None:
+                    try:
+                        exec(self.buystrategy1, None, locals())
+                    except Exception as e:
+                        self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - BuyStrategy {e}'])
+            else:
+                if self.buystrategy2 is not None:
+                    try:
+                        exec(self.buystrategy2, None, locals())
+                    except Exception as e:
+                        self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - BuyStrategy {e}'])
 
         if now() > self.dict_time['연산시간']:
             gap = (now() - 틱수신시간).total_seconds()
@@ -162,7 +183,14 @@ class StrategyStock:
             return
         if 종목코드 in self.list_sell:
             return
-        if self.dict_gsjm[종목코드]['체결강도'][DICT_SET['평균값계산틱수1']] == 0.:
+
+        if int(strf_time('%H%M%S')) < 100000:
+            평균값계산틱수 = DICT_SET['코인장초평균값계산틱수']
+        else:
+            평균값계산틱수 = DICT_SET['코인장중평균값계산틱수']
+        평균값인덱스 = 평균값계산틱수 + 1
+
+        if self.dict_gsjm[종목명]['체결강도'][평균값계산틱수] == 0.:
             return
 
         매도 = False
@@ -172,6 +200,7 @@ class StrategyStock:
         초당거래대금 = self.dict_gsjm[종목코드]['초당거래대금'][0]
         초당거래대금평균 = self.dict_gsjm[종목코드]['초당거래대금'][평균값인덱스]
         체결강도 = self.dict_gsjm[종목코드]['체결강도'][0]
+        직전체결강도 = self.dict_gsjm[종목코드]['체결강도'][1]
         체결강도평균 = self.dict_gsjm[종목코드]['체결강도'][평균값인덱스]
         최고체결강도 = self.dict_gsjm[종목코드]['최고체결강도'][평균값인덱스]
         매도총잔량, 매수총잔량, \
@@ -179,8 +208,27 @@ class StrategyStock:
             매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, 매수잔량5 = \
             self.dict_hgjr[종목코드]
 
-        if self.sellstrategy is not None:
-            try:
-                exec(self.sellstrategy, None, locals())
-            except Exception as e:
-                self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - SellStrategy {e}'])
+        if int(strf_time('%H%M%S')) < 100000:
+            if self.sellstrategy1 is not None:
+                try:
+                    exec(self.sellstrategy1, None, locals())
+                except Exception as e:
+                    self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - SellStrategy {e}'])
+        else:
+            if self.sellstrategy2 is not None:
+                try:
+                    exec(self.sellstrategy2, None, locals())
+                except Exception as e:
+                    self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - SellStrategy {e}'])
+
+    def CheckStrategy(self):
+        if int(strf_time('%H%M%S')) >= 100000 and not self.startjjstg:
+            self.UpdateGoansimJongmok()
+            self.int_tujagm = self.int_tujagm * DICT_SET['주식장초최대매수종목수'] / DICT_SET['주식장중최대매수종목수']
+            self.startjjstg = True
+
+    def UpdateGoansimJongmok(self):
+        for code in list(self.dict_gsjm.keys()):
+            data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj1))).tolist()
+            df = pd.DataFrame(data, columns=columns_gj1)
+            self.dict_gsjm[code] = df.copy()

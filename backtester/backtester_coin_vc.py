@@ -67,8 +67,7 @@ class BackTesterCoinVc:
         int_daylimit = int(strf_time('%Y%m%d', timedelta_day(-TESTPERIOD)))
         for k, code in enumerate(self.code_list):
             self.code = code
-            self.df = pd.read_sql(f"SELECT * FROM '{code}'", conn)
-            self.df = self.df.set_index('index')
+            self.df = pd.read_sql(f"SELECT * FROM '{code}'", conn).set_index('index')
             self.df['고저평균대비등락율'] = (self.df['현재가'] / ((self.df['고가'] + self.df['저가']) / 2) - 1) * 100
             self.df['고저평균대비등락율'] = self.df['고저평균대비등락율'].round(2)
             self.df['체결강도'] = self.df['누적매수량'] / self.df['누적매도량'] * 100

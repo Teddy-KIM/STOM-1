@@ -24,8 +24,8 @@ class TraderUpbit:
         self.cstgQ = qlist[10]
 
         self.upbit = None                               # 매도수 주문 및 체결 확인용 객체
-        self.buy_uuid = None                            # 매수 주문 저장용 list: [티커명, uuid]
-        self.sell_uuid = None                           # 매도 주문 저장용 list: [티커명, uuid]
+        self.buy_uuid = {}                              # 매수 주문 저장용 딕셔너리 key : 티커명 value : uuid
+        self.sell_uuid = {}                             # 매도 주문 저장용 딕셔너리 key : 티커명 value : uuid
 
         self.df_cj = pd.DataFrame(columns=columns_cj)   # 체결목록
         self.df_jg = pd.DataFrame(columns=columns_jg)   # 잔고목록
@@ -43,7 +43,9 @@ class TraderUpbit:
         }
         self.dict_bool = {
             '최소주문금액': False,                        # 업비트 주문가능 최소금액, 종목당투자금이 5천원 미만일 경우 False
-            '실현손익저장': False
+            '실현손익저장': False,
+            '장초전략잔고청산': False if 90000 < int(strf_time('%H%M%S')) < 100000 else True,
+            '장중전략잔고청산': True if 90000 < int(strf_time('%H%M%S')) < 100000 else False
         }
         self.dict_time = {
             '매수체결확인': now(),                        # 1초 마다 매수 체결 확인용
@@ -92,7 +94,11 @@ class TraderUpbit:
 
     def GetBalances(self):
         """ 예수금 조회 및 종목당투자금 계산, 계산된 종목당투자금은 전략연산프로세스로 보낸다. """
-        if DICT_SET['모의투자2']:
+        if 90000 < int(strf_time('%H%M%S')) < 100000:
+            maxbuycount = DICT_SET['코인장초최대매수종목수']
+        else:
+            maxbuycount = DICT_SET['코인장중최대매수종목수']
+        if DICT_SET['코인모의투자']:
             con = sqlite3.connect(DB_TRADELIST)
             df = pd.read_sql('SELECT * FROM c_tradelist', con)
             con.close()
@@ -105,11 +111,11 @@ class TraderUpbit:
             cfee = int(round(cbg * self.dict_intg['업비트수수료']))
             chujeonjasan = 100000000 + tcg - bfee - sfee
             self.dict_intg['예수금'] = int(chujeonjasan - cbg - cfee)
-            self.dict_intg['종목당투자금'] = int(chujeonjasan * 0.99 / DICT_SET['최대매수종목수2'])
+            self.dict_intg['종목당투자금'] = int(chujeonjasan * 0.99 / maxbuycount)
         elif self.upbit is not None:
             cbg = self.df_jg['매입금액'].sum()
             self.dict_intg['예수금'] = int(float(self.upbit.get_balances()[0]['balance']))
-            self.dict_intg['종목당투자금'] = int((self.dict_intg['예수금'] + cbg) * 0.99 / DICT_SET['최대매수종목수2'])
+            self.dict_intg['종목당투자금'] = int((self.dict_intg['예수금'] + cbg) * 0.99 / maxbuycount)
         else:
             self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 오류 알림 - 업비트 키값이 설정되지 않았습니다.'])
 
@@ -134,13 +140,19 @@ class TraderUpbit:
                     if code in self.df_jg.index:
                         self.UpdateJango(code, c)
 
-            """ 주문의 체결확인은 1초마다 반복한다. """
-            if self.buy_uuid is not None and now() > self.dict_time['매수체결확인']:
+            """ 주문의 체결확인은 0.5초마다 반복한다. """
+            if len(self.buy_uuid) > 0 and now() > self.dict_time['매수체결확인']:
                 self.CheckBuyChegeol()
-                self.dict_time['매수체결확인'] = timedelta_sec(1)
-            if self.sell_uuid is not None and now() > self.dict_time['매도체결확인']:
+                self.dict_time['매수체결확인'] = timedelta_sec(0.5)
+            if len(self.sell_uuid) > 0 and now() > self.dict_time['매도체결확인']:
                 self.CheckSellChegeol()
-                self.dict_time['매도체결확인'] = timedelta_sec(1)
+                self.dict_time['매도체결확인'] = timedelta_sec(0.5)
+
+            """ 9시와 10시 전략이 바뀌는 시점에 잔고청산한다. """
+            if 90000 < int(strf_time('%H%M%S')) < 100000 and not self.dict_bool['장중전략잔고청산']:
+                self.JangoCheongsan1()
+            if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
+                self.JangoCheongsan2()
 
             """ 잔고평가 및 잔고목록 갱신도 1초마다 반복한다. """
             if now() > self.dict_time['거래정보']:
@@ -155,9 +167,9 @@ class TraderUpbit:
 
     """
     모의투자 시 실제 매도수 주문을 전송하지 않고 바로 체결목록, 잔고목록 등을 갱신한다.
-    실매매 시 매도수 아이디 및 티커명을 매도, 매수 구분하여 변수에 저장하고
-    해당 변수값이 None이 아닐 경우 get_order 함수로 체결확인을 1초마다 반복실행한다.
-    체결이 완료되면 관련목록을 갱신하고 변수값이 다시 None으로 변경된다.
+    실매매 시 매도수 아이디 및 티커명을 매도, 매수 구분하여 딕셔너리에 저장하고
+    딕셔너리의 길이가 0이상일 경우 get_order 함수로 체결확인을 1초마다 반복실행한다.
+    체결이 완료되면 관련목록을 갱신하고 딕셔너리에서 삭제한다.
     체결확인 후 잔고목록를 갱신 한 이후에 전략 연산 프로세스로 체결완료 신호를 보낸다.
     모든 목록은 갱신될 때마다 쿼리 프로세스로 보내어 DB에 실시간으로 기록된다.
     매수 주문은 예수금 부족인지 아닌지를 우선 확인하여 예수금 부족일 경우 주문구분을 시드부족으로 체결목록에 기록한다.
@@ -169,7 +181,7 @@ class TraderUpbit:
             self.windowQ.put([ui_num['C로그텍스트'], '매매 시스템 오류 알림 - 종목당 투자금이 5천원 미만이라 주문할 수 없습니다.'])
             self.cstgQ.put(['매수취소', code])
             return
-        if self.buy_uuid is not None or code in self.df_jg.index:
+        if code in self.buy_uuid.keys() or code in self.df_jg.index:
             self.cstgQ.put(['매수취소', code])
             return
         if self.dict_intg['예수금'] < c * oc:
@@ -179,14 +191,13 @@ class TraderUpbit:
             self.cstgQ.put(['매수취소', code])
             return
 
-        if DICT_SET['모의투자2']:
+        if DICT_SET['코인모의투자']:
             self.UpdateBuy(code, c, oc)
         elif self.upbit is not None:
             ret = self.upbit.buy_market_order(code, self.dict_intg['종목당투자금'])
             if ret is not None:
                 if self.CheckError(ret):
-                    self.buy_uuid = [code, ret['uuid']]
-                    self.dict_time['매수체결확인'] = timedelta_sec(1)
+                    self.buy_uuid[code] = ret['uuid']
             else:
                 self.cstgQ.put(['매수취소', code])
                 self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 오류 알림 - 주문 실패 {code}'])
@@ -195,21 +206,66 @@ class TraderUpbit:
             self.dict_bool['실현손익저장'] = False
 
     def Sell(self, code, c, oc):
-        if self.sell_uuid is not None or code not in self.df_jg.index:
+        if code in self.sell_uuid.keys() or code not in self.df_jg.index:
             self.cstgQ.put(['매도취소', code])
             return
 
-        if DICT_SET['모의투자2']:
+        if DICT_SET['코인모의투자']:
             self.UpdateSell(code, c, oc)
         elif self.upbit is not None:
             ret = self.upbit.sell_market_order(code, oc)
             if ret is not None:
                 if self.CheckError(ret):
-                    self.sell_uuid = [code, ret['uuid']]
-                    self.dict_time['매도체결확인'] = timedelta_sec(1)
+                    self.sell_uuid[code] = ret['uuid']
             else:
                 self.cstgQ.put(['매도취소', code])
                 self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 오류 알림 - 주문 실패 {code}'])
+
+    def JangoCheongsan1(self):
+        self.dict_bool['장초전략잔고청산'] = True
+        self.dict_bool['장중전략잔고청산'] = False
+        self.cstgQ.put(self.df_tj['추정예탁자산'][self.str_today])
+        for code in self.df_jg.index:
+            c = self.df_jg['현재가'][code]
+            oc = self.df_jg['보유수량'][code]
+            if DICT_SET['코인모의투자']:
+                self.UpdateSell(code, c, oc)
+            elif self.upbit is not None:
+                ret = self.upbit.sell_market_order(code, oc)
+                if ret is not None:
+                    if self.CheckError(ret):
+                        self.sell_uuid[code] = ret['uuid']
+                else:
+                    self.cstgQ.put(['매도취소', code])
+                    self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 오류 알림 - 주문 실패 {code}'])
+            time.sleep(0.2)
+
+        self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 장초전략 잔고청산 주문 완료'])
+        if DICT_SET['알림소리2']:
+            self.soundQ.put('코인 장초전략 잔고청산 주문을 전송하였습니다.')
+
+    def JangoCheongsan2(self):
+        self.dict_bool['장중전략잔고청산'] = True
+        self.dict_bool['장초전략잔고청산'] = False
+        self.cstgQ.put(self.df_tj['추정예탁자산'][self.str_today])
+        for code in self.df_jg.index:
+            c = self.df_jg['현재가'][code]
+            oc = self.df_jg['보유수량'][code]
+            if DICT_SET['코인모의투자']:
+                self.UpdateSell(code, c, oc)
+            elif self.upbit is not None:
+                ret = self.upbit.sell_market_order(code, oc)
+                if ret is not None:
+                    if self.CheckError(ret):
+                        self.sell_uuid[code] = ret['uuid']
+                else:
+                    self.cstgQ.put(['매도취소', code])
+                    self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 오류 알림 - 주문 실패 {code}'])
+            time.sleep(0.2)
+
+        self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 장중전략 잔고청산 주문 완료'])
+        if DICT_SET['알림소리2']:
+            self.soundQ.put('코인 장중전략 잔고청산 주문을 전송하였습니다.')
 
     """ 리시버가 보내온 현재가와 잔고목록의 현재가가 틀릴 경우만 잔고목록을 갱신하고 매도전략 확인용 데이터를 전략연산 프로세스로 보낸다. """
     def UpdateJango(self, code, c):
@@ -224,32 +280,34 @@ class TraderUpbit:
 
     """ 시장가 주문의 체결확인은 리턴값중 체결수량만 확인하여 그 수량이 0을 초과할 경우 매도수를 기록한다. """
     def CheckBuyChegeol(self):
-        code = self.buy_uuid[0]
-        ret = self.upbit.get_order(self.buy_uuid[1])
-        if ret is not None and self.CheckError(ret):
-            trades = ret['trades']
-            tg, cc = 0, 0
-            for i in range(len(trades)):
-                tg += float(trades[i]['price']) * float(trades[i]['volume'])
-                cc += float(trades[i]['volume'])
-            if cc > 0:
-                cp = round(tg / cc, 2)
-                cc = round(cc, 8)
-                self.UpdateBuy(code, cp, cc)
+        for code, uuid in self.buy_uuid.items():
+            ret = self.upbit.get_order(uuid)
+            if ret is not None and self.CheckError(ret):
+                trades = ret['trades']
+                tg, cc = 0, 0
+                for i in range(len(trades)):
+                    tg += float(trades[i]['price']) * float(trades[i]['volume'])
+                    cc += float(trades[i]['volume'])
+                if cc > 0:
+                    cp = round(tg / cc, 2)
+                    cc = round(cc, 8)
+                    self.UpdateBuy(code, cp, cc)
+            time.sleep(0.2)
 
     def CheckSellChegeol(self):
-        code = self.sell_uuid[0]
-        ret = self.upbit.get_order(self.sell_uuid[1])
-        if ret is not None and self.CheckError(ret):
-            trades = ret['trades']
-            tg, cc = 0, 0
-            for i in range(len(trades)):
-                tg += float(trades[i]['price']) * float(trades[i]['volume'])
-                cc += float(trades[i]['volume'])
-            if cc > 0:
-                cp = round(tg / cc, 2)
-                cc = round(cc, 8)
-                self.UpdateSell(code, cp, cc)
+        for code, uuid in self.sell_uuid.items():
+            ret = self.upbit.get_order(uuid)
+            if ret is not None and self.CheckError(ret):
+                trades = ret['trades']
+                tg, cc = 0, 0
+                for i in range(len(trades)):
+                    tg += float(trades[i]['price']) * float(trades[i]['volume'])
+                    cc += float(trades[i]['volume'])
+                if cc > 0:
+                    cp = round(tg / cc, 2)
+                    cc = round(cc, 8)
+                    self.UpdateSell(code, cp, cc)
+            time.sleep(0.2)
 
     """ 주문과 체결확인의 리턴값에 에러가 있을 경우 에러명과 메세지를 로그에 기록한다."""
     def CheckError(self, ret):
@@ -275,7 +333,7 @@ class TraderUpbit:
     """
     def UpdateBuy(self, code, cp, cc, cancle=False):
         dt = strf_time('%Y%m%d%H%M%S%f')
-        if DICT_SET['모의투자2'] and len(self.df_cj) > 0:
+        if DICT_SET['코인모의투자'] and len(self.df_cj) > 0:
             if dt in self.df_cj['체결시간'].values:
                 while dt in self.df_cj['체결시간'].values:
                     dt = str(int(dt) + 1)
@@ -292,14 +350,17 @@ class TraderUpbit:
             bg = cp * cc
             pg, sg, sp, bfee, sfee = self.GetPgSgSp(bg, bg)
             self.df_jg.at[code] = code, cp, cp, sp, sg, bg, pg, cc
-            self.buy_uuid = None
+
+            if code in self.buy_uuid.keys():
+                del self.buy_uuid[code]
             self.dict_buyt[code] = now()
             self.dict_intg['예수금'] -= bg + bfee
             self.cstgQ.put(['매수완료', code])
             self.creceivQ.put(['잔고편입', code])
             self.query1Q.put([2, self.df_jg, 'c_jangolist', 'replace'])
             self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 체결 알림 - [매수] {code} 코인 {cp}원 {cc}개'])
-            if DICT_SET['알림소리2']:
+
+            if DICT_SET['코인알림소리']:
                 self.soundQ.put(f'{code[4:]} 코인을 매수하였습니다.')
             self.teleQ.put(f'매수 알림 - {code} {cp} {cc}')
 
@@ -308,7 +369,7 @@ class TraderUpbit:
 
     def UpdateSell(self, code, cp, cc):
         dt = strf_time('%Y%m%d%H%M%S%f')
-        if DICT_SET['모의투자2'] and len(self.df_cj) > 0:
+        if DICT_SET['코인모의투자'] and len(self.df_cj) > 0:
             if dt in self.df_cj['체결시간'].values:
                 while dt in self.df_cj['체결시간'].values:
                     dt = str(int(dt) + 1)
@@ -324,14 +385,15 @@ class TraderUpbit:
         self.df_cj.sort_values(by=['체결시간'], ascending=False, inplace=True)
         self.df_td.sort_values(by=['체결시간'], ascending=False, inplace=True)
 
-        self.sell_uuid = None
+        if code in self.sell_uuid.keys():
+            del self.sell_uuid[code]
         self.cstgQ.put(['매도완료', code])
         self.creceivQ.put(['잔고청산', code])
         self.windowQ.put([ui_num['C체결목록'], self.df_cj])
         self.windowQ.put([ui_num['C거래목록'], self.df_td])
 
         self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 체결 알림 - [매도] {code} 코인 {cp}원 {cc}개'])
-        if DICT_SET['알림소리2']:
+        if DICT_SET['코인알림소리']:
             self.soundQ.put(f'{code[4:]} 코인을 매도하였습니다.')
 
         self.query1Q.put([2, self.df_jg, 'c_jangolist', 'replace'])
