@@ -468,7 +468,7 @@ class Window(QtWidgets.QMainWindow):
         df['체결시간'] = df.index
         df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
         df = df.set_index('체결시간')
-        unix_ts = [x.timestamp() for x in df.index]
+        unix_ts = [x.timestamp() - 32400 for x in df.index]
         self.ctpg_01.plot(x=unix_ts, y=df['현재가'], pen=(255, 0, 0))
         self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
         self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
