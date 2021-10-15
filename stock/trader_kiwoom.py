@@ -525,6 +525,13 @@ class TraderKiwoom:
                 self.UpdateTradelist(name, oc, sp, sg, bg, pg, on)
                 self.list_sell.remove(code)
                 self.sreceivQ.put(f'잔고청산 {code}')
+                if int(strf_time('%H%M%S')) < 100000:
+                    self.dict_intg['종목당투자금'] = \
+                        int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
+                else:
+                    self.dict_intg['종목당투자금'] = \
+                        int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
+                self.sstgQ.put(self.dict_intg['종목당투자금'])
                 self.sstgQ.put(['매도완료', code])
                 self.dict_intg['예수금'] += pg
                 self.dict_intg['추정예수금'] = self.dict_intg['예수금']
@@ -593,13 +600,6 @@ class TraderKiwoom:
             [[tdct, tbg, tsg, tsig, tssg, sp, sg]], columns=columns_tt, index=[self.dict_strg['당일날짜']]
         )
         self.windowQ.put([ui_num['S실현손익'], self.df_tt])
-        if int(strf_time('%H%M%S')) < 100000:
-            self.dict_intg['종목당투자금'] = \
-                int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
-        else:
-            self.dict_intg['종목당투자금'] = \
-                int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
-        self.sstgQ.put(self.dict_intg['종목당투자금'])
         if not first:
             self.teleQ.put(
                 f"거래횟수 {len(self.df_td)}회 / 총매수금액 {format(int(tbg), ',')}원 / "

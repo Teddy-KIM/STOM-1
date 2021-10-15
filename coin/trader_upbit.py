@@ -403,6 +403,14 @@ class TraderUpbit:
         if code in self.sell_uuid.keys():
             del self.sell_uuid[code]
 
+        if 90000 < int(strf_time('%H%M%S')) < 100000:
+            self.dict_intg['종목당투자금'] = \
+                int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장초최대매수종목수'])
+        else:
+            self.dict_intg['종목당투자금'] = \
+                int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장중최대매수종목수'])
+        self.cstgQ.put(self.dict_intg['종목당투자금'])
+
         self.cstgQ.put(['매도완료', code])
         self.creceivQ.put(['잔고청산', code])
         self.windowQ.put([ui_num['C체결목록'], self.df_cj])
@@ -432,13 +440,6 @@ class TraderUpbit:
 
         self.df_tt = pd.DataFrame([[tdct, tbg, tsg, tsig, tssg, sp, sg]], columns=columns_tt, index=[self.str_today])
         self.windowQ.put([ui_num['C실현손익'], self.df_tt])
-        if 90000 < int(strf_time('%H%M%S')) < 100000:
-            self.dict_intg['종목당투자금'] = \
-                int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장초최대매수종목수'])
-        else:
-            self.dict_intg['종목당투자금'] = \
-                int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장중최대매수종목수'])
-        self.cstgQ.put(self.dict_intg['종목당투자금'])
         if not first:
             self.teleQ.put(f'손익 알림 - 총매수금액 {tbg}, 총매도금액 {tsg}, 수익 {tsig}, 손실 {tssg}, 수익금합계 {sg}')
 
