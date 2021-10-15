@@ -241,7 +241,7 @@ class TraderUpbit:
             time.sleep(0.2)
 
         self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 장초전략 잔고청산 주문 완료'])
-        if DICT_SET['알림소리2']:
+        if DICT_SET['코인알림소리']:
             self.soundQ.put('코인 장초전략 잔고청산 주문을 전송하였습니다.')
 
     def JangoCheongsan2(self):
@@ -264,7 +264,7 @@ class TraderUpbit:
             time.sleep(0.2)
 
         self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 장중전략 잔고청산 주문 완료'])
-        if DICT_SET['알림소리2']:
+        if DICT_SET['코인알림소리']:
             self.soundQ.put('코인 장중전략 잔고청산 주문을 전송하였습니다.')
 
     """ 리시버가 보내온 현재가와 잔고목록의 현재가가 틀릴 경우만 잔고목록을 갱신하고 매도전략 확인용 데이터를 전략연산 프로세스로 보낸다. """
