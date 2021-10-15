@@ -38,14 +38,14 @@ class StrategyStock:
         if DICT_SET['주식장중매도전략'] != '':
             self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['주식장중매도전략']], '<string>', 'exec')
 
-        self.list_buy = []
-        self.list_sell = []
+        self.list_buy = []          # 매수주문리스트
+        self.list_sell = []         # 매도주문리스트
 
-        self.startjjstg = False
-        self.int_tujagm = 0
+        self.startjjstg = False     # 장중전략
+        self.int_tujagm = 0         # 종목당 투자금
 
-        self.dict_gsjm = {}     # key: 종목코드, value: DataFrame
-        self.dict_data = {}     # key: 종목코드, value: list
+        self.dict_gsjm = {}         # 관심종목용   key: 종목코드, value: DataFrame
+        self.dict_data = {}         # 매도수변수용 key: 종목코드, value: list
         self.dict_time = {
             '관심종목': now(),
             '연산시간': now()

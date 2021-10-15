@@ -36,8 +36,10 @@ class TraderUpbit:
         self.str_today = strf_time('%Y%m%d')
 
         self.dict_buyt = {}                             # 매수시간 기록용
+        self.dict_sidt = {}                             # 시드부족 기록용
         self.dict_intg = {
-            '예수금': 0,
+            '예수금': 0,                                 # 실졔예수금 - 체결확인 시 증감한다.
+            '추정예수금': 0,                              # 추정예수금 - 매수주문 시 감소한다.
             '종목당투자금': 0,                            # 종목당 투자금은 int((예수금 + 매입금액) * 0.99 / 최대매수종목수)로 계산
             '업비트수수료': 0.0005                        # 0.05%
         }
@@ -48,8 +50,8 @@ class TraderUpbit:
             '장중전략잔고청산': True if 90000 < int(strf_time('%H%M%S')) < 100000 else False
         }
         self.dict_time = {
-            '매수체결확인': now(),                        # 1초 마다 매수 체결 확인용
-            '매도체결확인': now(),                        # 1초 마다 매도 체결 확인용
+            '매수체결확인': now(),                        # 0.5초 마다 매수 체결 확인용
+            '매도체결확인': now(),                        # 0.5초 마다 매도 체결 확인용
             '거래정보': now()                            # 잔고목록 및 잔고평가 갱신용
         }
         self.Start()
@@ -119,6 +121,7 @@ class TraderUpbit:
         else:
             self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 오류 알림 - 업비트 키값이 설정되지 않았습니다.'])
 
+        self.dict_intg['추정예수금'] = self.dict_intg['예수금']
         self.cstgQ.put(self.dict_intg['종목당투자금'])
         self.dict_bool['최소주문금액'] = True if self.dict_intg['종목당투자금'] > 5000 else False
 
@@ -184,10 +187,10 @@ class TraderUpbit:
         if code in self.buy_uuid.keys() or code in self.df_jg.index:
             self.cstgQ.put(['매수취소', code])
             return
-        if self.dict_intg['예수금'] < c * oc:
-            df = self.df_cj[(self.df_cj['주문구분'] == '시드부족') & (self.df_cj['종목명'] == code)]
-            if len(df) == 0 or now() > timedelta_sec(180, strp_time('%Y%m%d%H%M%S%f', df['체결시간'][0])):
+        if self.dict_intg['추정예수금'] < c * oc:
+            if code not in self.dict_sidt.keys() or now() > self.dict_sidt[code]:
                 self.UpdateBuy(code, c, oc, cancle=True)
+                self.dict_sidt[code] = timedelta_sec(180)
             self.cstgQ.put(['매수취소', code])
             return
 
@@ -197,6 +200,7 @@ class TraderUpbit:
             ret = self.upbit.buy_market_order(code, self.dict_intg['종목당투자금'])
             if ret is not None:
                 if self.CheckError(ret):
+                    self.dict_intg['추정예수금'] -= c * oc
                     self.buy_uuid[code] = ret['uuid']
             else:
                 self.cstgQ.put(['매수취소', code])
@@ -363,6 +367,7 @@ class TraderUpbit:
                 del self.buy_uuid[code]
             self.dict_buyt[code] = now()
             self.dict_intg['예수금'] -= bg + bfee
+            self.dict_intg['추정예수금'] = self.dict_intg['예수금']
             self.cstgQ.put(['매수완료', code])
             self.creceivQ.put(['잔고편입', code])
             self.query1Q.put([2, self.df_jg, 'c_jangolist', 'replace'])
@@ -386,6 +391,7 @@ class TraderUpbit:
         bg = bp * cc
         pg, sg, sp, bfee, sfee = self.GetPgSgSp(bg, cp * cc)
         self.dict_intg['예수금'] += bg + sg - sfee
+        self.dict_intg['추정예수금'] = self.dict_intg['예수금']
 
         self.df_jg.drop(index=code, inplace=True)
         self.df_cj.at[dt] = code, '매도', cc, 0, cp, cp, dt

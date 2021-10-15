@@ -35,8 +35,9 @@ class TraderKiwoom:
         self.df_tr = None
 
         self.dict_name = {}     # key: 종목코드, value: 종목명
-        self.dict_vipr = {}     # key: 종목코드, value: [갱신여부, 발동시간+5초, UVI, DVI, UVID5]
-        self.dict_buyt = {}     # key: 종목코드, value: 매수시간
+        self.dict_vipr = {}     # key: 종목코드, value: [갱신여부, 발동시간+5초, uvi, dvi, uvid5]
+        self.dict_buyt = {}     # key: 종목코드, value: datetime
+        self.dict_sidt = {}     # key: 종목코드, value: datetime
         self.dict_intg = {
             '장운영상태': 1,
             '예수금': 0,
@@ -81,10 +82,8 @@ class TraderKiwoom:
         con = sqlite3.connect(DB_TRADELIST)
         df = pd.read_sql(f"SELECT * FROM s_chegeollist WHERE 체결시간 LIKE '{self.dict_strg['당일날짜']}%'", con)
         self.df_cj = df.set_index('index').sort_values(by=['체결시간'], ascending=False)
-
         df = pd.read_sql(f"SELECT * FROM s_tradelist WHERE 체결시간 LIKE '{self.dict_strg['당일날짜']}%'", con)
         self.df_td = df.set_index('index').sort_values(by=['체결시간'], ascending=False)
-
         df = pd.read_sql(f'SELECT * FROM s_jangolist', con)
         self.df_jg = df.set_index('index').sort_values(by=['매입금액'], ascending=False)
         con.close()
@@ -117,8 +116,7 @@ class TraderKiwoom:
 
         if len(self.df_jg) > 0:
             for code in self.df_jg.index:
-                cond = (self.df_cj['주문구분'] == '매수') & (self.df_cj['종목명'] == self.dict_name[code])
-                df = self.df_cj[cond]
+                df = self.df_cj[(self.df_cj['주문구분'] == '매수') & (self.df_cj['종목명'] == self.dict_name[code])]
                 self.dict_buyt[code] = strp_time('%Y%m%d%H%M%S%f', df['체결시간'].iloc[0])
                 self.sreceivQ.put(f'잔고편입 {code}')
 
@@ -189,11 +187,9 @@ class TraderKiwoom:
                 self.windowQ.put([ui_num['S로그텍스트'], '매매 시스템 오류 알림 - 현재 매도 주문중인 종목입니다.'])
                 return
             if self.dict_intg['추정예수금'] < oc * c:
-                cond = (self.df_cj['주문구분'] == '시드부족') & (self.df_cj['종목명'] == name)
-                df = self.df_cj[cond]
-                if len(df) == 0 or \
-                        (len(df) > 0 and now() > timedelta_sec(180, strp_time('%Y%m%d%H%M%S%f', df['체결시간'][0]))):
+                if code not in self.dict_sidt.keys() or now() > self.dict_sidt[code]:
                     self.Order('시드부족', code, name, c, oc)
+                    self.dict_sidt[code] = timedelta_sec(180)
                 self.sstgQ.put(['매수취소', code])
                 return
         elif gubun == '매도':

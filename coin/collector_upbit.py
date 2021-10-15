@@ -24,34 +24,31 @@ class CollectorUpbit:
     def Start(self):
         while True:
             data = self.tick5Q.get()
-            if len(data) == 13:
-                self.UpdateTickData(data)
-            elif len(data) == 23:
-                self.UpdateOrderbook(data)
+            self.UpdateTickData(data)
 
     def UpdateTickData(self, data):
-        code = data[-3]
-        dt = data[-2]
-        receivetime = data[-1]
-        del data[-3:]
+        if len(data) == 13:
+            code = data[-3]
+            dt = data[-2]
+            receivetime = data[-1]
+            del data[-3:]
 
-        if code not in self.dict_ob.keys():
-            return
+            if code not in self.dict_ob.keys():
+                return
 
-        data += self.dict_ob[code]
-        if code not in self.dict_df.keys():
-            self.dict_df[code] = pd.DataFrame([data], columns=columns_cc, index=[dt])
-        else:
-            self.dict_df[code].at[dt] = data
+            data += self.dict_ob[code]
+            if code not in self.dict_df.keys():
+                self.dict_df[code] = pd.DataFrame([data], columns=columns_cc, index=[dt])
+            else:
+                self.dict_df[code].at[dt] = data
 
-        if now() > self.time_save:
-            gap = (now() - receivetime).total_seconds()
-            self.windowQ.put([ui_num['C단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
-            self.query2Q.put([2, self.dict_df])
-            self.dict_df = {}
-            self.time_save = timedelta_sec(60)
-
-    def UpdateOrderbook(self, data):
-        code = data[0]
-        del data[0]
-        self.dict_ob[code] = data
+            if now() > self.time_save:
+                gap = (now() - receivetime).total_seconds()
+                self.windowQ.put([ui_num['C단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
+                self.query2Q.put([2, self.dict_df])
+                self.dict_df = {}
+                self.time_save = timedelta_sec(60)
+        elif len(data) == 23:
+            code = data[0]
+            del data[0]
+            self.dict_ob[code] = data

@@ -213,8 +213,12 @@ class BackTesterStockStg:
         매수시간 = self.buytime
 
         현재가 = self.df['현재가'][self.index]
+        시가 = self.df['시가'][self.index]
+        고가 = self.df['고가'][self.index]
+        저가 = self.df['저가'][self.index]
         등락율 = self.df['등락율'][self.index]
         고저평균대비등락율 = self.df['고저평균대비등락율'][self.index]
+        당일거래대금 = self.df['당일거래대금'][self.index]
         VI해제시간 = strp_time('%Y%m%d%H%M%S', self.df['VI해제시간'][self.index])
         VI아래5호가 = self.df['VI아래5호가'][self.index]
         초당거래대금 = self.df['초당거래대금'][self.index]
