@@ -1522,40 +1522,43 @@ class Window(QtWidgets.QMainWindow):
             gj_tableWidget.clearContents()
             return
 
-        gj_tableWidget.setRowCount(len(dict_df))
-        for j, code in enumerate(list(dict_df.keys())):
-            try:
-                item = QtWidgets.QTableWidgetItem(self.dict_name[code])
-            except KeyError:
-                item = QtWidgets.QTableWidgetItem(code)
-            item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft)
-            gj_tableWidget.setItem(j, 0, item)
+        try:
+            gj_tableWidget.setRowCount(len(dict_df))
+            for j, code in enumerate(list(dict_df.keys())):
+                try:
+                    item = QtWidgets.QTableWidgetItem(self.dict_name[code])
+                except KeyError:
+                    item = QtWidgets.QTableWidgetItem(code)
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+                gj_tableWidget.setItem(j, 0, item)
 
-            smavg = dict_df[code]['초당거래대금'][avgindex]
-            item = QtWidgets.QTableWidgetItem(changeFormat(smavg).split('.')[0])
-            item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-            gj_tableWidget.setItem(j, columns_gj_.index('sm_avg'), item)
-
-            chavg = dict_df[code]['체결강도'][avgindex]
-            item = QtWidgets.QTableWidgetItem(changeFormat(chavg))
-            item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-            gj_tableWidget.setItem(j, columns_gj_.index('ch_avg'), item)
-
-            chhigh = dict_df[code]['최고체결강도'][avgindex]
-            item = QtWidgets.QTableWidgetItem(changeFormat(chhigh))
-            item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-            gj_tableWidget.setItem(j, columns_gj_.index('ch_high'), item)
-
-            for i, column in enumerate(columns_gj[:-1]):
-                if column in ['초당거래대금', '당일거래대금']:
-                    item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0], dotdowndel=True))
-                else:
-                    item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0]))
+                smavg = dict_df[code]['초당거래대금'][avgindex]
+                item = QtWidgets.QTableWidgetItem(changeFormat(smavg).split('.')[0])
                 item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-                gj_tableWidget.setItem(j, i + 1, item)
+                gj_tableWidget.setItem(j, columns_gj_.index('sm_avg'), item)
 
-        if len(dict_df) < 15:
-            gj_tableWidget.setRowCount(15)
+                chavg = dict_df[code]['체결강도'][avgindex]
+                item = QtWidgets.QTableWidgetItem(changeFormat(chavg))
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
+                gj_tableWidget.setItem(j, columns_gj_.index('ch_avg'), item)
+
+                chhigh = dict_df[code]['최고체결강도'][avgindex]
+                item = QtWidgets.QTableWidgetItem(changeFormat(chhigh))
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
+                gj_tableWidget.setItem(j, columns_gj_.index('ch_high'), item)
+
+                for i, column in enumerate(columns_gj[:-1]):
+                    if column in ['초당거래대금', '당일거래대금']:
+                        item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0], dotdowndel=True))
+                    else:
+                        item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0]))
+                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
+                    gj_tableWidget.setItem(j, i + 1, item)
+
+            if len(dict_df) < 15:
+                gj_tableWidget.setRowCount(15)
+        except KeyError:
+            pass
 
     def CalendarClicked(self, gubun):
         if gubun == 'S':

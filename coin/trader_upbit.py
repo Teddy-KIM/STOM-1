@@ -149,9 +149,9 @@ class TraderUpbit:
                 self.dict_time['매도체결확인'] = timedelta_sec(0.5)
 
             """ 9시와 10시 전략이 바뀌는 시점에 잔고청산한다. """
-            if 90000 < int(strf_time('%H%M%S')) < 100000 and not self.dict_bool['장중전략잔고청산']:
-                self.JangoCheongsan1()
             if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
+                self.JangoCheongsan1()
+            if 90000 < int(strf_time('%H%M%S')) < 100000 and not self.dict_bool['장중전략잔고청산']:
                 self.JangoCheongsan2()
 
             """ 잔고평가 및 잔고목록 갱신도 1초마다 반복한다. """
