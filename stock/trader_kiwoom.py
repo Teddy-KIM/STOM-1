@@ -117,7 +117,10 @@ class TraderKiwoom:
         if len(self.df_jg) > 0:
             for code in self.df_jg.index:
                 df = self.df_cj[(self.df_cj['주문구분'] == '매수') & (self.df_cj['종목명'] == self.dict_name[code])]
-                self.dict_buyt[code] = strp_time('%Y%m%d%H%M%S%f', df['체결시간'].iloc[0])
+                if len(df) > 0:
+                    self.dict_buyt[code] = strp_time('%Y%m%d%H%M%S%f', df['체결시간'].iloc[0])
+                else:
+                    self.dict_buyt[code] = now()
                 self.sreceivQ.put(f'잔고편입 {code}')
 
         if int(strf_time('%H%M%S')) > 90000:
