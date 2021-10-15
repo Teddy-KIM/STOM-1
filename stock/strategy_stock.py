@@ -185,16 +185,15 @@ class StrategyStock:
             return
 
         if int(strf_time('%H%M%S')) < 100000:
-            평균값계산틱수 = DICT_SET['코인장초평균값계산틱수']
+            평균값계산틱수 = DICT_SET['주식장초평균값계산틱수']
         else:
-            평균값계산틱수 = DICT_SET['코인장중평균값계산틱수']
+            평균값계산틱수 = DICT_SET['주식장중평균값계산틱수']
         평균값인덱스 = 평균값계산틱수 + 1
 
-        if self.dict_gsjm[종목명]['체결강도'][평균값계산틱수] == 0.:
+        if self.dict_gsjm[종목코드]['체결강도'][평균값계산틱수] == 0.:
             return
 
         매도 = False
-        평균값인덱스 = DICT_SET['평균값계산틱수1'] + 1
         등락율 = self.dict_gsjm[종목코드]['등락율'][0]
         고저평균대비등락율 = self.dict_gsjm[종목코드]['고저평균대비등락율'][0]
         초당거래대금 = self.dict_gsjm[종목코드]['초당거래대금'][0]
