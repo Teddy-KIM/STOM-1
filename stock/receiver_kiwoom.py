@@ -267,14 +267,16 @@ class ReceiverKiwoom:
         if code not in self.list_gsjm:
             self.list_gsjm.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
-            self.sstgQ.put(['조건진입', code])
+            if DICT_SET['키움트레이더']:
+                self.sstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
     def DeleteGsjmlist(self, code):
         if code in self.list_gsjm:
             self.list_gsjm.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
-            self.sstgQ.put(['조건이탈', code])
+            if DICT_SET['키움트레이더']:
+                self.sstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
     def AllRemoveRealreg(self):
