@@ -589,15 +589,17 @@ class TraderKiwoom:
         sp = round(sg / self.dict_intg['추정예탁자산'] * 100, 2)
         tdct = len(self.df_td)
 
-        if int(strf_time('%H%M%S')) < 100000:
-            tujagm = int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
-        else:
-            tujagm = int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
-        self.sstgQ.put(tujagm)
         self.df_tt = pd.DataFrame(
             [[tdct, tbg, tsg, tsig, tssg, sp, sg]], columns=columns_tt, index=[self.dict_strg['당일날짜']]
         )
         self.windowQ.put([ui_num['S실현손익'], self.df_tt])
+        if int(strf_time('%H%M%S')) < 100000:
+            self.dict_intg['종목당투자금'] = \
+                int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
+        else:
+            self.dict_intg['종목당투자금'] = \
+                int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
+        self.sstgQ.put(self.dict_intg['종목당투자금'])
         if not first:
             self.teleQ.put(
                 f"거래횟수 {len(self.df_td)}회 / 총매수금액 {format(int(tbg), ',')}원 / "

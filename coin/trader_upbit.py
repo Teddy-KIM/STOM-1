@@ -430,13 +430,15 @@ class TraderUpbit:
         sp = round(sg / tbg * 100, 2)
         tdct = len(self.df_td)
 
-        if 90000 < int(strf_time('%H%M%S')) < 100000:
-            tujagm = int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장초최대매수종목수'])
-        else:
-            tujagm = int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장중최대매수종목수'])
-        self.cstgQ.put(tujagm)
         self.df_tt = pd.DataFrame([[tdct, tbg, tsg, tsig, tssg, sp, sg]], columns=columns_tt, index=[self.str_today])
         self.windowQ.put([ui_num['C실현손익'], self.df_tt])
+        if 90000 < int(strf_time('%H%M%S')) < 100000:
+            self.dict_intg['종목당투자금'] = \
+                int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장초최대매수종목수'])
+        else:
+            self.dict_intg['종목당투자금'] = \
+                int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장중최대매수종목수'])
+        self.cstgQ.put(self.dict_intg['종목당투자금'])
         if not first:
             self.teleQ.put(f'손익 알림 - 총매수금액 {tbg}, 총매도금액 {tsg}, 수익 {tsig}, 손실 {tssg}, 수익금합계 {sg}')
 
