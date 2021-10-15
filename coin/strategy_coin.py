@@ -42,9 +42,9 @@ class StrategyCoin:
         self.list_sell = []
         self.int_tujagm = 0
 
-        self.dict_cdjm = {}     # key: 종목코드, value: DataFrame
         self.dict_gsjm = {}     # key: 종목코드, value: DataFrame
         self.dict_hgjr = {}     # key: 종목코드, value: list
+        self.dict_data = {}     # key: 종목코드, value: list
         self.dict_bool = {
             '장초전략시작': True if 90000 < int(strf_time('%H%M%S')) < 100000 else False,
             '장중전략시작': False if 90000 < int(strf_time('%H%M%S')) < 100000 else True
@@ -154,16 +154,22 @@ class StrategyCoin:
             최고체결강도 = round(self.dict_gsjm[종목명]['체결강도'][1:평균값인덱스].max(), 2)
             self.dict_gsjm[종목명].at[평균값인덱스] = 0., 0., 초당거래대금평균, 0, 체결강도평균, 최고체결강도
 
+            매수 = True
+            직전체결강도 = self.dict_gsjm[종목명]['체결강도'][1]
+            매도총잔량, 매수총잔량, \
+                매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2, 매수호가3, 매수호가4, 매수호가5, \
+                매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, 매수잔량5 = \
+                self.dict_hgjr[종목명]
+            self.dict_data[종목명] = \
+                현재가, 시가, 고가, 저가, 등락율, 당일거래대금, 초당거래대금평균, 초당매수수량, 초당매도수량, 누적매수량, 누적매도량,\
+                체결강도, 체결강도평균, 최고체결강도, 직전체결강도, 매도총잔량, 매수총잔량, \
+                매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2, 매수호가3, 매수호가4, 매수호가5, \
+                매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, 매수잔량5
+
             if 잔고종목:
                 return
             if 종목명 in self.list_buy:
                 return
-
-            매수 = True
-            직전체결강도 = self.dict_gsjm[종목명]['체결강도'][1]
-            매도총잔량, 매수총잔량, 매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2, 매수호가3, \
-                매수호가4, 매수호가5, 매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, \
-                매수잔량4, 매수잔량5 = self.dict_hgjr[종목명]
 
             if 90000 < int(strf_time('%H%M%S')) < 100000:
                 if self.buystrategy1 is not None:
@@ -184,32 +190,17 @@ class StrategyCoin:
             self.dict_time['연산시간'] = timedelta_sec(60)
 
     def SellStrategy(self, 종목명, 수익률, 보유수량, 현재가, 매수시간):
-        if 종목명 not in self.dict_gsjm.keys() or 종목명 not in self.dict_hgjr.keys():
+        if 종목명 not in self.dict_gsjm.keys() or 종목명 not in self.dict_hgjr.keys() or 종목명 not in self.dict_data.keys():
             return
         if 종목명 in self.list_sell:
             return
 
-        if 90000 < int(strf_time('%H%M%S')) < 100000:
-            평균값계산틱수 = DICT_SET['코인장초평균값계산틱수']
-        else:
-            평균값계산틱수 = DICT_SET['코인장중평균값계산틱수']
-        평균값인덱스 = 평균값계산틱수 + 1
-
-        if self.dict_gsjm[종목명]['체결강도'][평균값계산틱수] == 0.:
-            return
-
         매도 = False
-        등락율 = self.dict_gsjm[종목명]['등락율'][0]
-        고저평균대비등락율 = self.dict_gsjm[종목명]['고저평균대비등락율'][0]
-        초당거래대금 = self.dict_gsjm[종목명]['초당거래대금'][0]
-        초당거래대금평균 = self.dict_gsjm[종목명]['초당거래대금'][평균값인덱스]
-        체결강도 = self.dict_gsjm[종목명]['체결강도'][0]
-        직전체결강도 = self.dict_gsjm[종목명]['체결강도'][1]
-        체결강도평균 = self.dict_gsjm[종목명]['체결강도'][평균값인덱스]
-        최고체결강도 = self.dict_gsjm[종목명]['최고체결강도'][평균값인덱스]
-        매도총잔량, 매수총잔량, 매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2, 매수호가3, 매수호가4, \
-            매수호가5, 매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, \
-            매수잔량5 = self.dict_hgjr[종목명]
+        현재가, 시가, 고가, 저가, 등락율, 당일거래대금, 초당거래대금평균, 초당매수수량, 초당매도수량, 누적매수량, 누적매도량, \
+            체결강도, 체결강도평균, 최고체결강도, 직전체결강도, 매도총잔량, 매수총잔량, \
+            매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2, 매수호가3, 매수호가4, 매수호가5, \
+            매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, 매수잔량5 = \
+            self.dict_data[종목명]
 
         if 90000 < int(strf_time('%H%M%S')) < 100000:
             if self.sellstrategy1 is not None:
