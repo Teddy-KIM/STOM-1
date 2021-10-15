@@ -1699,7 +1699,7 @@ if __name__ == '__main__':
     palette.setColor(QtGui.QPalette.Button, color_bg_bc)
     palette.setColor(QtGui.QPalette.ButtonText, color_fg_bc)
     palette.setColor(QtGui.QPalette.Link, color_fg_bk)
-    palette.setColor(QtGui.QPalette.Highlight, color_fg_bk)
+    palette.setColor(QtGui.QPalette.Highlight, color_fg_hl)
     palette.setColor(QtGui.QPalette.HighlightedText, color_bg_bk)
     app.setPalette(palette)
     window = Window()

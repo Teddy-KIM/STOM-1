@@ -90,6 +90,7 @@ color_fg_bt = QColor(230, 230, 235)
 color_fg_bc = QColor(190, 190, 195)
 color_fg_dk = QColor(150, 150, 155)
 color_fg_bk = QColor(110, 110, 115)
+color_fg_hl = QColor(110, 110, 255)
 
 color_bg_bt = QColor(50, 50, 55)
 color_bg_bc = QColor(40, 40, 45)
