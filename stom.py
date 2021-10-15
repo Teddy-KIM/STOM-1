@@ -391,7 +391,7 @@ class Window(QtWidgets.QMainWindow):
         df['직전당일거래대금'] = df['당일거래대금'].shift(1)
         df = df.fillna(method='bfill')
         df['초당거래대금'] = df['당일거래대금'] - df['직전당일거래대금']
-        df['초당거래대금'].iloc[0] = 0
+        df.at[df.index[0], '초당거래대금'] = 0
         df['직전초당거래대금'] = df['초당거래대금'].shift(1)
         df = df.fillna(method='bfill')
         df['초당거래대금평균'] = df['직전초당거래대금'].rolling(window=tickcount).mean()
