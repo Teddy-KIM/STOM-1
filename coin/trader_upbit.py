@@ -228,7 +228,6 @@ class TraderUpbit:
     def JangoCheongsan1(self):
         self.dict_bool['장초전략잔고청산'] = True
         self.dict_bool['장중전략잔고청산'] = False
-        self.cstgQ.put(int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장중최대매수종목수']))
         for code in self.df_jg.index:
             c = self.df_jg['현재가'][code]
             oc = self.df_jg['보유수량'][code]
@@ -251,7 +250,6 @@ class TraderUpbit:
     def JangoCheongsan2(self):
         self.dict_bool['장중전략잔고청산'] = True
         self.dict_bool['장초전략잔고청산'] = False
-        self.cstgQ.put(int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장초최대매수종목수']))
         for code in self.df_jg.index:
             c = self.df_jg['현재가'][code]
             oc = self.df_jg['보유수량'][code]
@@ -401,11 +399,11 @@ class TraderUpbit:
 
         if code in self.sell_uuid.keys():
             del self.sell_uuid[code]
+
         self.cstgQ.put(['매도완료', code])
         self.creceivQ.put(['잔고청산', code])
         self.windowQ.put([ui_num['C체결목록'], self.df_cj])
         self.windowQ.put([ui_num['C거래목록'], self.df_td])
-
         self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 체결 알림 - [매도] {code} 코인 {cp}원 {cc}개'])
         if DICT_SET['코인알림소리']:
             self.soundQ.put(f'{code[4:]} 코인을 매도하였습니다.')
@@ -428,6 +426,12 @@ class TraderUpbit:
         sg = self.df_td['수익금'].sum()
         sp = round(sg / tbg * 100, 2)
         tdct = len(self.df_td)
+
+        if 90000 < int(strf_time('%H%M%S')) < 100000:
+            tujagm = int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장초최대매수종목수'])
+        else:
+            tujagm = int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장중최대매수종목수'])
+        self.cstgQ.put(tujagm)
         self.df_tt = pd.DataFrame([[tdct, tbg, tsg, tsig, tssg, sp, sg]], columns=columns_tt, index=[self.str_today])
         self.windowQ.put([ui_num['C실현손익'], self.df_tt])
         if not first:

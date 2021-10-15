@@ -306,7 +306,6 @@ class TraderKiwoom:
 
     def JangoChungsan1(self):
         self.dict_bool['장초전략잔고청산'] = True
-        self.sstgQ.put(int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수']))
         if len(self.df_jg) > 0:
             for code in self.df_jg.index:
                 if code in self.list_sell:
@@ -586,11 +585,16 @@ class TraderKiwoom:
         sg = self.df_td['수익금'].sum()
         sp = round(sg / self.dict_intg['추정예탁자산'] * 100, 2)
         tdct = len(self.df_td)
+
+        if int(strf_time('%H%M%S')) < 100000:
+            tujagm = int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
+        else:
+            tujagm = int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
+        self.sstgQ.put(tujagm)
         self.df_tt = pd.DataFrame(
             [[tdct, tbg, tsg, tsig, tssg, sp, sg]], columns=columns_tt, index=[self.dict_strg['당일날짜']]
         )
         self.windowQ.put([ui_num['S실현손익'], self.df_tt])
-
         if not first:
             self.teleQ.put(
                 f"거래횟수 {len(self.df_td)}회 / 총매수금액 {format(int(tbg), ',')}원 / "
