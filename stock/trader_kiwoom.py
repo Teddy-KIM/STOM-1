@@ -310,7 +310,7 @@ class TraderKiwoom:
 
     def JangoChungsan1(self):
         self.dict_bool['장초전략잔고청산'] = True
-        self.sstgQ.put(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']])
+        self.sstgQ.put(int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수']))
         if len(self.df_jg) > 0:
             for code in self.df_jg.index:
                 if code in self.list_sell:

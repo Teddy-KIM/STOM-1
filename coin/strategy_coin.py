@@ -230,13 +230,11 @@ class StrategyCoin:
                 self.UpdateGoansimJongmok()
                 self.dict_bool['장초전략시작'] = True
                 self.dict_bool['장중전략시작'] = False
-                self.int_tujagm = self.int_tujagm * DICT_SET['코인장중최대매수종목수'] / DICT_SET['코인장초최대매수종목수']
         else:
             if not self.dict_bool['장중전략시작']:
                 self.UpdateGoansimJongmok()
                 self.dict_bool['장중전략시작'] = True
                 self.dict_bool['장초전략시작'] = False
-                self.int_tujagm = self.int_tujagm * DICT_SET['코인장초최대매수종목수'] / DICT_SET['코인장중최대매수종목수']
 
     def UpdateGoansimJongmok(self):
         for code in list(self.dict_gsjm.keys()):

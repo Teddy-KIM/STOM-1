@@ -56,7 +56,7 @@ class StrategyStock:
         while True:
             data = self.sstgQ.get()
             if type(data) == int:
-                self.UpdateTotaljasan(data)
+                self.int_tujagm = data
             elif type(data) == list:
                 if len(data) == 2:
                     self.UpdateList(data[0], data[1])
@@ -76,9 +76,6 @@ class StrategyStock:
                 self.dict_time['관심종목'] = timedelta_sec(1)
 
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
-
-    def UpdateTotaljasan(self, data):
-        self.int_tujagm = data
 
     def UpdateList(self, gubun, code):
         if '조건진입' in gubun:
@@ -222,12 +219,8 @@ class StrategyStock:
 
     def CheckStrategy(self):
         if int(strf_time('%H%M%S')) >= 100000 and not self.startjjstg:
-            self.UpdateGoansimJongmok()
-            self.int_tujagm = self.int_tujagm * DICT_SET['주식장초최대매수종목수'] / DICT_SET['주식장중최대매수종목수']
+            for code in list(self.dict_gsjm.keys()):
+                data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                df = pd.DataFrame(data, columns=columns_gj)
+                self.dict_gsjm[code] = df.copy()
             self.startjjstg = True
-
-    def UpdateGoansimJongmok(self):
-        for code in list(self.dict_gsjm.keys()):
-            data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
-            df = pd.DataFrame(data, columns=columns_gj)
-            self.dict_gsjm[code] = df.copy()

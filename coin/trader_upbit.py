@@ -224,7 +224,7 @@ class TraderUpbit:
     def JangoCheongsan1(self):
         self.dict_bool['장초전략잔고청산'] = True
         self.dict_bool['장중전략잔고청산'] = False
-        self.cstgQ.put(self.df_tj['추정예탁자산'][self.str_today])
+        self.cstgQ.put(int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장중최대매수종목수']))
         for code in self.df_jg.index:
             c = self.df_jg['현재가'][code]
             oc = self.df_jg['보유수량'][code]
@@ -247,7 +247,7 @@ class TraderUpbit:
     def JangoCheongsan2(self):
         self.dict_bool['장중전략잔고청산'] = True
         self.dict_bool['장초전략잔고청산'] = False
-        self.cstgQ.put(self.df_tj['추정예탁자산'][self.str_today])
+        self.cstgQ.put(int(self.df_tj['추정예탁자산'][self.str_today] * 0.99 / DICT_SET['코인장초최대매수종목수']))
         for code in self.df_jg.index:
             c = self.df_jg['현재가'][code]
             oc = self.df_jg['보유수량'][code]
