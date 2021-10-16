@@ -38,13 +38,14 @@ class StrategyCoin:
         if DICT_SET['코인장중매도전략'] != '':
             self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['코인장중매도전략']], '<string>', 'exec')
 
-        self.list_buy = []
-        self.list_sell = []
-        self.int_tujagm = 0
+        self.list_buy = []      # 매수주문리스트
+        self.list_sell = []     # 매도주문리스트
+        self.int_tujagm = 0     # 종목당 투자금
 
         self.dict_gsjm = {}     # key: 종목코드, value: DataFrame
         self.dict_hgjr = {}     # key: 종목코드, value: list
         self.dict_data = {}     # key: 종목코드, value: list
+        self.dict_high = {}     # key: 종목코드, value: float
         self.dict_bool = {
             '장초전략시작': True if 90000 < int(strf_time('%H%M%S')) < 100000 else False,
             '장중전략시작': False if 90000 < int(strf_time('%H%M%S')) < 100000 else True
@@ -201,6 +202,12 @@ class StrategyCoin:
             매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2, 매수호가3, 매수호가4, 매수호가5, \
             매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, 매수잔량5 = \
             self.dict_data[종목명]
+
+        if 종목명 not in self.dict_high.keys():
+            self.dict_high[종목명] = 수익률
+        elif 수익률 > self.dict_high[종목명]:
+            self.dict_high[종목명] = 수익률
+        최고수익률 = self.dict_high[종목명]
 
         if 90000 < int(strf_time('%H%M%S')) < 100000:
             if self.sellstrategy1 is not None:

@@ -747,15 +747,19 @@ class Window(QtWidgets.QMainWindow):
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_17(self):
+        self.ss_textEdit_01.append(stock_buy7)
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_18(self):
+        self.ss_textEdit_01.append(stock_buy8)
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_19(self):
+        self.ss_textEdit_01.append(stock_buy9)
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_20(self):
+        self.ss_textEdit_01.append(stock_buy10)
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_21(self):
@@ -869,9 +873,11 @@ class Window(QtWidgets.QMainWindow):
         windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_35(self):
+        self.ss_textEdit_02.append(stock_sell7)
         windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_36(self):
+        self.ss_textEdit_02.append(stock_sell8)
         windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_37(self):
@@ -952,15 +958,19 @@ class Window(QtWidgets.QMainWindow):
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_49(self):
+        self.cs_textEdit_01.append(coin_buy7)
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_50(self):
+        self.cs_textEdit_01.append(coin_buy8)
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_51(self):
+        self.cs_textEdit_01.append(coin_buy9)
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_52(self):
+        self.cs_textEdit_01.append(coin_buy10)
         windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_53(self):
@@ -1074,9 +1084,11 @@ class Window(QtWidgets.QMainWindow):
         windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_67(self):
+        self.cs_textEdit_02.append(coin_sell7)
         windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_68(self):
+        self.cs_textEdit_02.append(coin_sell8)
         windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_69(self):

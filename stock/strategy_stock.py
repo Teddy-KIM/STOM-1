@@ -40,16 +40,17 @@ class StrategyStock:
 
         self.list_buy = []          # 매수주문리스트
         self.list_sell = []         # 매도주문리스트
-
-        self.startjjstg = False     # 장중전략
         self.int_tujagm = 0         # 종목당 투자금
 
-        self.dict_gsjm = {}         # 관심종목용   key: 종목코드, value: DataFrame
-        self.dict_data = {}         # 매도수변수용 key: 종목코드, value: list
+        self.dict_gsjm = {}         # key: 종목코드, value: DataFrame
+        self.dict_data = {}         # key: 종목코드, value: list
+        self.dict_high = {}         # key: 종목코드, value: float
         self.dict_time = {
             '관심종목': now(),
             '연산시간': now()
         }
+        self.startjjstg = False     # 장중전략
+
         self.Start()
 
     def Start(self):
@@ -189,6 +190,12 @@ class StrategyStock:
             매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2, 매수호가3, 매수호가4, 매수호가5, \
             매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, 매수잔량5 = \
             self.dict_data[종목코드]
+
+        if 종목코드 not in self.dict_high.keys():
+            self.dict_high[종목코드] = 수익률
+        elif 수익률 > self.dict_high[종목코드]:
+            self.dict_high[종목코드] = 수익률
+        최고수익률 = self.dict_high[종목코드]
 
         if int(strf_time('%H%M%S')) < 100000:
             if self.sellstrategy1 is not None:
