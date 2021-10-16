@@ -46,6 +46,7 @@ class BackTesterStockStg:
         self.buycount = 0
         self.buyprice = 0
         self.sellprice = 0
+        self.highper = 0
         self.index = 0
         self.indexb = 0
         self.indexn = 0
@@ -85,6 +86,7 @@ class BackTesterStockStg:
             self.buycount = 0
             self.buyprice = 0
             self.sellprice = 0
+            self.highper = 0
             self.index = 0
             self.indexb = 0
             self.indexn = 0
@@ -216,6 +218,9 @@ class BackTesterStockStg:
         bg = self.buycount * self.buyprice
         cg = self.buycount * self.df['현재가'][self.index]
         eyun, 수익률 = self.GetEyunPer(bg, cg)
+        if 수익률 > self.highper:
+            self.highper = 수익률
+        최고수익률 = self.highper
 
         매도 = False
         종목명 = self.df_name['종목명'][self.code]
@@ -294,12 +299,14 @@ class BackTesterStockStg:
             self.sellprice = 예상체결가
             self.hold = False
             self.CalculationEyun()
+            self.highper = 0
             self.indexb = 0
 
     def LastSell(self):
         self.sellprice = self.df['현재가'][self.index]
         self.hold = False
         self.CalculationEyun()
+        self.highper = 0
         self.indexb = 0
 
     def CalculationEyun(self):
