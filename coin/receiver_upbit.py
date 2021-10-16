@@ -136,7 +136,7 @@ class WebsTicker:
                 df = pyupbit.get_ohlcv(ticker=code, interval='minute3', count=1)
                 if df is not None:
                     df_mc.at[code] = df['close'][0] * df['volume'][0]
-            time.sleep(0.2)
+            time.sleep(0.034)
         df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
         list_top = list(df_mc.index[:MONEYTOP_RANK])
         for code in list_top:

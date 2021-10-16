@@ -244,7 +244,7 @@ class TraderUpbit:
                 else:
                     self.cstgQ.put(['매도취소', code])
                     self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 오류 알림 - 주문 실패 {code}'])
-            time.sleep(0.2)
+            time.sleep(0.125)
 
         self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 장초전략 잔고청산 주문 완료'])
         if DICT_SET['코인알림소리']:
@@ -266,7 +266,7 @@ class TraderUpbit:
                 else:
                     self.cstgQ.put(['매도취소', code])
                     self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 오류 알림 - 주문 실패 {code}'])
-            time.sleep(0.2)
+            time.sleep(0.125)
 
         self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 장중전략 잔고청산 주문 완료'])
         if DICT_SET['코인알림소리']:
