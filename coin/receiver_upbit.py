@@ -45,6 +45,7 @@ class WebsTicker:
         self.str_jcct = strf_time('%Y%m%d') + '000000'
         self.dt_mtct = None
         self.websQ_ticker = None
+        self.codes = None
 
         Timer(10, self.ConditionSearch).start()
 
@@ -56,15 +57,9 @@ class WebsTicker:
 
     def Start(self):
         """ get_tickers 리턴 리스트의 갯수가 다른 버그 발견, 1초 간격 3회 조회 후 길이가 긴 리스트를 티커리스트로 정한다 """
-        codes = pyupbit.get_tickers(fiat="KRW")
-        time.sleep(1)
-        codes2 = pyupbit.get_tickers(fiat="KRW")
-        codes = codes2 if len(codes2) > len(codes) else codes
-        time.sleep(1)
-        codes2 = pyupbit.get_tickers(fiat="KRW")
-        codes = codes2 if len(codes2) > len(codes) else codes
         dict_tsbc = {}
-        self.websQ_ticker = WebSocketManager('ticker', codes)
+        self.GetTickersAndMoneyTop()
+        self.websQ_ticker = WebSocketManager('ticker', self.codes)
         while True:
             if not self.creceivQ.empty():
                 data = self.creceivQ.get()
@@ -73,7 +68,7 @@ class WebsTicker:
             data = self.websQ_ticker.get()
             if data == 'ConnectionClosedError':
                 self.windowQ.put([ui_num['C단순텍스트'], '시스템 명령 오류 알림 - WebsTicker 연결 끊김으로 다시 연결합니다.'])
-                self.websQ_ticker = WebSocketManager('ticker', codes)
+                self.websQ_ticker = WebSocketManager('ticker', self.codes)
             else:
                 code = data['code']
                 v = data['trade_volume']
@@ -114,12 +109,38 @@ class WebsTicker:
                     self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
                 if now() > self.dict_time['티커리스트재조회']:
-                    codes2 = pyupbit.get_tickers(fiat="KRW")
-                    if len(codes2) > len(codes):
+                    codes = pyupbit.get_tickers(fiat="KRW")
+                    if len(codes) > len(self.codes):
+                        self.codes = codes
                         self.websQ_ticker.terminate()
                         self.websQ_ticker.join()
-                        self.websQ_ticker = WebSocketManager('ticker', codes)
+                        self.websQ_ticker = WebSocketManager('ticker', self.codes)
                     self.dict_time['티커리스트재조회'] = timedelta_sec(600)
+
+    def GetTickersAndMoneyTop(self):
+        codes = pyupbit.get_tickers(fiat="KRW")
+        time.sleep(1)
+        codes2 = pyupbit.get_tickers(fiat="KRW")
+        codes = codes2 if len(codes2) > len(codes) else codes
+        time.sleep(1)
+        codes2 = pyupbit.get_tickers(fiat="KRW")
+        codes = codes2 if len(codes2) > len(codes) else codes
+        self.codes = codes
+        df_mc = pd.DataFrame(columns=['최근거래대금'])
+        for code in self.codes:
+            if 90000 < int(strf_time('%H%M%S')) < 100000:
+                df = pyupbit.get_ohlcv(ticker=code, interval='minute1', count=1)
+                if df is not None:
+                    df_mc.at[code] = df['close'][0] * df['volume'][0]
+            else:
+                df = pyupbit.get_ohlcv(ticker=code, interval='minute3', count=1)
+                if df is not None:
+                    df_mc.at[code] = df['close'][0] * df['volume'][0]
+            time.sleep(0.2)
+        df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
+        list_top = list(df_mc.index[:MONEYTOP_RANK])
+        for code in list_top:
+            self.InsertGsjmlist(code)
 
     def UpdateJangolist(self, data):
         code = data[1]
