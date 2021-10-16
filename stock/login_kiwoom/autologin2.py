@@ -34,6 +34,7 @@ class Window(QtWidgets.QMainWindow):
         self.ocx.dynamicCall('KOA_Functions(QString, QString)', 'ShowAccountWindow', '')
         print(' 자동 로그인 설정 완료\n')
         print(' 자동 로그인 설정용 프로세스 종료 중 ...')
+        sys.exit()
 
 
 if __name__ == '__main__':
