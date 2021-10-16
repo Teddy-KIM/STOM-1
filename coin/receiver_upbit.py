@@ -29,6 +29,7 @@ class WebsTicker:
 
         self.dict_cdjm = {}
         self.dict_time = {
+            '티커리스트재조회': now(),
             '거래대금순위기록': now(),
             '거래대금순위저장': now()
         }
@@ -111,6 +112,14 @@ class WebsTicker:
                     if len(self.list_gsjm) > 0:
                         self.UpdateMoneyTop()
                     self.dict_time['거래대금순위기록'] = timedelta_sec(1)
+
+                if now() > self.dict_time['티커리스트재조회']:
+                    codes2 = pyupbit.get_tickers(fiat="KRW")
+                    if len(codes2) > len(codes):
+                        self.websQ_ticker.terminate()
+                        self.websQ_ticker.join()
+                        self.websQ_ticker = WebSocketManager('ticker', codes)
+                    self.dict_time['티커리스트재조회'] = timedelta_sec(600)
 
     def UpdateJangolist(self, data):
         code = data[1]
@@ -212,6 +221,7 @@ class WebsOrderbook:
         self.coinQ = qlist[8]
         self.cstgQ = qlist[10]
         self.tick5Q = qlist[15]
+        self.time_tickers = now()
         self.websQ_order = None
         self.Start()
 
@@ -264,3 +274,11 @@ class WebsOrderbook:
                 self.tick5Q.put(data)
                 if DICT_SET['업비트트레이더']:
                     self.cstgQ.put(data)
+
+            if now() > self.time_tickers:
+                codes2 = pyupbit.get_tickers(fiat="KRW")
+                if len(codes2) > len(codes):
+                    self.websQ_order.terminate()
+                    self.websQ_order.join()
+                    self.websQ_order = WebSocketManager('orderbook', codes)
+                self.time_tickers = timedelta_sec(600)
