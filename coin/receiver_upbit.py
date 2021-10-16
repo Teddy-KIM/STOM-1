@@ -43,7 +43,7 @@ class WebsTicker:
         self.df_mc = pd.DataFrame(columns=['최근거래대금'])
 
         self.str_jcct = strf_time('%Y%m%d') + '000000'
-        self.dt_mtct = None
+        self.time_mcct = None
         self.websQ_ticker = None
         self.codes = None
 
@@ -189,16 +189,16 @@ class WebsTicker:
     def UpdateMoneyTop(self):
         timetype = '%Y%m%d%H%M%S'
         list_text = ';'.join(self.list_gsjm)
-        curr_time = self.str_jcct
-        curr_datetime = strp_time(timetype, curr_time)
-        if self.dt_mtct is not None:
-            gap_seconds = (curr_datetime - self.dt_mtct).total_seconds()
+        curr_strftime = self.str_jcct
+        curr_datetime = strp_time(timetype, curr_strftime)
+        if self.time_mcct is not None:
+            gap_seconds = (curr_datetime - self.time_mcct).total_seconds()
             while gap_seconds > 1:
                 gap_seconds -= 1
                 pre_time = strf_time(timetype, timedelta_sec(-gap_seconds, curr_datetime))
                 self.df_mt.at[pre_time] = list_text
-        self.df_mt.at[curr_time] = list_text
-        self.dt_mtct = curr_datetime
+        self.df_mt.at[curr_strftime] = list_text
+        self.time_mcct = curr_datetime
 
         if now() > self.dict_time['거래대금순위저장']:
             self.query2Q.put([2, self.df_mt, 'moneytop', 'append'])
