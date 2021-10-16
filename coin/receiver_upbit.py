@@ -197,9 +197,7 @@ class WebsTicker:
                 gap_seconds -= 1
                 pre_time = strf_time(timetype, timedelta_sec(-gap_seconds, curr_datetime))
                 self.df_mt.at[pre_time] = list_text
-                print(pre_time)
         self.df_mt.at[curr_strftime] = list_text
-        print(curr_strftime)
         self.time_mcct = curr_datetime
 
         if now() > self.dict_time['거래대금순위저장']:
