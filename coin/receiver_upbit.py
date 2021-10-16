@@ -188,7 +188,7 @@ class WebsTicker:
 
     def UpdateMoneyTop(self):
         timetype = '%Y%m%d%H%M%S'
-        list_text = ';'.join(list(self.df_mc.index[:MONEYTOP_RANK]))
+        list_text = ';'.join(self.list_gsjm)
         curr_time = self.str_jcct
         curr_datetime = strp_time(timetype, curr_time)
         if self.dt_mtct is not None:
