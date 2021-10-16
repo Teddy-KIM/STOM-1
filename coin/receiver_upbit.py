@@ -75,7 +75,7 @@ class WebsTicker:
                 gubun = data['ask_bid']
                 dt = data['trade_date'] + data['trade_time']
                 dt = strf_time('%Y%m%d%H%M%S', timedelta_hour(9, strp_time('%Y%m%d%H%M%S', dt)))
-                if dt != self.str_jcct:
+                if dt != self.str_jcct and int(dt) > int(self.str_jcct):
                     self.str_jcct = dt
                 try:
                     pret = dict_tsbc[code][0]
@@ -197,7 +197,9 @@ class WebsTicker:
                 gap_seconds -= 1
                 pre_time = strf_time(timetype, timedelta_sec(-gap_seconds, curr_datetime))
                 self.df_mt.at[pre_time] = list_text
+                print(pre_time)
         self.df_mt.at[curr_strftime] = list_text
+        print(curr_strftime)
         self.time_mcct = curr_datetime
 
         if now() > self.dict_time['거래대금순위저장']:
