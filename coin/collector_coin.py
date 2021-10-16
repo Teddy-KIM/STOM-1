@@ -1,11 +1,12 @@
 import os
 import sys
+import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import *
-from utility.setting import *
+from utility.static import timedelta_sec, now
+from utility.setting import columns_cc, ui_num
 
 
-class CollectorUpbit:
+class CollectorCoin:
     def __init__(self, qlist):
         """
                     0        1       2        3       4       5          6        7      8      9     10

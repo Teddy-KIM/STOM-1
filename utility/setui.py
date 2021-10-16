@@ -1,8 +1,12 @@
+import pyqtgraph
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
 from PyQt5 import QtCore, QtGui, QtWidgets
 from utility import syntax
-from utility.setting import *
-from utility.static import *
+from utility.static import CustomViewBox
+from utility.setting import qfont12, qfont14, style_bc_st, style_bc_bt, style_bc_dk, style_fc_bt, style_pgbar, \
+    columns_tt, columns_td, columns_tj, columns_jg, columns_gj_, columns_cj, columns_dt, columns_dd, columns_nt, \
+    columns_nd, ICON_PATH
 
 
 class TabBar(QtWidgets.QTabBar):

@@ -1,9 +1,11 @@
 import os
 import sys
+import sqlite3
 import numpy as np
+import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import *
-from utility.setting import *
+from utility.static import now, strf_time, timedelta_sec
+from utility.setting import DB_COIN_STRETEGY, DICT_SET, ui_num, columns_gj
 
 
 class StrategyCoin:

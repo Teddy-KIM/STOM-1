@@ -6,11 +6,11 @@ import subprocess
 from PyQt5.QtTest import QTest
 from multiprocessing import Process, Queue
 from coin.receiver_upbit import WebsTicker, WebsOrderbook
-from coin.collector_upbit import CollectorUpbit
+from coin.collector_coin import CollectorCoin
 from coin.strategy_coin import StrategyCoin
 from coin.trader_upbit import TraderUpbit
 from stock.receiver_kiwoom import ReceiverKiwoom
-from stock.collector_kiwoom import CollectorKiwoom
+from stock.collector_stock import CollectorStock
 from stock.strategy_stock import StrategyStock
 from stock.trader_kiwoom import TraderKiwoom
 from utility.setui import *
@@ -89,15 +89,15 @@ class Window(QtWidgets.QMainWindow):
 
         self.receiver_coin_proc1 = Process(target=WebsTicker, args=(qlist,))
         self.receiver_coin_proc2 = Process(target=WebsOrderbook, args=(qlist,))
-        self.collector_coin_proc = Process(target=CollectorUpbit, args=(qlist,))
+        self.collector_coin_proc = Process(target=CollectorCoin, args=(qlist,))
         self.strategy_coin_proc = Process(target=StrategyCoin, args=(qlist,))
         self.trader_coin_proc = Process(target=TraderUpbit, args=(qlist,))
 
         self.receiver_stock_proc = Process(target=ReceiverKiwoom, args=(qlist,))
-        self.collector_stock_proc1 = Process(target=CollectorKiwoom, args=(1, qlist))
-        self.collector_stock_proc2 = Process(target=CollectorKiwoom, args=(2, qlist))
-        self.collector_stock_proc3 = Process(target=CollectorKiwoom, args=(3, qlist))
-        self.collector_stock_proc4 = Process(target=CollectorKiwoom, args=(4, qlist))
+        self.collector_stock_proc1 = Process(target=CollectorStock, args=(1, qlist))
+        self.collector_stock_proc2 = Process(target=CollectorStock, args=(2, qlist))
+        self.collector_stock_proc3 = Process(target=CollectorStock, args=(3, qlist))
+        self.collector_stock_proc4 = Process(target=CollectorStock, args=(4, qlist))
         self.strategy_stock_proc = Process(target=StrategyStock, args=(qlist,))
         self.trader_stock_proc = Process(target=TraderKiwoom, args=(qlist,))
 

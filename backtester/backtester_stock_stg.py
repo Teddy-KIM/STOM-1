@@ -1,10 +1,13 @@
 import os
 import sys
+import sqlite3
+import datetime
+import pandas as pd
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import *
-from utility.setting import *
+from utility.setting import DB_STOCK_STRETEGY, DB_STOCK_TICK, DB_BACKTEST
+from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
 BETTING = 10000000     # 종목당 배팅금액
 
@@ -111,7 +114,6 @@ class BackTesterStockStg:
         conn.close()
 
     def BuyTerm(self):
-        # noinspection PyShadowingNames
         def now():
             return strp_time('%Y%m%d%H%M%S', self.index)
 
@@ -208,7 +210,6 @@ class BackTesterStockStg:
                 self.buytime = strp_time('%Y%m%d%H%M%S', self.index)
 
     def SellTerm(self):
-        # noinspection PyShadowingNames
         def now():
             return strp_time('%Y%m%d%H%M%S', self.index)
 

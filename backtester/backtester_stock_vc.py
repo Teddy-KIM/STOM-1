@@ -1,10 +1,13 @@
 import os
 import sys
+import sqlite3
+import datetime
+import pandas as pd
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import *
-from utility.setting import *
+from utility.setting import DB_STOCK_TICK, DB_BACKTEST, GRAPH_PATH
+from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
 BETTING = 10000000     # 종목당 배팅금액
 TESTPERIOD = 14        # 백테스팅 기간(14일 경우 과거 2주간의 데이터를 백테스팅한다)
@@ -120,7 +123,6 @@ class BackTesterStockVc:
         conn.close()
 
     def BuyTerm(self):
-        # noinspection PyShadowingNames
         def now():
             return strp_time('%Y%m%d%H%M%S', self.index)
 
@@ -218,7 +220,6 @@ class BackTesterStockVc:
                 self.buytime = strp_time('%Y%m%d%H%M%S', self.index)
 
     def SellTerm(self):
-        # noinspection PyShadowingNames
         def now():
             return strp_time('%Y%m%d%H%M%S', self.index)
 
@@ -497,7 +498,7 @@ class Total:
 
 
 if __name__ == "__main__":
-    start = now()
+    start = datetime.datetime.now()
 
     con = sqlite3.connect(DB_STOCK_TICK)
     df = pd.read_sql("SELECT name FROM sqlite_master WHERE TYPE = 'table'", con)
@@ -606,5 +607,5 @@ if __name__ == "__main__":
         w.join()
 
     q.close()
-    end = now()
+    end = datetime.datetime.now()
     print(f" 백테스팅 소요시간 {end - start}")

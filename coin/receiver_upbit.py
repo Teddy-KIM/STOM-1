@@ -2,11 +2,12 @@ import os
 import sys
 import time
 import pyupbit
+import pandas as pd
 from threading import Timer
 from pyupbit import WebSocketManager
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import *
-from utility.setting import *
+from utility.setting import ui_num, DICT_SET
+from utility.static import now, strf_time, strp_time, timedelta_hour, timedelta_sec
 
 MONEYTOP_MINUTE = 10        # 최근거래대금순위을 집계할 시간
 MONEYTOP_RANK = 20          # 최근거래대금순위중 관심종목으로 선정할 순위
