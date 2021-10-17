@@ -135,9 +135,9 @@ class StrategyStock:
         초당거래대금 = 0 if 직전당일거래대금 == 0 else int(당일거래대금 - 직전당일거래대금)
 
         if int(strf_time('%H%M%S')) < 100000:
-            평균값계산틱수 = DICT_SET['코인장초평균값계산틱수']
+            평균값계산틱수 = DICT_SET['주식장초평균값계산틱수']
         else:
-            평균값계산틱수 = DICT_SET['코인장중평균값계산틱수']
+            평균값계산틱수 = DICT_SET['주식장중평균값계산틱수']
         평균값인덱스 = 평균값계산틱수 + 1
 
         self.dict_gsjm[종목코드] = self.dict_gsjm[종목코드].shift(1)
