@@ -10,9 +10,11 @@ from coin.collector_coin import CollectorCoin
 from coin.strategy_coin import StrategyCoin
 from coin.trader_upbit import TraderUpbit
 from stock.receiver_kiwoom import ReceiverKiwoom
+from stock.receiver_xing import ReceiverXing
 from stock.collector_stock import CollectorStock
 from stock.strategy_stock import StrategyStock
 from stock.trader_kiwoom import TraderKiwoom
+from stock.trader_xing import TraderXing
 from utility.setui import *
 from utility.sound import Sound
 from utility.query import Query
@@ -93,24 +95,26 @@ class Window(QtWidgets.QMainWindow):
         self.strategy_coin_proc = Process(target=StrategyCoin, args=(qlist,))
         self.trader_coin_proc = Process(target=TraderUpbit, args=(qlist,))
 
-        self.receiver_stock_proc = Process(target=ReceiverKiwoom, args=(qlist,))
+        self.receiver_kiwoom_proc = Process(target=ReceiverKiwoom, args=(qlist,))
+        self.receiver_xing_proc = Process(target=ReceiverXing, args=(qlist,))
         self.collector_stock_proc1 = Process(target=CollectorStock, args=(1, qlist))
         self.collector_stock_proc2 = Process(target=CollectorStock, args=(2, qlist))
         self.collector_stock_proc3 = Process(target=CollectorStock, args=(3, qlist))
         self.collector_stock_proc4 = Process(target=CollectorStock, args=(4, qlist))
         self.strategy_stock_proc = Process(target=StrategyStock, args=(qlist,))
-        self.trader_stock_proc = Process(target=TraderKiwoom, args=(qlist,))
+        self.trader_kiwoom_proc = Process(target=TraderKiwoom, args=(qlist,))
+        self.trader_xing_proc = Process(target=TraderXing, args=(qlist,))
 
     def ProcessStarter(self):
         if now().weekday() not in [6, 7]:
-            if DICT_SET['키움콜렉터'] and self.int_time < 85000 <= int(strf_time('%H%M%S')):
-                self.KiwoomCollectorStart()
-            if DICT_SET['키움트레이더'] and self.int_time < 85200 <= int(strf_time('%H%M%S')):
-                self.KiwoomTraderStart()
+            if self.int_time < 85000 <= int(strf_time('%H%M%S')):
+                self.StockCollectorStart()
+            if self.int_time < 85200 <= int(strf_time('%H%M%S')):
+                self.StockTraderStart()
         if DICT_SET['업비트콜렉터'] and not self.startUpbitCollector:
-            self.UpbitCollectorStart()
+            self.CoinCollectorStart()
         if DICT_SET['업비트트레이더'] and not self.startUpbitTrader:
-            self.UpbitTraderStart()
+            self.CoinTraderStart()
         if DICT_SET['주식최적화백테스터'] and self.int_time < DICT_SET['주식백테시작시간'] <= int(strf_time('%H%M%S')):
             self.StockBacktestStart()
         if DICT_SET['코인최적화백테스터'] and self.int_time < DICT_SET['코인백테시작시간'] <= int(strf_time('%H%M%S')):
@@ -120,12 +124,12 @@ class Window(QtWidgets.QMainWindow):
         self.UpdateWindowTitle()
         self.int_time = int(strf_time('%H%M%S'))
 
-    # noinspection PyArgumentList
-    def KiwoomCollectorStart(self):
+    def StockCollectorStart(self):
         self.backtester_proc = None
         if DICT_SET['아이디2'] is not None:
-            os.system(f'python {LOGIN_PATH}/versionupdater.py')
-            os.system(f'python {LOGIN_PATH}/autologin2.py')
+            if DICT_SET['키움콜렉터']:
+                os.system(f'python {LOGIN_PATH}/versionupdater.py')
+                os.system(f'python {LOGIN_PATH}/autologin2.py')
             if not self.collector_stock_proc1.is_alive():
                 self.collector_stock_proc1.start()
             if not self.collector_stock_proc2.is_alive():
@@ -134,30 +138,34 @@ class Window(QtWidgets.QMainWindow):
                 self.collector_stock_proc3.start()
             if not self.collector_stock_proc4.is_alive():
                 self.collector_stock_proc4.start()
-            if not self.receiver_stock_proc.is_alive():
-                self.receiver_stock_proc.start()
+            if DICT_SET['키움콜렉터'] and not self.receiver_kiwoom_proc.is_alive():
+                self.receiver_kiwoom_proc.start()
+            elif DICT_SET['이베스트콜렉터'] and not self.receiver_xing_proc.is_alive():
+                self.receiver_xing_proc.start()
             text = '주식 리시버 및 콜렉터를 시작하였습니다.'
             soundQ.put(text)
             teleQ.put(text)
         else:
             QtWidgets.QMessageBox.critical(
-                self, '오류 알림', '키움 두번째 계정이 설정되지 않아\n콜렉터를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
+                self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
 
-    def KiwoomTraderStart(self):
+    def StockTraderStart(self):
         if DICT_SET['아이디1'] is not None:
             os.system(f'python {LOGIN_PATH}/autologin1.py')
             if not self.strategy_stock_proc.is_alive():
                 self.strategy_stock_proc.start()
-            if not self.trader_stock_proc.is_alive():
-                self.trader_stock_proc.start()
+            if DICT_SET['키움트레이더'] and not self.trader_kiwoom_proc.is_alive():
+                self.trader_kiwoom_proc.start()
+            elif DICT_SET['이베스트트레이더'] and not self.trader_xing_proc.is_alive():
+                self.trader_xing_proc.start()
             text = '주식 트레이더를 시작하였습니다.'
             soundQ.put(text)
             teleQ.put(text)
         else:
             QtWidgets.QMessageBox.critical(
-                self, '오류 알림', '키움 첫번째 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
+                self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
 
-    def UpbitCollectorStart(self):
+    def CoinCollectorStart(self):
         self.receiver_coin_proc1.start()
         self.receiver_coin_proc2.start()
         self.collector_coin_proc.start()
@@ -166,7 +174,7 @@ class Window(QtWidgets.QMainWindow):
         teleQ.put(text)
         self.startUpbitCollector = True
 
-    def UpbitTraderStart(self):
+    def CoinTraderStart(self):
         if DICT_SET['Access_key'] is not None:
             self.strategy_coin_proc.start()
             self.trader_coin_proc.start()
@@ -248,7 +256,7 @@ class Window(QtWidgets.QMainWindow):
             if len(df) == 0 or df['아이디2'][0] == '':
                 self.sj_main_checkBox_01.nextCheckState()
                 QtWidgets.QMessageBox.critical(
-                    self, '오류 알림', '키움 두번째 계정이 설정되지 않아\n콜렉터를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+                    self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
 
     def CheckboxChanged_02(self, state):
         if state == Qt.Checked:
@@ -258,7 +266,7 @@ class Window(QtWidgets.QMainWindow):
             if len(df) == 0 or df['아이디1'][0] == '':
                 self.sj_main_checkBox_02.nextCheckState()
                 QtWidgets.QMessageBox.critical(
-                    self, '오류 알림', '키움 첫번째 계정이 설정되지 않아\n트레이더를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+                    self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
 
     def CheckboxChanged_03(self, state):
         if state == Qt.Checked:
@@ -538,15 +546,15 @@ class Window(QtWidgets.QMainWindow):
         if buttonReply == QtWidgets.QMessageBox.Yes:
             if DICT_SET['아이디2'] is None:
                 QtWidgets.QMessageBox.critical(
-                    self, '오류 알림', '키움 두번째 계정이 설정되지 않아\n콜렉터를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
+                    self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
             else:
-                self.KiwoomCollectorStart()
+                self.StockCollectorStart()
                 QTest.qWait(20000)
             if DICT_SET['아이디1'] is None:
                 QtWidgets.QMessageBox.critical(
-                    self, '오류 알림', '키움 첫번째 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
+                    self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
             else:
-                self.KiwoomTraderStart()
+                self.StockTraderStart()
 
     def ButtonClicked_03(self):
         if self.geometry().width() > 1000:
@@ -1130,9 +1138,9 @@ class Window(QtWidgets.QMainWindow):
             self.sj_sacc_lineEdit_06.setText(df['비밀번호2'][0])
             self.sj_sacc_lineEdit_07.setText(df['인증서비밀번호2'][0])
             self.sj_sacc_lineEdit_08.setText(df['계좌비밀번호2'][0])
-            self.UpdateTexedit([ui_num['설정텍스트'], '키움증권 계정 설정값 불러오기 완료'])
+            self.UpdateTexedit([ui_num['설정텍스트'], '주식 계정 설정값 불러오기 완료'])
         else:
-            QtWidgets.QMessageBox.critical(self, '오류 알림', '키움증권 계정 설정값이\n존재하지 않습니다.\n')
+            QtWidgets.QMessageBox.critical(self, '오류 알림', '주식 계정 설정값이\n존재하지 않습니다.\n')
 
     def ButtonClicked_73(self):
         con = sqlite3.connect(DB_SETTING)
@@ -1276,7 +1284,7 @@ class Window(QtWidgets.QMainWindow):
         else:
             df = pd.DataFrame([[id1, ps1, cp1, ap1, id2, ps2, cp2, ap2]], columns=columns_sk, index=[0])
             query1Q.put([1, df, 'kiwoom', 'replace'])
-            self.UpdateTexedit([ui_num['설정텍스트'], '키움증권 계정 설정값 저장하기 완료'])
+            self.UpdateTexedit([ui_num['설정텍스트'], '주식 계정 설정값 저장하기 완료'])
 
             # noinspection PyGlobalUndefined
             global DICT_SET
@@ -1634,8 +1642,8 @@ class Window(QtWidgets.QMainWindow):
                 self.writer.terminate()
             if self.trader_coin_proc.is_alive():
                 self.trader_coin_proc.kill()
-            if self.trader_stock_proc.is_alive():
-                self.trader_stock_proc.kill()
+            if self.trader_kiwoom_proc.is_alive():
+                self.trader_kiwoom_proc.kill()
             if self.strategy_coin_proc.is_alive():
                 self.strategy_coin_proc.kill()
             if self.strategy_stock_proc.is_alive():
@@ -1650,8 +1658,8 @@ class Window(QtWidgets.QMainWindow):
                 self.collector_stock_proc3.kill()
             if self.collector_stock_proc4.is_alive():
                 self.collector_stock_proc4.kill()
-            if self.receiver_stock_proc.is_alive():
-                self.receiver_stock_proc.kill()
+            if self.receiver_kiwoom_proc.is_alive():
+                self.receiver_kiwoom_proc.kill()
             if self.receiver_coin_proc1.is_alive():
                 self.receiver_coin_proc1.kill()
             if self.receiver_coin_proc2.is_alive():
