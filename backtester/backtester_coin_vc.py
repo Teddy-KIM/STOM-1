@@ -31,7 +31,7 @@ class BackTesterCoinVc:
             self.dm_low = num_[4][0]
             self.per_low = num_[5][0]
             self.per_high = num_[6][0]
-            self.cs_per = num_[7][0]
+            self.ch_sell = num_[7][0]
         else:
             self.gap_ch = num_[0]
             self.avgtime = num_[1]
@@ -40,7 +40,7 @@ class BackTesterCoinVc:
             self.dm_low = num_[4]
             self.per_low = num_[5]
             self.per_high = num_[6]
-            self.cs_per = num_[7]
+            self.ch_sell = num_[7]
 
         self.code = None
         self.df = None
@@ -415,7 +415,7 @@ class Total:
             self.dm_low = num_[4][0]
             self.per_low = num_[5][0]
             self.per_high = num_[6][0]
-            self.cs_per = num_[7][0]
+            self.ch_sell = num_[7][0]
         else:
             self.gap_ch = num_[0]
             self.avg_time = num_[1]
@@ -424,7 +424,7 @@ class Total:
             self.dm_low = num_[4]
             self.per_low = num_[5]
             self.per_high = num_[6]
-            self.cs_per = num_[7]
+            self.ch_sell = num_[7]
 
         self.Start()
 
@@ -455,7 +455,7 @@ class Total:
         if len(df_back) > 0:
             tc = df_back['거래횟수'].sum()
             text = [self.gap_ch, self.avg_time, self.gap_sm, self.ch_low, self.dm_low,
-                    self.per_low, self.per_high, self.cs_per]
+                    self.per_low, self.per_high, self.ch_sell]
             print(f' {text}')
             if tc != 0:
                 pc = df_back['익절'].sum()
@@ -476,7 +476,7 @@ class Total:
                 print(text)
                 df_back = pd.DataFrame(
                     [[onegm, onedaycount, tc, avghold, pc, mc, pper, avgsp, tsp, tsg, self.gap_ch, self.avg_time,
-                      self.gap_sm, self.ch_low, self.dm_low, self.per_low, self.per_high, self.cs_per]],
+                      self.gap_sm, self.ch_low, self.dm_low, self.per_low, self.per_high, self.ch_sell]],
                     columns=columns2, index=[strf_time('%Y%m%d%H%M%S')])
                 conn = sqlite3.connect(DB_BACKTEST)
                 df_back.to_sql(f"coin_vc_{strf_time('%Y%m%d')}_1", conn, if_exists='append', chunksize=1000)
@@ -518,7 +518,7 @@ if __name__ == "__main__":
 
         for gap_ch in gap_chs:
             for avg_time in avg_times:
-                num = [gap_ch, avg_time, 50, 50, 0, 0, 25, 3]
+                num = [gap_ch, avg_time, 50, 50, 0, 0, 25, 0.5]
                 w = Process(target=Total, args=(q, last, num))
                 w.start()
                 procs = []
@@ -544,8 +544,8 @@ if __name__ == "__main__":
         dm_low = [0, 100000, 10000, 1000]
         per_low = [0, 10, 1, 0.1]
         per_high = [25, 15, -1, -1]
-        cs_per = [3, 10, 1, 0.2]
-        num = [gap_ch, avg_time, gap_sm, ch_low, dm_low, per_low, per_high, cs_per]
+        ch_sell = [0.5, 1.0, 0.1, 0.1]
+        num = [gap_ch, avg_time, gap_sm, ch_low, dm_low, per_low, per_high, ch_sell]
 
         ogin_var = high_var[0]
         high_var = high_var[0]
@@ -584,6 +584,8 @@ if __name__ == "__main__":
                         num[i][0] -= num[i][2]
                         num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
                         num[i][2] = num[i][3]
+                    elif i == 7:
+                        num[i][0] = num[i][2]
                     ogin_var = num[i][0]
                     high_var = num[i][0]
                 else:
