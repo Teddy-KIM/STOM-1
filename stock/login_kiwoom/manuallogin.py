@@ -70,31 +70,31 @@ def manual_login(gubun):
     if gubun in [1, 2]:
         enter_keys(win32gui.GetDlgItem(hwnd, 0x3E8), DICT_SET['아이디1'])
         enter_keys(win32gui.GetDlgItem(hwnd, 0x3E9), DICT_SET['비밀번호1'])
-        if gubun == 2:
-            enter_keys(win32gui.GetDlgItem(hwnd, 0x3EA), DICT_SET['인증서비밀번호1'])
-            # 자동로그인 설정 로그인창 닫힘 인식 실패 문제 회피 - 데빌퀸트
-            doubleClick(15, 15, win32gui.GetDlgItem(hwnd, 0x3E9))
-            time.sleep(1)
-            doubleClick(15, 15, win32gui.GetDlgItem(hwnd, 0x3EA))
-            time.sleep(0.3)
-            enter_keys(win32gui.GetDlgItem(hwnd, 0x3EA), DICT_SET['인증서비밀번호1'])
-            time.sleep(0.3)
-            ######################################################
-            click_button(win32gui.GetDlgItem(hwnd, 0x1))
+        enter_keys(win32gui.GetDlgItem(hwnd, 0x3EA), DICT_SET['인증서비밀번호1'])
+        time.sleep(1)
+        doubleClick(15, 15, win32gui.GetDlgItem(hwnd, 0x3E8))
+        time.sleep(0.3)
+        enter_keys(win32gui.GetDlgItem(hwnd, 0x3E8), DICT_SET['아이디1'])
+        time.sleep(0.3)
+        doubleClick(15, 15, win32gui.GetDlgItem(hwnd, 0x3EA))
+        time.sleep(0.3)
+        enter_keys(win32gui.GetDlgItem(hwnd, 0x3EA), DICT_SET['인증서비밀번호1'])
+        time.sleep(0.3)
+        click_button(win32gui.GetDlgItem(hwnd, 0x1))
     elif gubun in [3, 4]:
         enter_keys(win32gui.GetDlgItem(hwnd, 0x3E8), DICT_SET['아이디2'])
         enter_keys(win32gui.GetDlgItem(hwnd, 0x3E9), DICT_SET['비밀번호2'])
-        if gubun == 4:
-            enter_keys(win32gui.GetDlgItem(hwnd, 0x3EA), DICT_SET['인증서비밀번호2'])
-            # 자동로그인 설정 로그인창 닫힘 인식 실패 문제 회피 - 데빌퀸트
-            doubleClick(15, 15, win32gui.GetDlgItem(hwnd, 0x3E9))
-            time.sleep(1)
-            doubleClick(15, 15, win32gui.GetDlgItem(hwnd, 0x3EA))
-            time.sleep(0.3)
-            enter_keys(win32gui.GetDlgItem(hwnd, 0x3EA), DICT_SET['인증서비밀번호2'])
-            time.sleep(0.3)
-            ######################################################
-            click_button(win32gui.GetDlgItem(hwnd, 0x1))
+        enter_keys(win32gui.GetDlgItem(hwnd, 0x3EA), DICT_SET['인증서비밀번호2'])
+        time.sleep(1)
+        doubleClick(15, 15, win32gui.GetDlgItem(hwnd, 0x3E8))
+        time.sleep(0.3)
+        enter_keys(win32gui.GetDlgItem(hwnd, 0x3E8), DICT_SET['아이디2'])
+        time.sleep(0.3)
+        doubleClick(15, 15, win32gui.GetDlgItem(hwnd, 0x3EA))
+        time.sleep(0.3)
+        enter_keys(win32gui.GetDlgItem(hwnd, 0x3EA), DICT_SET['인증서비밀번호2'])
+        time.sleep(0.3)
+        click_button(win32gui.GetDlgItem(hwnd, 0x1))
     click_button(win32gui.GetDlgItem(hwnd, 0x1))
 
 
