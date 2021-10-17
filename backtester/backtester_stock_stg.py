@@ -187,8 +187,8 @@ class BackTesterStockStg:
         매도잔량2 = self.df['매도잔량2'][self.index]
         매도잔량1 = self.df['매도잔량1'][self.index]
         현재가 = self.df['현재가'][self.index]
-        매수수량 = round(BETTING / 현재가, 8)
-        if 매수수량 > 0.00000001:
+        매수수량 = int(BETTING / 현재가)
+        if 매수수량 > 0:
             남은수량 = 매수수량
             직전남은수량 = 매수수량
             매수금액 = 0
