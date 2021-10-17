@@ -107,11 +107,9 @@ class TraderKiwoom:
 
         self.list_kosd = self.GetCodeListByMarket('10')
         list_code = self.GetCodeListByMarket('0') + self.list_kosd
-        dict_code = {}
         for code in list_code:
             name = self.GetMasterCodeName(code)
             self.dict_name[code] = name
-            dict_code[name] = code
 
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
         if DICT_SET['주식알림소리']:

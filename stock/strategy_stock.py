@@ -43,6 +43,7 @@ class StrategyStock:
         self.list_buy = []          # 매수주문리스트
         self.list_sell = []         # 매도주문리스트
         self.int_tujagm = 0         # 종목당 투자금
+        self.startjjstg = False     # 장중전략
 
         self.dict_gsjm = {}         # key: 종목코드, value: DataFrame
         self.dict_data = {}         # key: 종목코드, value: list
@@ -51,7 +52,6 @@ class StrategyStock:
             '관심종목': now(),
             '연산시간': now()
         }
-        self.startjjstg = False     # 장중전략
 
         self.Start()
 
