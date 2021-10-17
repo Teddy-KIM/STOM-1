@@ -102,11 +102,14 @@ class TraderXing:
 
     def Login(self):
         self.xasession.login(id=USER_ID, password=PASSWORD, cert=CERT_PASS)
+
         df = []
-        df2 = self.xaquery.block_request("t8430", gubun=2).set_index('shcode')
+        df2 = self.xaquery.block_request("t8430", gubun=2)
+        df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
         df.append(df2)
         self.list_kosd = list(df2.index)
-        df2 = self.xaquery.block_request("t8430", gubun=1).set_index('shcode')
+        df2 = self.xaquery.block_request("t8430", gubun=1)
+        df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
         df.append(df2)
         df = pd.concat(df)
         dict_code = {}
