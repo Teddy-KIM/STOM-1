@@ -1431,7 +1431,7 @@ class Window(QtWidgets.QMainWindow):
             tableWidget = self.snt_tableWidget
         elif gubun == ui_num['S누적상세']:
             tableWidget = self.sns_tableWidget
-        if gubun == ui_num['C실현손익']:
+        elif gubun == ui_num['C실현손익']:
             tableWidget = self.ctt_tableWidget
         elif gubun == ui_num['C거래목록']:
             tableWidget = self.ctd_tableWidget
@@ -1616,6 +1616,8 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
         )
         if buttonReply == QtWidgets.QMessageBox.Yes:
+            wsk1Q.put('terminate')
+            wsk2Q.put('terminate')
             sound_proc.kill()
             query_proc1.kill()
             query_proc2.kill()
@@ -1684,10 +1686,10 @@ class Writer(QtCore.QThread):
 
 if __name__ == '__main__':
     windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, \
-        tick4Q, tick5Q = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
-        Queue(), Queue(), Queue(), Queue(), Queue(), Queue()
+        tick4Q, tick5Q, wsk1Q, wsk2Q = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
+        Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue()
     qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-             tick1Q, tick2Q, tick3Q, tick4Q, tick5Q]
+             tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q]
 
     sound_proc = Process(target=Sound, args=(qlist,), daemon=True)
     query_proc1 = Process(target=Query, args=(qlist,), daemon=True)

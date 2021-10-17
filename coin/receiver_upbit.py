@@ -18,8 +18,8 @@ class WebsTicker:
         """
                     0        1       2        3       4       5          6        7      8      9     10
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q]
-                   11       12      13     14      15
+                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q]
+                   11       12      13     14      15     16     17
         """
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
@@ -27,6 +27,7 @@ class WebsTicker:
         self.coinQ = qlist[8]
         self.cstgQ = qlist[10]
         self.tick5Q = qlist[15]
+        self.wsk1Q = qlist[16]
 
         self.dict_cdjm = {}
         self.dict_time = {
@@ -108,6 +109,9 @@ class WebsTicker:
                     if len(self.list_gsjm) > 0:
                         self.UpdateMoneyTop()
                     self.dict_time['거래대금순위기록'] = timedelta_sec(1)
+
+                if not self.wsk1Q.empty() and self.websQ_ticker is not None:
+                    self.websQ_ticker.terminate()
 
                 if now() > self.dict_time['티커리스트재조회']:
                     codes = pyupbit.get_tickers(fiat="KRW")
@@ -236,13 +240,14 @@ class WebsOrderbook:
         """
                     0        1       2        3       4       5          6        7      8      9     10
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q]
-                   11       12      13     14      15
+                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q]
+                   11       12      13     14      15     16     17
         """
         self.windowQ = qlist[0]
         self.coinQ = qlist[8]
         self.cstgQ = qlist[10]
         self.tick5Q = qlist[15]
+        self.wsk2Q = qlist[16]
         self.time_tickers = now()
         self.websQ_order = None
         self.Start()
@@ -296,6 +301,9 @@ class WebsOrderbook:
                 self.tick5Q.put(data)
                 if DICT_SET['업비트트레이더']:
                     self.cstgQ.put(data)
+
+            if not self.wsk2Q.empty() and self.websQ_order is not None:
+                self.websQ_order.terminate()
 
             if now() > self.time_tickers:
                 codes2 = pyupbit.get_tickers(fiat="KRW")
