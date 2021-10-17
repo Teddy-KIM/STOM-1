@@ -54,7 +54,7 @@ if __name__ == '__main__':
     manual_login(2)
     print(' 아이디 및 패스워드 입력 완료\n')
 
-    time.sleep(10)
+    time.sleep(15)
     print(' 잔류 프로세스 확인 중 ...\n')
     os.system('taskkill /f /im nkstarter.exe')
     print('\n')

@@ -26,7 +26,6 @@ class Window(QtWidgets.QMainWindow):
     def OnEventConnect(self, err_code):
         if err_code == 0:
             self.bool_connected = True
-        sys.exit()
 
 
 if __name__ == '__main__':
@@ -62,8 +61,14 @@ if __name__ == '__main__':
                     click_button(win32gui.GetDlgItem(hwnd, 0x2))
                     print(' 버전 업그레이드 완료\n')
                     update = True
+                if '핸들값이 없습니다' in text:
+                    if proc.is_alive():
+                        proc.kill()
+                    click_button(win32gui.GetDlgItem(hwnd, 0x2))
+                    break
             except pywintypes.error:
-                pass
+                if proc.is_alive():
+                    proc.kill()
         print(' 버전처리 및 로그인창 닫힘 대기 중 ...\n')
         time.sleep(1)
 
