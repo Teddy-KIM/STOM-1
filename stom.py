@@ -1644,6 +1644,8 @@ class Window(QtWidgets.QMainWindow):
                 self.trader_coin_proc.kill()
             if self.trader_kiwoom_proc.is_alive():
                 self.trader_kiwoom_proc.kill()
+            if self.trader_xing_proc.is_alive():
+                self.trader_xing_proc.kill()
             if self.strategy_coin_proc.is_alive():
                 self.strategy_coin_proc.kill()
             if self.strategy_stock_proc.is_alive():
@@ -1660,6 +1662,8 @@ class Window(QtWidgets.QMainWindow):
                 self.collector_stock_proc4.kill()
             if self.receiver_kiwoom_proc.is_alive():
                 self.receiver_kiwoom_proc.kill()
+            if self.receiver_xing_proc.is_alive():
+                self.receiver_xing_proc.kill()
             if self.receiver_coin_proc1.is_alive():
                 self.receiver_coin_proc1.kill()
             if self.receiver_coin_proc2.is_alive():
