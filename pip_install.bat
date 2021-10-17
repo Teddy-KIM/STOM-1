@@ -1,5 +1,5 @@
 chcp 65001
-pip install psutil pyqt5 pandas pyttsx3 matplotlib pyqtgraph python-telegram-bot pyupbit websockets==9.1
+pip install psutil pyqt5 pandas pyttsx3 matplotlib pyqtgraph python-telegram-bot pyupbit pyxing websockets==9.1
 @echo off
 @echo ====================================================================================
 @echo 다음 두개의 파일내에서 디렉토리 경로를 수정해야 프로그램이 올바르게 작동합니다.
