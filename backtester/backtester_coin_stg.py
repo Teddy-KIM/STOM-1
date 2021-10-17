@@ -115,9 +115,6 @@ class BackTesterCoinStg:
         conn.close()
 
     def BuyTerm(self):
-        def now():
-            return strp_time('%Y%m%d%H%M%S', self.index)
-
         if type(self.df['현재가'][self.index]) == pd.Series:
             return False
         try:
@@ -129,6 +126,9 @@ class BackTesterCoinStg:
             return False
         if self.ccond < self.avgtime + 1:
             return False
+
+        def now():
+            return strp_time('%Y%m%d%H%M%S', self.index)
 
         매수 = True
         종목명 = self.code
@@ -209,11 +209,11 @@ class BackTesterCoinStg:
                 self.buytime = strp_time('%Y%m%d%H%M%S', self.index)
 
     def SellTerm(self):
-        def now():
-            return strp_time('%Y%m%d%H%M%S', self.index)
-
         if type(self.df['현재가'][self.index]) == pd.Series:
             return False
+
+        def now():
+            return strp_time('%Y%m%d%H%M%S', self.index)
 
         bg = self.buycount * self.buyprice
         cg = self.buycount * self.df['현재가'][self.index]
