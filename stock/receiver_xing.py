@@ -2,15 +2,14 @@ import os
 import sys
 import time
 import sqlite3
+import win32com
+import pythoncom
 import pandas as pd
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer
-from pyxing.real import *
-from pyxing.query import *
-from pyxing.session import *
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import now, strf_time, strp_time, timedelta_sec
-from utility.setting import ui_num, DICT_SET, DB_TRADELIST
+from utility.static import now, strf_time, strp_time, timedelta_sec, parse_res
+from utility.setting import ui_num, DICT_SET, DB_TRADELIST, E_OPENAPI_PATH
 
 USER_ID = ''
 PASSWORD = ''
@@ -93,24 +92,28 @@ class ReceiverXing:
         self.timer.setInterval(10000)
         self.timer.timeout.connect(self.ConditionSearch)
 
-        self.xaquery = XAQuery()
-        self.xareal = XAReal(queue)
-        self.xasession = XASession()
+        self.obj_login = win32com.client.Dispatch('XA_Session.XASession')
+        self.obj_query = win32com.client.Dispatch('XA_DataSet.XAQuery')
+        self.obj_real = win32com.client.Dispatch('XA_DataSet.XAReal')
+
+        self.connected = False
+        self.received = False
         self.Start()
 
     def Start(self):
-        self.Login()
+        self.XingLogin()
         self.EventLoop()
 
-    def Login(self):
-        self.xasession.login(id=USER_ID, password=PASSWORD, cert=CERT_PASS)
-
+    def XingLogin(self):
+        self.obj_login.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
+        while not self.connected:
+            pythoncom.PumpWaitingMessages()
         df = []
-        df2 = self.xaquery.block_request("t8430", gubun=2)
+        df2 = self.BlockRequest("t8430", gubun=2)
         df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
         df.append(df2)
         self.list_kosd = list(df2.index)
-        df2 = self.xaquery.block_request("t8430", gubun=1)
+        df2 = self.BlockRequest("t8430", gubun=1)
         df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
         df.append(df2)
         df = pd.concat(df)
@@ -413,3 +416,68 @@ class ReceiverXing:
             self.tick3Q.put(data)
         elif code in self.list_code4:
             self.tick4Q.put(data)
+
+    def OnLogin(self, code, msg):
+        if msg == '':
+            return
+        if code == '0000':
+            self.connected = True
+
+    def OnReceiveData(self, code):
+        if code == '':
+            return
+        self.received = True
+
+    def OnReceiveRealData(self, trcode):
+        res_data = self.obj_real.res.get(trcode)
+        out_data = {}
+        out_block = res_data['outblock'][0]
+        for field in out_block['OutBlock']:
+            data = self.obj_real.GetFieldData('OutBlock', field)
+            out_data[field] = data
+
+    def BlockRequest(self, *args, **kwargs):
+        self.received = False
+        res_name = args[0]
+        res_file = res_name + '.res'
+        res_path = E_OPENAPI_PATH + res_file
+        self.obj_query.ResFileName = res_path
+        with open(res_path, encoding='euc-kr') as f:
+            res_lines = f.readlines()
+        res_data = parse_res(res_lines)
+        inblock_code = list(res_data['inblock'][0].keys())[0]
+        inblock_field = list(res_data['inblock'][0].values())[0]
+        for k in kwargs:
+            self.obj_query.SetFieldData(inblock_code, k, kwargs[k], index=0)
+            if k not in inblock_field:
+                print('inblock field error')
+        self.obj_query.Request(False)
+        while not self.received:
+            pythoncom.PumpWaitingMessages()
+        ret = []
+        for outblock in res_data['outblock']:
+            outblock_code = list(outblock.keys())[0]
+            outblock_field = list(outblock.values())[0]
+            data = []
+            rows = self.obj_query.GetBlockCount(outblock_code)
+            for i in range(rows):
+                elem = {k: self.obj_query.GetFieldData(outblock_code, k, i) for k in outblock_field}
+                data.append(elem)
+            df = pd.DataFrame(data=data)
+            ret.append(df)
+        ret = pd.concat(ret)
+        return ret
+
+    def RegisterResReal(self, res_file):
+        res_path = E_OPENAPI_PATH + res_file
+        self.obj_real.ResFileName = res_path
+
+    def AddRealData(self, field, code):
+        self.obj_real.SetFieldData('InBlock', field, code)
+        self.obj_real.AdviseRealData()
+
+    def RemoveRealData(self, code):
+        self.obj_real.UnadviseRealDataWithKey(code)
+
+    def RemoveAllRealData(self):
+        self.obj_real.UnadviseRealData()

@@ -2,14 +2,14 @@ import os
 import sys
 import time
 import sqlite3
+import pythoncom
+import win32com
 import pandas as pd
 from PyQt5 import QtWidgets
-from pyxing.real import *
-from pyxing.query import *
-from pyxing.session import *
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import now, strf_time, strp_time, timedelta_sec
-from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, DB_TRADELIST, DICT_SET
+from utility.static import now, strf_time, strp_time, timedelta_sec, parse_res
+from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, DB_TRADELIST, DICT_SET, \
+    E_OPENAPI_PATH
 
 USER_ID = ''
 PASSWORD = ''
@@ -73,14 +73,16 @@ class TraderXing:
         self.list_buy = []
         self.list_sell = []
 
-        self.xaquery = XAQuery()
-        self.xareal = XAReal(queue)
-        self.xasession = XASession()
+        self.obj_login = win32com.client.Dispatch('XA_Session.XASession')
+        self.obj_query = win32com.client.Dispatch('XA_DataSet.XAQuery')
+
+        self.connected = False
+        self.received = False
         self.Start()
 
     def Start(self):
         self.LoadDatabase()
-        self.Login()
+        self.XingLogin()
         self.EventLoop()
 
     def LoadDatabase(self):
@@ -100,23 +102,22 @@ class TraderXing:
 
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 데이터베이스 정보 불러오기 완료'])
 
-    def Login(self):
-        self.xasession.login(id=USER_ID, password=PASSWORD, cert=CERT_PASS)
-
+    def XingLogin(self):
+        self.obj_login.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
+        while not self.connected:
+            pythoncom.PumpWaitingMessages()
         df = []
-        df2 = self.xaquery.block_request("t8430", gubun=2)
+        df2 = self.BlockRequest("t8430", gubun=2)
         df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
         df.append(df2)
         self.list_kosd = list(df2.index)
-        df2 = self.xaquery.block_request("t8430", gubun=1)
+        df2 = self.BlockRequest("t8430", gubun=1)
         df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
         df.append(df2)
         df = pd.concat(df)
-        dict_code = {}
         for code in df.index:
             name = df['hname'][code]
             self.dict_name[code] = name
-            dict_code[name] = code
 
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
@@ -548,8 +549,8 @@ class TraderXing:
     def UpdateChegeollist(self, name, og, oc, omc, op, cp, on):
         dt = strf_time('%Y%m%d%H%M%S%f')
         if DICT_SET['주식모의투자'] and len(self.df_cj) > 0:
-            if dt in self.df_td['체결시간'].values:
-                while dt in self.df_td['체결시간'].values:
+            if dt in self.df_cj['체결시간'].values:
+                while dt in self.df_cj['체결시간'].values:
                     dt = str(int(dt) + 1)
                 on = dt
 
@@ -566,3 +567,46 @@ class TraderXing:
         if omc == 0:
             df = pd.DataFrame([[name, og, oc, omc, op, cp, dt]], columns=columns_cj, index=[on])
             self.query1Q.put([2, df, 's_chegeollist', 'append'])
+
+    def OnLogin(self, code, msg):
+        if msg == '':
+            return
+        if code == '0000':
+            self.connected = True
+
+    def OnReceiveData(self, code):
+        if code == '':
+            return
+        self.received = True
+
+    def BlockRequest(self, *args, **kwargs):
+        self.received = False
+        res_name = args[0]
+        res_file = res_name + '.res'
+        res_path = E_OPENAPI_PATH + res_file
+        self.obj_query.ResFileName = res_path
+        with open(res_path, encoding='euc-kr') as f:
+            res_lines = f.readlines()
+        res_data = parse_res(res_lines)
+        inblock_code = list(res_data['inblock'][0].keys())[0]
+        inblock_field = list(res_data['inblock'][0].values())[0]
+        for k in kwargs:
+            self.obj_query.SetFieldData(inblock_code, k, kwargs[k], index=0)
+            if k not in inblock_field:
+                print('inblock field error')
+        self.obj_query.Request(False)
+        while not self.received:
+            pythoncom.PumpWaitingMessages()
+        ret = []
+        for outblock in res_data['outblock']:
+            outblock_code = list(outblock.keys())[0]
+            outblock_field = list(outblock.values())[0]
+            data = []
+            rows = self.obj_query.GetBlockCount(outblock_code)
+            for i in range(rows):
+                elem = {k: self.obj_query.GetFieldData(outblock_code, k, i) for k in outblock_field}
+                data.append(elem)
+            df = pd.DataFrame(data=data)
+            ret.append(df)
+        ret = pd.concat(ret)
+        return ret

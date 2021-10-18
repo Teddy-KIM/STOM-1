@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 import psutil
 import logging
 import subprocess
@@ -1619,6 +1618,7 @@ class Window(QtWidgets.QMainWindow):
         else:
             return QtWidgets.QMainWindow.eventFilter(self, widget, event)
 
+    # noinspection PyArgumentList
     def closeEvent(self, a):
         buttonReply = QtWidgets.QMessageBox.question(
             self, "프로그램 종료", "프로그램을 종료합니다.",
@@ -1639,7 +1639,7 @@ class Window(QtWidgets.QMainWindow):
                 self.qtimer3.stop()
             wsk1Q.put('terminate')
             wsk2Q.put('terminate')
-            time.sleep(2)
+            QTest.qWait(2000)
             if self.writer.isRunning():
                 self.writer.terminate()
             if self.trader_coin_proc.is_alive():

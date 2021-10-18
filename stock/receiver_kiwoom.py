@@ -54,11 +54,11 @@ class ReceiverKiwoom:
         self.dict_name = {}
         self.dict_code = {}
 
-        self.list_gsjm = []
+        self.list_gsjm1 = []
         self.list_gsjm2 = []
         self.list_trcd = []
         self.list_jang = []
-        self.pre_top = []
+        self.list_prmt = []
         self.list_kosd = None
         self.list_code = None
         self.list_code1 = None
@@ -162,7 +162,7 @@ class ReceiverKiwoom:
             if now() > self.dict_time['거래대금순위기록']:
                 if len(self.dict_vipr) > 0:
                     self.stockQ.put(['VI정보', self.dict_vipr])
-                if len(self.list_gsjm) > 0:
+                if len(self.list_gsjm1) > 0:
                     self.UpdateMoneyTop()
                 self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
@@ -196,7 +196,7 @@ class ReceiverKiwoom:
                 self.list_gsjm2.append(code)
         elif '잔고청산' in data and code in self.list_jang:
             self.list_jang.remove(code)
-            if code not in self.list_gsjm and code in self.list_gsjm2:
+            if code not in self.list_gsjm1 and code in self.list_gsjm2:
                 self.sstgQ.put(['조건이탈', code])
                 self.list_gsjm2.remove(code)
 
@@ -236,41 +236,41 @@ class ReceiverKiwoom:
         self.dict_bool['장중단타전략시작'] = True
         self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
         list_top = list(self.df_mc.index[:MONEYTOP_RANK])
-        insert_list = set(list_top) - set(self.list_gsjm)
+        insert_list = set(list_top) - set(self.list_gsjm1)
         if len(insert_list) > 0:
             for code in list(insert_list):
                 self.InsertGsjmlist(code)
-        delete_list = set(self.list_gsjm) - set(list_top)
+        delete_list = set(self.list_gsjm1) - set(list_top)
         if len(delete_list) > 0:
             for code in list(delete_list):
                 self.DeleteGsjmlist(code)
-        self.pre_top = list_top
+        self.list_prmt = list_top
         self.timer.start()
 
     def ConditionSearch(self):
         self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
         list_top = list(self.df_mc.index[:MONEYTOP_RANK])
-        insert_list = set(list_top) - set(self.pre_top)
+        insert_list = set(list_top) - set(self.list_prmt)
         if len(insert_list) > 0:
             for code in list(insert_list):
                 self.InsertGsjmlist(code)
-        delete_list = set(self.pre_top) - set(list_top)
+        delete_list = set(self.list_prmt) - set(list_top)
         if len(delete_list) > 0:
             for code in list(delete_list):
                 self.DeleteGsjmlist(code)
-        self.pre_top = list_top
+        self.list_prmt = list_top
 
     def InsertGsjmlist(self, code):
-        if code not in self.list_gsjm:
-            self.list_gsjm.append(code)
+        if code not in self.list_gsjm1:
+            self.list_gsjm1.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
             if DICT_SET['키움트레이더']:
                 self.sstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
     def DeleteGsjmlist(self, code):
-        if code in self.list_gsjm:
-            self.list_gsjm.remove(code)
+        if code in self.list_gsjm1:
+            self.list_gsjm1.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
             if DICT_SET['키움트레이더']:
                 self.sstgQ.put(['조건이탈', code])
@@ -296,7 +296,7 @@ class ReceiverKiwoom:
 
     def UpdateMoneyTop(self):
         timetype = '%Y%m%d%H%M%S'
-        list_text = ';'.join(self.list_gsjm)
+        list_text = ';'.join(self.list_gsjm1)
         curr_strftime = self.str_jcct
         curr_datetime = strp_time(timetype, curr_strftime)
         if self.time_mcct is not None:

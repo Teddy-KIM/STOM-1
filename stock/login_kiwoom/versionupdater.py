@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets
 from multiprocessing import Process
 from PyQt5.QAxContainer import QAxWidget
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
-from utility.setting import OPENAPI_PATH
+from utility.setting import K_OPENAPI_PATH
 
 
 class Window(QtWidgets.QMainWindow):
@@ -30,10 +30,10 @@ class Window(QtWidgets.QMainWindow):
 
 if __name__ == '__main__':
     autofile = False
-    login_info = f'{OPENAPI_PATH}/system/Autologin.dat'
+    login_info = f'{K_OPENAPI_PATH}/system/Autologin.dat'
     if os.path.isfile(login_info):
         autofile = True
-        os.remove(f'{OPENAPI_PATH}/system/Autologin.dat')
+        os.remove(f'{K_OPENAPI_PATH}/system/Autologin.dat')
     print('\n 자동 로그인 설정 파일 삭제 완료\n')
 
     proc = Process(target=Window)

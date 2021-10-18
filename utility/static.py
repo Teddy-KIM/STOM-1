@@ -3,7 +3,7 @@ import datetime
 import pyqtgraph
 from PyQt5.QtCore import Qt
 from threading import Thread
-from utility.setting import OPENAPI_PATH
+from utility.setting import K_OPENAPI_PATH
 
 
 def thread_decorator(func):
@@ -98,7 +98,7 @@ def comma2float(t):
 
 
 def readEnc(trcode):
-    enc = zipfile.ZipFile(f'{OPENAPI_PATH}/data/{trcode}.enc')
+    enc = zipfile.ZipFile(f'{K_OPENAPI_PATH}/data/{trcode}.enc')
     lines = enc.read(trcode.upper() + '.dat').decode('cp949')
     return lines
 
@@ -124,6 +124,44 @@ def parseDat(trcode, lines):
         fields = {record: field_name}
         enc_data['input'].append(fields) if block_type == 'input' else enc_data['output'].append(fields)
     return enc_data
+
+
+def parse_info(data):
+    tokens = data.split(',')
+    return tokens[2].strip()
+
+
+def parse_block(data):
+    block_info = data[0]
+    tokens = block_info.split(",")
+    block_code, block_type = tokens[0], tokens[-1][:-1]
+    field_codes = []
+    fields = data[2:]
+    for line in fields:
+        if len(line) > 0:
+            field_code = line.split(',')[1].strip()
+            field_codes.append(field_code)
+    ret_data = {}
+    ret_data[block_code] = field_codes
+    return block_type, ret_data
+
+
+def parse_res(lines):
+    lines = [line.strip() for line in lines]
+    info_index = [i for i, x in enumerate(lines) if x.startswith((".Func", ".Feed"))][0]
+    begin_indices = [i - 1 for i, x in enumerate(lines) if x == "begin"]
+    end_indices = [i for i, x in enumerate(lines) if x == "end"]
+    block_indices = zip(begin_indices, end_indices)
+    ret_data = {"trcode": None, "inblock": [], "outblock": []}
+    tr_code = parse_info(lines[info_index])
+    ret_data["trcode"] = tr_code
+    for start, end in block_indices:
+        block_type, block_data = parse_block(lines[start:end])
+        if block_type == "input":
+            ret_data["inblock"].append(block_data)
+        else:
+            ret_data["outblock"].append(block_data)
+        return ret_data
 
 
 class CustomViewBox(pyqtgraph.ViewBox):
