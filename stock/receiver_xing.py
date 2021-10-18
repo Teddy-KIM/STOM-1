@@ -70,10 +70,6 @@ class ReceiverXing:
         self.list_code3 = None
         self.list_code4 = None
 
-        self.df_tr = None
-        self.dict_item = None
-        self.str_tname = None
-
         self.operation = 1
         self.df_mt = pd.DataFrame(columns=['거래대금순위'])
         self.df_mc = pd.DataFrame(columns=['최근거래대금'])
@@ -92,9 +88,9 @@ class ReceiverXing:
         self.timer.setInterval(10000)
         self.timer.timeout.connect(self.ConditionSearch)
 
-        self.obj_login = win32com.client.Dispatch('XA_Session.XASession', self)
-        self.obj_query = win32com.client.Dispatch('XA_DataSet.XAQuery', self)
-        self.obj_real = win32com.client.Dispatch('XA_DataSet.XAReal', self)
+        self.xa_session = win32com.client.Dispatch('XA_Session.XASession', self)
+        self.xa_query = win32com.client.Dispatch('XA_DataSet.XAQuery', self)
+        self.xa_real = win32com.client.Dispatch('XA_DataSet.XAReal', self)
 
         self.connected = False
         self.received = False
@@ -105,8 +101,8 @@ class ReceiverXing:
         self.EventLoop()
 
     def XingLogin(self):
-        self.obj_login.ConnectServer('hts.ebestsec.co.kr', 20001)
-        self.obj_login.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
+        self.xa_session.ConnectServer('hts.ebestsec.co.kr', 20001)
+        self.xa_session.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
         while not self.connected:
             pythoncom.PumpWaitingMessages()
         df = []
@@ -430,11 +426,11 @@ class ReceiverXing:
         self.received = True
 
     def OnReceiveRealData(self, trcode):
-        res_data = self.obj_real.res.get(trcode)
+        res_data = self.xa_real.res.get(trcode)
         out_data = {}
         out_block = res_data['outblock'][0]
         for field in out_block['OutBlock']:
-            data = self.obj_real.GetFieldData('OutBlock', field)
+            data = self.xa_real.GetFieldData('OutBlock', field)
             out_data[field] = data
 
     def BlockRequest(self, *args, **kwargs):
@@ -442,17 +438,17 @@ class ReceiverXing:
         res_name = args[0]
         res_file = res_name + '.res'
         res_path = E_OPENAPI_PATH + res_file
-        self.obj_query.ResFileName = res_path
+        self.xa_query.ResFileName = res_path
         with open(res_path, encoding='euc-kr') as f:
             res_lines = f.readlines()
         res_data = parse_res(res_lines)
         inblock_code = list(res_data['inblock'][0].keys())[0]
         inblock_field = list(res_data['inblock'][0].values())[0]
         for k in kwargs:
-            self.obj_query.SetFieldData(inblock_code, k, kwargs[k], index=0)
+            self.xa_query.SetFieldData(inblock_code, k, kwargs[k], index=0)
             if k not in inblock_field:
                 print('inblock field error')
-        self.obj_query.Request(False)
+        self.xa_query.Request(False)
         while not self.received:
             pythoncom.PumpWaitingMessages()
         ret = []
@@ -460,9 +456,9 @@ class ReceiverXing:
             outblock_code = list(outblock.keys())[0]
             outblock_field = list(outblock.values())[0]
             data = []
-            rows = self.obj_query.GetBlockCount(outblock_code)
+            rows = self.xa_query.GetBlockCount(outblock_code)
             for i in range(rows):
-                elem = {k: self.obj_query.GetFieldData(outblock_code, k, i) for k in outblock_field}
+                elem = {k: self.xa_query.GetFieldData(outblock_code, k, i) for k in outblock_field}
                 data.append(elem)
             df = pd.DataFrame(data=data)
             ret.append(df)
@@ -471,14 +467,14 @@ class ReceiverXing:
 
     def RegisterResReal(self, res_file):
         res_path = E_OPENAPI_PATH + res_file
-        self.obj_real.ResFileName = res_path
+        self.xa_real.ResFileName = res_path
 
     def AddRealData(self, field, code):
-        self.obj_real.SetFieldData('InBlock', field, code)
-        self.obj_real.AdviseRealData()
+        self.xa_real.SetFieldData('InBlock', field, code)
+        self.xa_real.AdviseRealData()
 
     def RemoveRealData(self, code):
-        self.obj_real.UnadviseRealDataWithKey(code)
+        self.xa_real.UnadviseRealDataWithKey(code)
 
     def RemoveAllRealData(self):
-        self.obj_real.UnadviseRealData()
+        self.xa_real.UnadviseRealData()

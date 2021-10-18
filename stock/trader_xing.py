@@ -73,8 +73,8 @@ class TraderXing:
         self.list_buy = []
         self.list_sell = []
 
-        self.obj_login = win32com.client.Dispatch('XA_Session.XASession', self)
-        self.obj_query = win32com.client.Dispatch('XA_DataSet.XAQuery', self)
+        self.xa_session = win32com.client.Dispatch('XA_Session.XASession', self)
+        self.xa_query = win32com.client.Dispatch('XA_DataSet.XAQuery', self)
 
         self.connected = False
         self.received = False
@@ -103,8 +103,8 @@ class TraderXing:
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 데이터베이스 정보 불러오기 완료'])
 
     def XingLogin(self):
-        self.obj_login.ConnectServer('hts.ebestsec.co.kr', 20001)
-        self.obj_login.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
+        self.xa_session.ConnectServer('hts.ebestsec.co.kr', 20001)
+        self.xa_session.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
         while not self.connected:
             pythoncom.PumpWaitingMessages()
         df = []
@@ -585,17 +585,17 @@ class TraderXing:
         res_name = args[0]
         res_file = res_name + '.res'
         res_path = E_OPENAPI_PATH + res_file
-        self.obj_query.ResFileName = res_path
+        self.xa_query.ResFileName = res_path
         with open(res_path, encoding='euc-kr') as f:
             res_lines = f.readlines()
         res_data = parse_res(res_lines)
         inblock_code = list(res_data['inblock'][0].keys())[0]
         inblock_field = list(res_data['inblock'][0].values())[0]
         for k in kwargs:
-            self.obj_query.SetFieldData(inblock_code, k, kwargs[k], index=0)
+            self.xa_query.SetFieldData(inblock_code, k, kwargs[k], index=0)
             if k not in inblock_field:
                 print('inblock field error')
-        self.obj_query.Request(False)
+        self.xa_query.Request(False)
         while not self.received:
             pythoncom.PumpWaitingMessages()
         ret = []
@@ -603,9 +603,9 @@ class TraderXing:
             outblock_code = list(outblock.keys())[0]
             outblock_field = list(outblock.values())[0]
             data = []
-            rows = self.obj_query.GetBlockCount(outblock_code)
+            rows = self.xa_query.GetBlockCount(outblock_code)
             for i in range(rows):
-                elem = {k: self.obj_query.GetFieldData(outblock_code, k, i) for k in outblock_field}
+                elem = {k: self.xa_query.GetFieldData(outblock_code, k, i) for k in outblock_field}
                 data.append(elem)
             df = pd.DataFrame(data=data)
             ret.append(df)
