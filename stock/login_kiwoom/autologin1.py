@@ -33,6 +33,12 @@ class Window(QtWidgets.QMainWindow):
         QTimer.singleShot(3000, lambda: auto_on(1))
         self.ocx.dynamicCall('KOA_Functions(QString, QString)', 'ShowAccountWindow', '')
         print(' 자동 로그인 설정 완료\n')
+        print(' 잔류 프로세스 확인 중 ...\n')
+        os.system('taskkill /f /im nkstarter.exe')
+        print('\n')
+        os.system('taskkill /f /im opstarter.exe')
+        print('\n')
+        print(' 프로세스 종료 완료\n')
 
 
 if __name__ == '__main__':
@@ -53,11 +59,3 @@ if __name__ == '__main__':
 
     manual_login(2)
     print(' 아이디 및 패스워드 입력 완료\n')
-
-    time.sleep(15)
-    print(' 잔류 프로세스 확인 중 ...\n')
-    os.system('taskkill /f /im nkstarter.exe')
-    print('\n')
-    os.system('taskkill /f /im opstarter.exe')
-    print('\n')
-    print(' 프로세스 종료 완료\n')

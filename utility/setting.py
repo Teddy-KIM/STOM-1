@@ -261,7 +261,7 @@ stock_sell2 = '''if 수익률 >= 3:\n    매도 = True'''
 stock_sell3 = '''if 최고수익률 > 3 and 수익률 < 최고수익률 * 0.75:\n    매도 = True'''
 stock_sell4 = '''if now() > timedelta_sec(1800, 매수시간):\n    매도 = True'''
 stock_sell5 = '''if 현재가 > VI아래5호가 * 1.003:\n    매도 = True'''
-stock_sell6 = '''if 고저평균대비등락율 < 0:\n    매도 = False'''
+stock_sell6 = '''if 고저평균대비등락율 < 0:\n    매도 = True'''
 stock_sell7 = '''if 직전체결강도 >= 체결강도평균 > 체결강도:\n    매도 = True'''
 stock_sell8 = '''if 매도총잔량 < 매수총잔량:\n    매도 = True'''
 
