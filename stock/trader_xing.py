@@ -73,8 +73,8 @@ class TraderXing:
         self.list_buy = []
         self.list_sell = []
 
-        self.obj_login = win32com.client.Dispatch('XA_Session.XASession')
-        self.obj_query = win32com.client.Dispatch('XA_DataSet.XAQuery')
+        self.obj_login = win32com.client.Dispatch('XA_Session.XASession', self)
+        self.obj_query = win32com.client.Dispatch('XA_DataSet.XAQuery', self)
 
         self.connected = False
         self.received = False
@@ -103,6 +103,7 @@ class TraderXing:
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 데이터베이스 정보 불러오기 완료'])
 
     def XingLogin(self):
+        self.obj_login.ConnectServer('hts.ebestsec.co.kr', 20001)
         self.obj_login.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
         while not self.connected:
             pythoncom.PumpWaitingMessages()

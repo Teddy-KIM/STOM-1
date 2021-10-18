@@ -92,9 +92,9 @@ class ReceiverXing:
         self.timer.setInterval(10000)
         self.timer.timeout.connect(self.ConditionSearch)
 
-        self.obj_login = win32com.client.Dispatch('XA_Session.XASession')
-        self.obj_query = win32com.client.Dispatch('XA_DataSet.XAQuery')
-        self.obj_real = win32com.client.Dispatch('XA_DataSet.XAReal')
+        self.obj_login = win32com.client.Dispatch('XA_Session.XASession', self)
+        self.obj_query = win32com.client.Dispatch('XA_DataSet.XAQuery', self)
+        self.obj_real = win32com.client.Dispatch('XA_DataSet.XAReal', self)
 
         self.connected = False
         self.received = False
@@ -105,6 +105,7 @@ class ReceiverXing:
         self.EventLoop()
 
     def XingLogin(self):
+        self.obj_login.ConnectServer('hts.ebestsec.co.kr', 20001)
         self.obj_login.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
         while not self.connected:
             pythoncom.PumpWaitingMessages()
