@@ -238,7 +238,7 @@ class TraderUpbit:
             oc = self.df_jg['보유수량'][code]
             if DICT_SET['코인모의투자']:
                 self.UpdateSell(code, c, oc)
-            elif self.upbit is not None:
+            elif self.upbit is not None and code not in self.sell_uuid.keys():
                 ret = self.upbit.sell_market_order(code, oc)
                 if ret is not None:
                     if self.CheckError(ret):
@@ -260,7 +260,7 @@ class TraderUpbit:
             oc = self.df_jg['보유수량'][code]
             if DICT_SET['코인모의투자']:
                 self.UpdateSell(code, c, oc)
-            elif self.upbit is not None:
+            elif self.upbit is not None and code not in self.sell_uuid.keys():
                 ret = self.upbit.sell_market_order(code, oc)
                 if ret is not None:
                     if self.CheckError(ret):

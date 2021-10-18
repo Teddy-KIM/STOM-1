@@ -115,9 +115,9 @@ class WebsTicker:
                         self.websQ_ticker = WebSocketManager('ticker', self.codes)
                     self.dict_time['티커리스트재조회'] = timedelta_sec(600)
 
-                if not self.wsk1Q.empty() and self.websQ_ticker is not None:
-                    self.websQ_ticker.terminate()
-                    break
+            if not self.wsk1Q.empty() and self.websQ_ticker is not None:
+                self.websQ_ticker.terminate()
+                break
 
     def GetTickersAndMoneyTop(self):
         codes = pyupbit.get_tickers(fiat="KRW")
