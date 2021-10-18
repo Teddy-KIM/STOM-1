@@ -183,8 +183,6 @@ class TraderXing:
 
     def XingLogin(self):
         self.xa_session.login(USER_ID, PASSWORD, CERT_PASS)
-        while not self.connected:
-            pythoncom.PumpWaitingMessages()
 
         df = []
         df2 = self.xa_query.BlockRequest("t8430", gubun=2)
