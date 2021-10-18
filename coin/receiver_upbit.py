@@ -249,10 +249,6 @@ class WebsOrderbook:
         self.websQ_order = None
         self.Start()
 
-    def __del__(self):
-        if self.websQ_order is not None:
-            self.websQ_order.terminate()
-
     def Start(self):
         """ get_tickers 리턴 리스트의 갯수가 다른 버그 발견, 1초 간격 3회 조회 후 길이가 긴 리스트를 티커리스트로 정한다 """
         codes = pyupbit.get_tickers(fiat="KRW")
