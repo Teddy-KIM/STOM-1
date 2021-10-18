@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import psutil
 import logging
 import subprocess
@@ -1624,8 +1625,6 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
         )
         if buttonReply == QtWidgets.QMessageBox.Yes:
-            wsk1Q.put('terminate')
-            wsk2Q.put('terminate')
             sound_proc.kill()
             query_proc1.kill()
             query_proc2.kill()
@@ -1638,6 +1637,9 @@ class Window(QtWidgets.QMainWindow):
                 self.qtimer2.stop()
             if self.qtimer3.isActive():
                 self.qtimer3.stop()
+            wsk1Q.put('terminate')
+            wsk2Q.put('terminate')
+            time.sleep(2)
             if self.writer.isRunning():
                 self.writer.terminate()
             if self.trader_coin_proc.is_alive():

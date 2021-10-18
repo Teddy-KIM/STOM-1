@@ -53,10 +53,6 @@ class WebsTicker:
 
         self.Start()
 
-    def __del__(self):
-        if self.websQ_ticker is not None:
-            self.websQ_ticker.terminate()
-
     def Start(self):
         """ get_tickers 리턴 리스트의 갯수가 다른 버그 발견, 1초 간격 3회 조회 후 길이가 긴 리스트를 티커리스트로 정한다 """
         dict_tsbc = {}
@@ -110,17 +106,18 @@ class WebsTicker:
                         self.UpdateMoneyTop()
                     self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
-                if not self.wsk1Q.empty() and self.websQ_ticker is not None:
-                    self.websQ_ticker.terminate()
-
                 if now() > self.dict_time['티커리스트재조회']:
                     codes = pyupbit.get_tickers(fiat="KRW")
                     if len(codes) > len(self.codes):
                         self.codes = codes
                         self.websQ_ticker.terminate()
-                        self.websQ_ticker.join()
+                        time.sleep(2)
                         self.websQ_ticker = WebSocketManager('ticker', self.codes)
                     self.dict_time['티커리스트재조회'] = timedelta_sec(600)
+
+                if not self.wsk1Q.empty() and self.websQ_ticker is not None:
+                    self.websQ_ticker.terminate()
+                    break
 
     def GetTickersAndMoneyTop(self):
         codes = pyupbit.get_tickers(fiat="KRW")
@@ -302,13 +299,13 @@ class WebsOrderbook:
                 if DICT_SET['업비트트레이더']:
                     self.cstgQ.put(data)
 
-            if not self.wsk2Q.empty() and self.websQ_order is not None:
-                self.websQ_order.terminate()
-
             if now() > self.time_tickers:
                 codes2 = pyupbit.get_tickers(fiat="KRW")
                 if len(codes2) > len(codes):
                     self.websQ_order.terminate()
-                    self.websQ_order.join()
+                    time.sleep(2)
                     self.websQ_order = WebSocketManager('orderbook', codes)
                 self.time_tickers = timedelta_sec(600)
+
+            if not self.wsk2Q.empty() and self.websQ_order is not None:
+                self.websQ_order.terminate()
