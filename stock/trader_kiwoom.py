@@ -65,7 +65,6 @@ class TraderKiwoom:
             '거래정보': now()
         }
         self.dict_item = None
-        self.list_kosd = None
         self.list_buy = []
         self.list_sell = []
 
@@ -105,8 +104,7 @@ class TraderKiwoom:
 
         self.dict_strg['계좌번호'] = self.ocx.dynamicCall('GetLoginInfo(QString)', 'ACCNO').split(';')[0]
 
-        self.list_kosd = self.GetCodeListByMarket('10')
-        list_code = self.GetCodeListByMarket('0') + self.list_kosd
+        list_code = self.GetCodeListByMarket('0') + self.GetCodeListByMarket('10')
         for code in list_code:
             name = self.GetMasterCodeName(code)
             self.dict_name[code] = name

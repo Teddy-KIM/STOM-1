@@ -3,8 +3,8 @@ import sys
 import time
 import sqlite3
 import pythoncom
-import win32com
 import pandas as pd
+import win32com.client
 from PyQt5 import QtWidgets
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import now, strf_time, strp_time, timedelta_sec, parse_res
@@ -14,6 +14,87 @@ from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, colu
 USER_ID = ''
 PASSWORD = ''
 CERT_PASS = ''
+
+
+class XASession:
+    def __init__(self):
+        self.com_obj = win32com.client.Dispatch("XA_Session.XASession")
+        self.event_handler = win32com.client.WithEvents(self.com_obj, XASessionEvents)
+        self.event_handler.connect(self.com_obj, self)
+        self.connected = False
+
+    def login(self, user_id, password, cert):
+        self.com_obj.ConnectServer('hts.ebestsec.co.kr', 20001)
+        self.com_obj.Login(user_id, password, cert, 0, 0)
+        while not self.connected:
+            pythoncom.PumpWaitingMessages()
+
+
+class XAQuery:
+    def __init__(self):
+        self.com_obj = win32com.client.Dispatch("XA_DataSet.XAQuery")
+        self.event_handler = win32com.client.WithEvents(self.com_obj, XAQueryEvents)
+        self.event_handler.connect(self.com_obj, self)
+        self.received = False
+
+    def BlockRequest(self, *args, **kwargs):
+        self.received = False
+        res_name = args[0]
+        res_file = res_name + '.res'
+        res_path = E_OPENAPI_PATH + res_file
+        self.com_obj.ResFileName = res_path
+        with open(res_path, encoding='euc-kr') as f:
+            res_lines = f.readlines()
+        res_data = parse_res(res_lines)
+        inblock_code = list(res_data['inblock'][0].keys())[0]
+        inblock_field = list(res_data['inblock'][0].values())[0]
+        for k in kwargs:
+            self.com_obj.SetFieldData(inblock_code, k, kwargs[k], index=0)
+            if k not in inblock_field:
+                print('inblock field error')
+        self.com_obj.Request(False)
+        while not self.received:
+            pythoncom.PumpWaitingMessages()
+        ret = []
+        for outblock in res_data['outblock']:
+            outblock_code = list(outblock.keys())[0]
+            outblock_field = list(outblock.values())[0]
+            data = []
+            rows = self.com_obj.GetBlockCount(outblock_code)
+            for i in range(rows):
+                elem = {k: self.com_obj.GetFieldData(outblock_code, k, i) for k in outblock_field}
+                data.append(elem)
+            df = pd.DataFrame(data=data)
+            ret.append(df)
+        ret = pd.concat(ret)
+        return ret
+
+
+class XASessionEvents:
+    def __init__(self):
+        self.com_obj = None
+        self.user_obj = None
+
+    def connect(self, com_obj, user_obj):
+        self.com_obj = com_obj
+        self.user_obj = user_obj
+
+    def OnLogin(self, code):
+        if code == '0000':
+            self.user_obj.connected = True
+
+
+class XAQueryEvents:
+    def __init__(self):
+        self.com_obj = None
+        self.user_obj = None
+
+    def connect(self, com_obj, user_obj):
+        self.com_obj = com_obj
+        self.user_obj = user_obj
+
+    def OnReceiveData(self):
+        self.user_obj.received = True
 
 
 class TraderXing:
@@ -73,11 +154,9 @@ class TraderXing:
         self.list_buy = []
         self.list_sell = []
 
-        self.xa_session = win32com.client.Dispatch('XA_Session.XASession', self)
-        self.xa_query = win32com.client.Dispatch('XA_DataSet.XAQuery', self)
+        self.xa_session = XASession()
+        self.xa_query = XAQuery()
 
-        self.connected = False
-        self.received = False
         self.Start()
 
     def Start(self):
@@ -103,18 +182,19 @@ class TraderXing:
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 데이터베이스 정보 불러오기 완료'])
 
     def XingLogin(self):
-        self.xa_session.ConnectServer('hts.ebestsec.co.kr', 20001)
-        self.xa_session.Login(USER_ID, PASSWORD, CERT_PASS, 0, 0)
+        self.xa_session.login(USER_ID, PASSWORD, CERT_PASS)
         while not self.connected:
             pythoncom.PumpWaitingMessages()
+
         df = []
-        df2 = self.BlockRequest("t8430", gubun=2)
+        df2 = self.xa_query.BlockRequest("t8430", gubun=2)
         df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
         df.append(df2)
-        self.list_kosd = list(df2.index)
-        df2 = self.BlockRequest("t8430", gubun=1)
+
+        df2 = self.xa_query.BlockRequest("t8430", gubun=1)
         df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
         df.append(df2)
+
         df = pd.concat(df)
         for code in df.index:
             name = df['hname'][code]
@@ -568,46 +648,3 @@ class TraderXing:
         if omc == 0:
             df = pd.DataFrame([[name, og, oc, omc, op, cp, dt]], columns=columns_cj, index=[on])
             self.query1Q.put([2, df, 's_chegeollist', 'append'])
-
-    def OnLogin(self, code, msg):
-        if msg == '':
-            return
-        if code == '0000':
-            self.connected = True
-
-    def OnReceiveData(self, code):
-        if code == '':
-            return
-        self.received = True
-
-    def BlockRequest(self, *args, **kwargs):
-        self.received = False
-        res_name = args[0]
-        res_file = res_name + '.res'
-        res_path = E_OPENAPI_PATH + res_file
-        self.xa_query.ResFileName = res_path
-        with open(res_path, encoding='euc-kr') as f:
-            res_lines = f.readlines()
-        res_data = parse_res(res_lines)
-        inblock_code = list(res_data['inblock'][0].keys())[0]
-        inblock_field = list(res_data['inblock'][0].values())[0]
-        for k in kwargs:
-            self.xa_query.SetFieldData(inblock_code, k, kwargs[k], index=0)
-            if k not in inblock_field:
-                print('inblock field error')
-        self.xa_query.Request(False)
-        while not self.received:
-            pythoncom.PumpWaitingMessages()
-        ret = []
-        for outblock in res_data['outblock']:
-            outblock_code = list(outblock.keys())[0]
-            outblock_field = list(outblock.values())[0]
-            data = []
-            rows = self.xa_query.GetBlockCount(outblock_code)
-            for i in range(rows):
-                elem = {k: self.xa_query.GetFieldData(outblock_code, k, i) for k in outblock_field}
-                data.append(elem)
-            df = pd.DataFrame(data=data)
-            ret.append(df)
-        ret = pd.concat(ret)
-        return ret
