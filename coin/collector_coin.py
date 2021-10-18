@@ -2,8 +2,8 @@ import os
 import sys
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from utility.setting import ui_num
 from utility.static import timedelta_sec, now
-from utility.setting import columns_cc, ui_num
 
 
 class CollectorCoin:
@@ -39,7 +39,15 @@ class CollectorCoin:
 
             data += self.dict_ob[code]
             if code not in self.dict_df.keys():
-                self.dict_df[code] = pd.DataFrame([data], columns=columns_cc, index=[dt])
+                columns = [
+                    '현재가', '시가', '고가', '저가', '등락율', '당일거래대금', '초당매수수량', '초당매도수량',
+                    '누적매수량', '누적매도량', '매도총잔량', '매수총잔량',
+                    '매도호가5', '매도호가4', '매도호가3', '매도호가2', '매도호가1',
+                    '매수호가1', '매수호가2', '매수호가3', '매수호가4', '매수호가5',
+                    '매도잔량5', '매도잔량4', '매도잔량3', '매도잔량2', '매도잔량1',
+                    '매수잔량1', '매수잔량2', '매수잔량3', '매수잔량4', '매수잔량5'
+                ]
+                self.dict_df[code] = pd.DataFrame([data], columns=columns, index=[dt])
             else:
                 self.dict_df[code].at[dt] = data
 

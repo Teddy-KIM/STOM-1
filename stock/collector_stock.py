@@ -2,7 +2,7 @@ import os
 import sys
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.setting import ui_num, columns_cs
+from utility.setting import ui_num
 from utility.static import now, strf_time, timedelta_sec
 
 DIVIDE_SAVE = True     # 틱데이터 저장방식 선택 - True: 경우 10초에 한번 저장, False: 장마감 후 거래종목만 저장
@@ -59,7 +59,15 @@ class CollectorStock:
         del data[-3:]
 
         if code not in self.dict_df.keys():
-            self.dict_df[code] = pd.DataFrame([data], columns=columns_cs, index=[dt])
+            columns = [
+                '현재가', '시가', '고가', '저가', '등락율', '당일거래대금', '체결강도',
+                '초당매수수량', '초당매도수량', 'VI해제시간', 'VI아래5호가', '매도총잔량', '매수총잔량',
+                '매도호가5', '매도호가4', '매도호가3', '매도호가2', '매도호가1',
+                '매수호가1', '매수호가2', '매수호가3', '매수호가4', '매수호가5',
+                '매도잔량5', '매도잔량4', '매도잔량3', '매도잔량2', '매도잔량1',
+                '매수잔량1', '매수잔량2', '매수잔량3', '매수잔량4', '매수잔량5'
+            ]
+            self.dict_df[code] = pd.DataFrame([data], columns=columns, index=[dt])
         else:
             self.dict_df[code].at[dt] = data
 
@@ -75,12 +83,6 @@ class CollectorStock:
 
     def SaveTickData(self, codes):
         for code in list(self.dict_df.keys()):
-            if code in codes:
-                columns = [
-                    '현재가', '시가', '고가', '거래대금', '누적거래대금', '상승VID5가격', '매수수량', '매도수량',
-                    '매도호가2', '매도호가1', '매수호가1', '매수호가2', '매도잔량2', '매도잔량1', '매수잔량1', '매수잔량2'
-                ]
-                self.dict_df[code][columns] = self.dict_df[code][columns].astype(int)
-            else:
+            if code not in codes:
                 del self.dict_df[code]
         self.query2Q.put([1, self.dict_df])
