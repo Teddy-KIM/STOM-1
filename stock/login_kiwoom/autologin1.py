@@ -34,8 +34,6 @@ class Window(QtWidgets.QMainWindow):
         self.ocx.dynamicCall('KOA_Functions(QString, QString)', 'ShowAccountWindow', '')
         print(' 자동 로그인 설정 완료\n')
         print(' 잔류 프로세스 확인 중 ...\n')
-        os.system('taskkill /f /im nkstarter.exe')
-        print('\n')
         os.system('taskkill /f /im opstarter.exe')
         print('\n')
         print(' 프로세스 종료 완료\n')
