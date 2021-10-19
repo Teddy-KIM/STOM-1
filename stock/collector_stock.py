@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.setting import ui_num
-from utility.static import now, strf_time, timedelta_sec
+from utility.static import now, strf_time, timedelta_sec, float2str1p6
 
 DIVIDE_SAVE = False     # 틱데이터 저장방식 선택 - True: 10초에 한번 저장(전체종목저장), False: 장마감 후 저장(저장종목선택)
 DTRADE_SAVE = False     # 장마감 후 저장일 경우 - True: 당일거래목록만 저장, False: 전체종목 저장
@@ -73,7 +73,7 @@ class CollectorStock:
             self.dict_df[code].at[dt] = data
 
         if self.gubun == 4 and now() > self.dict_time['기록시간']:
-            gap = (now() - receivetime).total_seconds()
+            gap = float2str1p6((now() - receivetime).total_seconds())
             self.windowQ.put([ui_num['S단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
             self.dict_time['기록시간'] = timedelta_sec(60)
 

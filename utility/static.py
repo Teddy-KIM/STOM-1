@@ -97,6 +97,21 @@ def comma2float(t):
     return float(t)
 
 
+def float2str1p6(seceonds):
+    seceonds = str(seceonds)
+    if len(seceonds.split('.')[1]) == 1:
+        seceonds += '00000'
+    elif len(seceonds.split('.')[1]) == 2:
+        seceonds += '0000'
+    elif len(seceonds.split('.')[1]) == 3:
+        seceonds += '000'
+    elif len(seceonds.split('.')[1]) == 4:
+        seceonds += '00'
+    elif len(seceonds.split('.')[1]) == 5:
+        seceonds += '0'
+    return seceonds
+
+
 def readEnc(trcode):
     enc = zipfile.ZipFile(f'{K_OPENAPI_PATH}/data/{trcode}.enc')
     lines = enc.read(trcode.upper() + '.dat').decode('cp949')
@@ -141,8 +156,7 @@ def parse_block(data):
         if len(line) > 0:
             field_code = line.split(',')[1].strip()
             field_codes.append(field_code)
-    ret_data = {}
-    ret_data[block_code] = field_codes
+    ret_data = {block_code: field_codes}
     return block_type, ret_data
 
 

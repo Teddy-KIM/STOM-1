@@ -1,5 +1,5 @@
 import sqlite3
-from utility.static import now, timedelta_sec
+from utility.static import now, timedelta_sec, float2str1p6
 from utility.setting import ui_num, DB_STOCK_TICK, DB_COIN_TICK
 
 
@@ -34,7 +34,7 @@ class QueryTick:
                             query[1][code].to_sql(code, self.con1, if_exists='append', chunksize=1000)
                         k += 1
                         if k % 4 == 0 and now() > writetime:
-                            save_time = (now() - start).total_seconds()
+                            save_time = float2str1p6((now() - start).total_seconds())
                             text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                             self.windowQ.put([ui_num['S단순텍스트'], text])
                             writetime = timedelta_sec(60)
@@ -48,7 +48,7 @@ class QueryTick:
                         start = now()
                         for code in list(query[1].keys()):
                             query[1][code].to_sql(code, self.con2, if_exists='append', chunksize=1000)
-                        save_time = (now() - start).total_seconds()
+                        save_time = float2str1p6((now() - start).total_seconds())
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                         self.windowQ.put([ui_num['C단순텍스트'], text])
                     elif len(query) == 4:

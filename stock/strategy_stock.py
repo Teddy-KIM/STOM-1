@@ -4,7 +4,7 @@ import sqlite3
 import numpy as np
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import now, strf_time, timedelta_sec
+from utility.static import now, strf_time, timedelta_sec, float2str1p6
 from utility.setting import DB_STOCK_STRETEGY, DICT_SET, ui_num, columns_gj
 
 
@@ -178,7 +178,7 @@ class StrategyStock:
                         self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - BuyStrategy {e}'])
 
         if now() > self.dict_time['연산시간']:
-            gap = (now() - 틱수신시간).total_seconds()
+            gap = float2str1p6((now() - 틱수신시간).total_seconds())
             self.windowQ.put([ui_num['S단순텍스트'], f'전략스 연산 시간 알림 - 수신시간과 연산시간의 차이는 [{gap}]초입니다.'])
             self.dict_time['연산시간'] = timedelta_sec(60)
 

@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.setting import ui_num
-from utility.static import timedelta_sec, now
+from utility.static import timedelta_sec, now, float2str1p6
 
 
 class CollectorCoin:
@@ -52,7 +52,7 @@ class CollectorCoin:
                 self.dict_df[code].at[dt] = data
 
             if now() > self.time_save:
-                gap = (now() - receivetime).total_seconds()
+                gap = float2str1p6((now() - receivetime).total_seconds())
                 self.windowQ.put([ui_num['C단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
                 self.query2Q.put([2, self.dict_df])
                 self.dict_df = {}
