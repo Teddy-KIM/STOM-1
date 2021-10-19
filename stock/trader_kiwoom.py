@@ -138,6 +138,7 @@ class TraderKiwoom:
                         continue
                     elif len(data) == 3:
                         self.UpdateJango(data[0], data[1], data[2])
+                        continue
                 elif type(data) == str:
                     self.TelegramCmd(data)
 
