@@ -280,7 +280,7 @@ class ReceiverKiwoom:
 
     def SaveTickData(self):
         con = sqlite3.connect(DB_TRADELIST)
-        df = pd.read_sql(f"SELECT * FROM s_tradelist WHERE 체결시간 LIKE '{self.str_tday}%'", con).set_index('index')
+        df = pd.read_sql(f"SELECT * FROM s_chegeollist WHERE 체결시간 LIKE '{self.str_tday}%'", con).set_index('index')
         con.close()
         codes = []
         for index in df.index:
