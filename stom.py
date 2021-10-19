@@ -107,9 +107,9 @@ class Window(QtWidgets.QMainWindow):
 
     def ProcessStarter(self):
         if now().weekday() not in [6, 7]:
-            if self.int_time < 85000 <= int(strf_time('%H%M%S')):
+            if self.int_time < 85000 <= int(strf_time('%H%M%S')) and (DICT_SET['키움콜렉터'] or DICT_SET['이베스트콜렉터']):
                 self.StockCollectorStart()
-            if self.int_time < 85200 <= int(strf_time('%H%M%S')):
+            if self.int_time < 85200 <= int(strf_time('%H%M%S')) and (DICT_SET['키움트레이더'] or DICT_SET['이베스트트레이더']):
                 self.StockTraderStart()
         if DICT_SET['업비트콜렉터'] and not self.startUpbitCollector:
             self.CoinCollectorStart()
@@ -130,37 +130,41 @@ class Window(QtWidgets.QMainWindow):
             if DICT_SET['키움콜렉터']:
                 os.system(f'python {LOGIN_PATH}/versionupdater.py')
                 os.system(f'python {LOGIN_PATH}/autologin2.py')
-            if not self.collector_stock_proc1.is_alive():
-                self.collector_stock_proc1.start()
-            if not self.collector_stock_proc2.is_alive():
-                self.collector_stock_proc2.start()
-            if not self.collector_stock_proc3.is_alive():
-                self.collector_stock_proc3.start()
-            if not self.collector_stock_proc4.is_alive():
-                self.collector_stock_proc4.start()
+            if DICT_SET['키움콜렉터'] or DICT_SET['이베스트콜렉터']:
+                if not self.collector_stock_proc1.is_alive():
+                    self.collector_stock_proc1.start()
+                if not self.collector_stock_proc2.is_alive():
+                    self.collector_stock_proc2.start()
+                if not self.collector_stock_proc3.is_alive():
+                    self.collector_stock_proc3.start()
+                if not self.collector_stock_proc4.is_alive():
+                    self.collector_stock_proc4.start()
             if DICT_SET['키움콜렉터'] and not self.receiver_kiwoom_proc.is_alive():
                 self.receiver_kiwoom_proc.start()
             elif DICT_SET['이베스트콜렉터'] and not self.receiver_xing_proc.is_alive():
                 self.receiver_xing_proc.start()
-            text = '주식 리시버 및 콜렉터를 시작하였습니다.'
-            soundQ.put(text)
-            teleQ.put(text)
+            if DICT_SET['키움콜렉터'] or DICT_SET['이베스트콜렉터']:
+                text = '주식 리시버 및 콜렉터를 시작하였습니다.'
+                soundQ.put(text)
+                teleQ.put(text)
         else:
             QtWidgets.QMessageBox.critical(
                 self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
 
     def StockTraderStart(self):
         if DICT_SET['아이디1'] is not None:
-            os.system(f'python {LOGIN_PATH}/autologin1.py')
-            if not self.strategy_stock_proc.is_alive():
+            if DICT_SET['키움트레이더']:
+                os.system(f'python {LOGIN_PATH}/autologin1.py')
+            if (DICT_SET['키움트레이더'] or DICT_SET['이베스트트레이더']) and not self.strategy_stock_proc.is_alive():
                 self.strategy_stock_proc.start()
             if DICT_SET['키움트레이더'] and not self.trader_kiwoom_proc.is_alive():
                 self.trader_kiwoom_proc.start()
             elif DICT_SET['이베스트트레이더'] and not self.trader_xing_proc.is_alive():
                 self.trader_xing_proc.start()
-            text = '주식 트레이더를 시작하였습니다.'
-            soundQ.put(text)
-            teleQ.put(text)
+            if DICT_SET['키움트레이더'] or DICT_SET['이베스트트레이더']:
+                text = '주식 트레이더를 시작하였습니다.'
+                soundQ.put(text)
+                teleQ.put(text)
         else:
             QtWidgets.QMessageBox.critical(
                 self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
