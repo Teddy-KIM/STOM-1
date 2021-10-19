@@ -31,7 +31,7 @@ class BackTesterCoinVc:
             self.dm_low = num_[4][0]
             self.per_low = num_[5][0]
             self.per_high = num_[6][0]
-            self.ch_sell = num_[7][0]
+            self.sell_ratio = num_[7][0]
         else:
             self.gap_ch = num_[0]
             self.avgtime = num_[1]
@@ -40,7 +40,7 @@ class BackTesterCoinVc:
             self.dm_low = num_[4]
             self.per_low = num_[5]
             self.per_high = num_[6]
-            self.ch_sell = num_[7]
+            self.sell_ratio = num_[7]
 
         self.code = None
         self.df = None
@@ -141,7 +141,6 @@ class BackTesterCoinVc:
 
         매수 = True
         종목명 = self.code
-
         현재가 = self.df['현재가'][self.index]
         시가 = self.df['시가'][self.index]
         고가 = self.df['고가'][self.index]
@@ -157,7 +156,6 @@ class BackTesterCoinVc:
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
         초당매도수량 = self.df['초당매도수량'][self.index]
-
         매도총잔량 = self.df['매도총잔량'][self.index]
         매수총잔량 = self.df['매수총잔량'][self.index]
         매도호가5 = self.df['매도호가5'][self.index]
@@ -231,13 +229,12 @@ class BackTesterCoinVc:
         eyun, 수익률 = self.GetEyunPer(bg, cg)
         if 수익률 > self.highper:
             self.highper = 수익률
-        최고수익률 = self.highper
 
         매도 = False
         종목명 = self.code
         보유수량 = self.buycount
         매수시간 = self.buytime
-
+        최고수익률 = self.highper
         현재가 = self.df['현재가'][self.index]
         시가 = self.df['시가'][self.index]
         고가 = self.df['고가'][self.index]
@@ -253,7 +250,6 @@ class BackTesterCoinVc:
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
         초당매도수량 = self.df['초당매도수량'][self.index]
-
         매도총잔량 = self.df['매도총잔량'][self.index]
         매수총잔량 = self.df['매수총잔량'][self.index]
         매도호가5 = self.df['매도호가5'][self.index]
@@ -415,7 +411,7 @@ class Total:
             self.dm_low = num_[4][0]
             self.per_low = num_[5][0]
             self.per_high = num_[6][0]
-            self.ch_sell = num_[7][0]
+            self.sell_ratio = num_[7][0]
         else:
             self.gap_ch = num_[0]
             self.avg_time = num_[1]
@@ -424,7 +420,7 @@ class Total:
             self.dm_low = num_[4]
             self.per_low = num_[5]
             self.per_high = num_[6]
-            self.ch_sell = num_[7]
+            self.sell_ratio = num_[7]
 
         self.Start()
 
@@ -455,7 +451,7 @@ class Total:
         if len(df_back) > 0:
             tc = df_back['거래횟수'].sum()
             text = [self.gap_ch, self.avg_time, self.gap_sm, self.ch_low, self.dm_low,
-                    self.per_low, self.per_high, self.ch_sell]
+                    self.per_low, self.per_high, self.sell_ratio]
             print(f' {text}')
             if tc != 0:
                 pc = df_back['익절'].sum()
@@ -476,7 +472,7 @@ class Total:
                 print(text)
                 df_back = pd.DataFrame(
                     [[onegm, onedaycount, tc, avghold, pc, mc, pper, avgsp, tsp, tsg, self.gap_ch, self.avg_time,
-                      self.gap_sm, self.ch_low, self.dm_low, self.per_low, self.per_high, self.ch_sell]],
+                      self.gap_sm, self.ch_low, self.dm_low, self.per_low, self.per_high, self.sell_ratio]],
                     columns=columns2, index=[strf_time('%Y%m%d%H%M%S')])
                 conn = sqlite3.connect(DB_BACKTEST)
                 df_back.to_sql(f"coin_vc_{strf_time('%Y%m%d')}_1", conn, if_exists='append', chunksize=1000)
@@ -539,13 +535,13 @@ if __name__ == "__main__":
 
         gap_ch = [high_var[0] - 0.9, high_var[0] + 0.9, 0.1, 0.1]
         avg_time = [high_var[1], high_var[1], 30, 3]
-        gap_sm = [0, 500, 50, 10]
+        gap_sm = [50, 500, 50, 10]
         ch_low = [50, 100, 10, 10]
         dm_low = [0, 100000, 10000, 1000]
         per_low = [0, 10, 1, 0.1]
         per_high = [25, 15, -1, -1]
-        ch_sell = [0.5, 1.0, 0.1, 0.1]
-        num = [gap_ch, avg_time, gap_sm, ch_low, dm_low, per_low, per_high, ch_sell]
+        sell_ratio = [0.5, 1.0, 0.1, 0.1]
+        num = [gap_ch, avg_time, gap_sm, ch_low, dm_low, per_low, per_high, sell_ratio]
 
         ogin_var = high_var[0]
         high_var = high_var[0]
@@ -585,7 +581,7 @@ if __name__ == "__main__":
                         num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
                         num[i][2] = num[i][3]
                     elif i == 7:
-                        num[i][0] = num[i][2]
+                        num[i][0] = 0.
                     ogin_var = num[i][0]
                     high_var = num[i][0]
                 else:

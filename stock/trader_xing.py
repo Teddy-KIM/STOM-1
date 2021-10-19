@@ -19,7 +19,7 @@ CERT_PASS = ''
 class XASession:
     def __init__(self):
         self.com_obj = win32com.client.Dispatch("XA_Session.XASession")
-        win32com.client.WithEvents(self.com_obj, XASessionEvents(self))
+        win32com.client.WithEvents(self.com_obj, XASessionEvents).connect(self)
         self.connected = False
 
     def Login(self, user_id, password, cert):
@@ -27,12 +27,13 @@ class XASession:
         self.com_obj.Login(user_id, password, cert, 0, 0)
         while not self.connected:
             pythoncom.PumpWaitingMessages()
+        print('XASession 로그인 완료')
 
 
 class XAQuery:
     def __init__(self):
         self.com_obj = win32com.client.Dispatch("XA_DataSet.XAQuery")
-        win32com.client.WithEvents(self.com_obj, XAQueryEvents(self))
+        win32com.client.WithEvents(self.com_obj, XAQueryEvents).connect(self)
         self.received = False
 
     def BlockRequest(self, *args, **kwargs):
@@ -47,7 +48,7 @@ class XAQuery:
         inblock_code = list(res_data['inblock'][0].keys())[0]
         inblock_field = list(res_data['inblock'][0].values())[0]
         for k in kwargs:
-            self.com_obj.SetFieldData(inblock_code, k, kwargs[k], index=0)
+            self.com_obj.SetFieldData(inblock_code, k, 0, kwargs[k])
             if k not in inblock_field:
                 print('inblock field error')
         self.com_obj.Request(False)
@@ -61,27 +62,33 @@ class XAQuery:
             rows = self.com_obj.GetBlockCount(outblock_code)
             for i in range(rows):
                 elem = {k: self.com_obj.GetFieldData(outblock_code, k, i) for k in outblock_field}
+                print(elem)
                 data.append(elem)
             df = pd.DataFrame(data=data)
             ret.append(df)
-        ret = pd.concat(ret)
         return ret
 
 
 class XASessionEvents:
-    def __init__(self, user_obj):
+    def __init__(self):
+        self.user_obj = None
+
+    def connect(self, user_obj):
         self.user_obj = user_obj
 
-    def OnLogin(self, code):
+    def OnLogin(self, code, msg):
         if code == '0000':
             self.user_obj.connected = True
 
 
 class XAQueryEvents:
-    def __init__(self, user_obj):
+    def __init__(self):
+        self.user_obj = None
+
+    def connect(self, user_obj):
         self.user_obj = user_obj
 
-    def OnReceiveData(self):
+    def OnReceiveData(self, code):
         self.user_obj.received = True
 
 

@@ -283,8 +283,8 @@ class ReceiverKiwoom:
         df = pd.read_sql(f"SELECT * FROM s_chegeollist WHERE 체결시간 LIKE '{self.str_tday}%'", con).set_index('index')
         con.close()
         codes = []
-        for index in df.index:
-            code = self.dict_code[df['종목명'][index]]
+        for name in list(df['종목명'].values):
+            code = self.dict_code[name]
             if code not in codes:
                 codes.append(code)
         self.tick1Q.put(['콜렉터종료', codes])

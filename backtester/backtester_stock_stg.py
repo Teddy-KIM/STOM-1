@@ -131,7 +131,6 @@ class BackTesterStockStg:
 
         매수 = True
         종목코드 = self.code
-
         현재가 = self.df['현재가'][self.index]
         시가 = self.df['시가'][self.index]
         고가 = self.df['고가'][self.index]
@@ -149,7 +148,6 @@ class BackTesterStockStg:
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
         초당매도수량 = self.df['초당매도수량'][self.index]
-
         매도총잔량 = self.df['매도총잔량'][self.index]
         매수총잔량 = self.df['매수총잔량'][self.index]
         매도호가5 = self.df['매도호가5'][self.index]
@@ -221,14 +219,13 @@ class BackTesterStockStg:
         eyun, 수익률 = self.GetEyunPer(bg, cg)
         if 수익률 > self.highper:
             self.highper = 수익률
-        최고수익률 = self.highper
 
         매도 = False
         종목명 = self.df_name['종목명'][self.code]
         종목코드 = self.code
         보유수량 = self.buycount
         매수시간 = self.buytime
-
+        최고수익률 = self.highper
         현재가 = self.df['현재가'][self.index]
         시가 = self.df['시가'][self.index]
         고가 = self.df['고가'][self.index]
@@ -246,7 +243,6 @@ class BackTesterStockStg:
         최고체결강도 = self.df['최고체결강도'][self.index]
         초당매수수량 = self.df['초당매수수량'][self.index]
         초당매도수량 = self.df['초당매도수량'][self.index]
-
         매도총잔량 = self.df['매도총잔량'][self.index]
         매수총잔량 = self.df['매수총잔량'][self.index]
         매도호가5 = self.df['매도호가5'][self.index]
