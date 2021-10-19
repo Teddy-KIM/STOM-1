@@ -19,11 +19,10 @@ CERT_PASS = ''
 class XASession:
     def __init__(self):
         self.com_obj = win32com.client.Dispatch("XA_Session.XASession")
-        self.event_handler = win32com.client.WithEvents(self.com_obj, XASessionEvents)
-        self.event_handler.connect(self.com_obj, self)
+        win32com.client.WithEvents(self.com_obj, XASessionEvents(self))
         self.connected = False
 
-    def login(self, user_id, password, cert):
+    def Login(self, user_id, password, cert):
         self.com_obj.ConnectServer('hts.ebestsec.co.kr', 20001)
         self.com_obj.Login(user_id, password, cert, 0, 0)
         while not self.connected:
@@ -33,8 +32,7 @@ class XASession:
 class XAQuery:
     def __init__(self):
         self.com_obj = win32com.client.Dispatch("XA_DataSet.XAQuery")
-        self.event_handler = win32com.client.WithEvents(self.com_obj, XAQueryEvents)
-        self.event_handler.connect(self.com_obj, self)
+        win32com.client.WithEvents(self.com_obj, XAQueryEvents(self))
         self.received = False
 
     def BlockRequest(self, *args, **kwargs):
@@ -71,12 +69,7 @@ class XAQuery:
 
 
 class XASessionEvents:
-    def __init__(self):
-        self.com_obj = None
-        self.user_obj = None
-
-    def connect(self, com_obj, user_obj):
-        self.com_obj = com_obj
+    def __init__(self, user_obj):
         self.user_obj = user_obj
 
     def OnLogin(self, code):
@@ -85,12 +78,7 @@ class XASessionEvents:
 
 
 class XAQueryEvents:
-    def __init__(self):
-        self.com_obj = None
-        self.user_obj = None
-
-    def connect(self, com_obj, user_obj):
-        self.com_obj = com_obj
+    def __init__(self, user_obj):
         self.user_obj = user_obj
 
     def OnReceiveData(self):
@@ -182,7 +170,7 @@ class TraderXing:
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 데이터베이스 정보 불러오기 완료'])
 
     def XingLogin(self):
-        self.xa_session.login(USER_ID, PASSWORD, CERT_PASS)
+        self.xa_session.Login(USER_ID, PASSWORD, CERT_PASS)
 
         df = []
         df2 = self.xa_query.BlockRequest("t8430", gubun=2)

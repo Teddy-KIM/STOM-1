@@ -38,7 +38,6 @@ class TraderKiwoom:
         self.df_tr = None
 
         self.dict_name = {}     # key: 종목코드, value: 종목명
-        self.dict_vipr = {}     # key: 종목코드, value: [갱신여부, 발동시간+5초, uvi, dvi, uvid5]
         self.dict_buyt = {}     # key: 종목코드, value: datetime
         self.dict_sidt = {}     # key: 종목코드, value: datetime
         self.dict_intg = {
@@ -137,9 +136,6 @@ class TraderKiwoom:
                     elif len(data) == 5:
                         self.BuySell(data[0], data[1], data[2], data[3], data[4])
                         continue
-                    elif len(data) == 2:
-                        if data[0] == 'VI정보':
-                            self.dict_vipr = data[1]
                     elif len(data) == 3:
                         self.UpdateJango(data[0], data[1], data[2])
                 elif type(data) == str:
