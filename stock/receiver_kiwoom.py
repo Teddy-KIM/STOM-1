@@ -160,8 +160,6 @@ class ReceiverKiwoom:
                 break
 
             if now() > self.dict_time['거래대금순위기록']:
-                if len(self.dict_vipr) > 0:
-                    self.stockQ.put(['VI정보', self.dict_vipr])
                 if len(self.list_gsjm1) > 0:
                     self.UpdateMoneyTop()
                 self.dict_time['거래대금순위기록'] = timedelta_sec(1)
