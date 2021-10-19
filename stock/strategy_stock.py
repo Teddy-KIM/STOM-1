@@ -98,6 +98,8 @@ class StrategyStock:
         elif gubun in ['매도완료', '매도취소']:
             if code in self.list_sell:
                 self.list_sell.remove(code)
+            if code in self.dict_high.keys():
+                del self.dict_high[code]
         elif gubun == '매수전략':
             if int(strf_time('%H%M%S')) < 100000:
                 self.buystrategy1 = compile(code, '<string>', 'exec')
