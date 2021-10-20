@@ -318,24 +318,24 @@ class ReceiverXing:
             self.dict_time['거래대금순위저장'] = timedelta_sec(10)
 
     def OnReceiveOperData(self, data):
-        """
-        11:장전동시호가개시
-        25:장개시10분전
-        24:장개시5분전
-        23:장개시1분전
-        22:장개시10초전
-        21:장시작
-        44:장마감5분전
-        43:장마감1분전
-        42:장마감10초전
-        41:장마감
-        """
+        dict_oper = {
+            25: '장개시 10분전',
+            24: '장개시 5분전',
+            23: '장개시 1분전',
+            22: '장개시 10초전',
+            21: '장시작',
+            44: '장마감 5분전',
+            43: '장마감 1분전',
+            42: '장마감 10초전',
+            41: '장마감'
+        }
         try:
             status = int(data['jstatus'])
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveOperData {e}'])
         else:
             self.operation = status
+            self.windowQ.put([ui_num['S단순텍스트'], f'장운영 시간 수신 알림 - {dict_oper[status]}'])
 
     def OnReceiveVIData(self, data):
         try:
