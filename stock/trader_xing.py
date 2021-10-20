@@ -399,17 +399,6 @@ class TraderXing:
         return pg, sg, sp
 
     def OnReceiveOperData(self, data):
-        """
-        25:장개시10분전
-        24:장개시5분전
-        23:장개시1분전
-        22:장개시10초전
-        21:장시작
-        44:장마감5분전
-        43:장마감1분전
-        42:장마감10초전
-        41:장마감
-        """
         try:
             status = int(data['jstatus'])
         except Exception as e:
