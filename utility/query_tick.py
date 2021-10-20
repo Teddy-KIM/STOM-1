@@ -1,11 +1,11 @@
 import sqlite3
-from utility.static import now, timedelta_sec, float2str1p6
+import pandas as pd
+from utility.static import now, float2str1p6
 from utility.setting import ui_num, DB_STOCK_TICK, DB_COIN_TICK
-from pandas import set_option, DataFrame
 
-set_option('display.max_rows', 10000)
-set_option('display.max_columns', 500)
-set_option('display.width', 1000)
+pd.set_option('display.max_rows', 10000)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
 
 
 class QueryTick:
@@ -22,33 +22,44 @@ class QueryTick:
         self.cur1 = self.con1.cursor()
         self.con2 = sqlite3.connect(DB_COIN_TICK)
         self.cur2 = self.con2.cursor()
+        self.list_table1 = []
+        self.list_table2 = []
         self.create_trigger1()
         self.create_trigger2()
         self.Start()
 
     def __del__(self):
+        self.remove_trigger1()
+        self.remove_trigger2()
         self.con1.close()
         self.con2.close()
 
     def Start(self):
-        j = 0
         while True:
             query = self.query2Q.get()
             if query[0] == 1:
                 try:
                     if len(query) == 2:
                         start = now()
-                        df = DataFrame()
-                        for code in list(query[1].keys()):
-                            query[1][code]['종목코드'] = code
-                            df = df.append(query[1][code])
-                        df.to_sql("temp", self.con1, if_exists='append')
-                        self.cur1.execute('insert into "dist" ("cnt") values (1);')
+                        new_codes = set(list(query[1].keys())) - set(self.list_table1)
+                        if len(new_codes) > 0:
+                            for code in list(query[1].keys()):
+                                query[1][code].to_sql(code, self.con1, if_exists='append', chunksize=1000, method='multi')
+                            self.remove_trigger1()
+                            self.create_trigger1()
+                        else:
+                            df = pd.DataFrame()
+                            for code in list(query[1].keys()):
+                                query[1][code]['종목코드'] = code
+                                df = df.append(query[1][code])
+                            df.to_sql("temp", self.con1, if_exists='append', method='multi')
+                            self.cur1.execute('insert into "dist" ("cnt") values (1);')
                         save_time = float2str1p6((now() - start).total_seconds())
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                         self.windowQ.put([ui_num['S단순텍스트'], text])
                     elif len(query) == 3:
                         start = now()
+                        j = 0
                         for code in list(query[1].keys()):
                             j += 1
                             self.windowQ.put([ui_num['S단순텍스트'], f'시스템 명령 실행 알림 - 틱데이터 저장 중 ... {j}/4'])
@@ -64,14 +75,22 @@ class QueryTick:
                 try:
                     if len(query) == 2:
                         start = now()
-                        df = DataFrame()  # 임시 df 만듦
-                        for code in list(query[1].keys()):
-                            query[1][code]['종목코드'] = code
-                            df = df.append(query[1][code])
-                        df.to_sql("temp", self.con2, if_exists='append')
-                        # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
-                        # 트리거는 'temp' 테이블에 있는 데이터를 각 코인별 테이블로 나눠서 INSERT 시키고 'temp' 테이블을 다시 초기화(delete from temp;)함.
-                        self.cur2.execute('insert into "dist" ("cnt") values (1);')
+                        new_codes = set(list(query[1].keys())) - set(self.list_table2)
+                        if len(new_codes) > 0:
+                            for code in list(query[1].keys()):
+                                query[1][code].to_sql(code, self.con2, if_exists='append', chunksize=1000, method='multi')
+                            self.remove_trigger2()
+                            self.create_trigger2()
+                        else:
+                            df = pd.DataFrame()
+                            for code in list(query[1].keys()):
+                                query[1][code]['종목코드'] = code
+                                df = df.append(query[1][code])
+                            df.to_sql("temp", self.con2, if_exists='append', method='multi')
+                            # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
+                            # 트리거는 'temp' 테이블에 있는 데이터를 각 코인별 테이블로 나눠서 INSERT 시키고
+                            # 'temp' 테이블을 다시 초기화(delete from temp;)함.
+                            self.cur2.execute('insert into "dist" ("cnt") values (1);')
                         save_time = (now() - start).total_seconds()
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                         self.windowQ.put([ui_num['C단순텍스트'], text])
@@ -86,16 +105,16 @@ class QueryTick:
         for name in res.fetchall():
             tn.append(name[0])
 
-        exclusion = ['moneytop', 'temp', 'sqlite_sequence', 'dist', 'dist_chk', 'check']
+        exclusion = ['codename', 'moneytop', 'temp', 'sqlite_sequence', 'dist', 'dist_chk', 'check']
         const_str = '"index", 현재가, 시가, 고가, 저가, 등락율, 당일거래대금, 체결강도, 초당매수수량, 초당매도수량, VI해제시간,' \
                     'VI아래5호가, 매도총잔량, 매수총잔량, 매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2,' \
                     '매수호가3, 매수호가4, 매수호가5, 매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2,' \
                     '매수잔량3, 매수잔량4, 매수잔량5'
 
-        table_names = []
+        self.list_table1 = []
         for i in range(len(tn)):
             if not tn[i] in exclusion:
-                table_names.append(tn[i])
+                self.list_table1.append(tn[i])
 
         query_create_temp = \
             'CREATE TABLE IF NOT EXISTS "temp" ("index" TEXT, "종목코드" TEXT, "현재가" REAL, "시가" REAL, "고가" REAL,' \
@@ -112,9 +131,9 @@ class QueryTick:
             'reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL);'
 
         s = 'CREATE TRIGGER IF NOT EXISTS "dist_trigger" INSERT ON "dist" BEGIN insert into "dist_chk" ("cnt") values (1);\n'
-        for i in range(len(table_names)):
-            s += 'insert into "' + table_names[i] + '" select ' + const_str + ' from temp where 종목코드 = "' + \
-                table_names[i] + '";\n'
+        for i in range(len(self.list_table1)):
+            s += 'insert into "' + self.list_table1[i] + '" select ' + const_str + ' from temp where 종목코드 = "' + \
+                self.list_table1[i] + '";\n'
         s += 'delete from temp;\n'
         s += 'insert into "dist_chk" ("cnt") values (2);\n'  # 디버깅 속도측정용
         s += 'END;\n'
@@ -144,10 +163,10 @@ class QueryTick:
                     '매수호가4, 매수호가5, 매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3,' \
                     '매수잔량4, 매수잔량5'
 
-        table_names = []
+        self.list_table2 = []
         for i in range(len(tn)):
             if not tn[i] in exclusion:
-                table_names.append(tn[i])
+                self.list_table2.append(tn[i])
 
         query_create_temp = \
             'CREATE TABLE IF NOT EXISTS "temp" ("index" TEXT, "종목코드" TEXT, "현재가" REAL, "시가" REAL, "고가" REAL,' \
@@ -164,9 +183,9 @@ class QueryTick:
             'reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL);'
 
         s = 'CREATE TRIGGER IF NOT EXISTS "dist_trigger" INSERT ON "dist" BEGIN insert into "dist_chk" ("cnt") values (1);\n'
-        for i in range(len(table_names)):
-            s += 'insert into "' + table_names[i] + '" select ' + const_str + ' from temp where 종목코드 = "' + \
-                table_names[i] + '";\n'
+        for i in range(len(self.list_table2)):
+            s += 'insert into "' + self.list_table2[i] + '" select ' + const_str + ' from temp where 종목코드 = "' + \
+                self.list_table2[i] + '";\n'
         s += 'delete from temp;\n'
         s += 'insert into "dist_chk" ("cnt") values (2);\n'  # 디버깅 속도측정용
         s += 'END;\n'
