@@ -420,9 +420,10 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
             return
 
-        self.ct_labellll_03.setVisible(True)
-        self.ct_labellll_04.setVisible(True)
-        self.ct_labellll_05.setVisible(True)
+        if not self.ct_labellll_03.isVisible():
+            self.ct_labellll_03.setVisible(True)
+            self.ct_labellll_04.setVisible(True)
+            self.ct_labellll_05.setVisible(True)
 
         def crosshair(main_pg, sub_pg1, sub_pg2):
             vLine1 = pyqtgraph.InfiniteLine()
