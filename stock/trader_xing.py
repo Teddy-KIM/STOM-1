@@ -100,6 +100,7 @@ class TraderXing:
 
     def XingLogin(self):
         self.xa_session.Login(DICT_SET['아이디1'], DICT_SET['비밀번호1'], DICT_SET['인증서비밀번호1'])
+        self.dict_strg['계좌번호'] = self.xa_session.GetAccountList(0)
 
         df = []
         df2 = self.xa_query.BlockRequest("t8430", gubun=2)
@@ -252,6 +253,10 @@ class TraderXing:
     def GetAccountjanGo(self):
         """
         while True:
+            df = self.xa_query.BlockRequest(
+                't0424', accno=self.dict_strg['계좌번호'], passwd=DICT_SET['계좌비밀번호1'],
+                prcgb='1', chegb='2', dangb='0', charge='1', cts_expcode=' '
+            )
             if df['D+2추정예수금'][0] != '':
                 if DICT_SET['주식모의투자']:
                     con = sqlite3.connect(DB_TRADELIST)
