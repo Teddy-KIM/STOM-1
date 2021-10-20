@@ -499,7 +499,7 @@ class ReceiverXing:
         data = [c, o, h, low, per, dm, ch, bids, asks, vitime, vid5price]
         data += self.dict_hoga[code] + [code, dt, receivetime]
 
-        if DICT_SET['키움트레이더'] and code in self.list_gsjm2:
+        if DICT_SET['이베스트트레이더'] and code in self.list_gsjm2:
             injango = code in self.list_jang
             self.sstgQ.put(data + [name, injango])
             if injango:
