@@ -123,14 +123,14 @@ class XARealEvents:
             out_data[field] = data
         if trcode == 'JIF':
             self.user_obj.OnReceiveOperData(out_data)
-        elif trcode == 'SC1_':
-            self.user_obj.OnReceiveChegeolData(out_data)
+        elif trcode == 'VI_':
+            self.user_obj.OnReceiveVIData(out_data)
         elif trcode in ['S3_', 'K3_']:
             self.user_obj.OnReceiveRealData(out_data)
         elif trcode in ['H1_', 'HA_']:
             self.user_obj.OnReceiveHogaData(out_data)
-        elif trcode == 'VI_':
-            self.user_obj.OnReceiveVIData(out_data)
+        elif trcode == 'SC1_':
+            self.user_obj.OnReceiveChegeolData(out_data)
 
     def OnReceiveSearchRealData(self, trcode, data):
         self.user_obj.OnReceiveSearchRealData(data)

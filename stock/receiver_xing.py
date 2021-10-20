@@ -58,6 +58,7 @@ class ReceiverXing:
         self.list_jang = []
         self.pre_top = []
         self.list_kosd = None
+        self.list_kosp = None
         self.list_code = None
         self.list_code1 = None
         self.list_code2 = None
@@ -113,6 +114,7 @@ class ReceiverXing:
         df.append(df2)
         self.list_kosd = list(df2.index)
         df2 = self.xa_query.BlockRequest("t8430", gubun=1).set_index('shcode')
+        self.list_kosp = list(df2.index)
         df.append(df2)
         df = pd.concat(df)
 
@@ -162,7 +164,7 @@ class ReceiverXing:
                         self.StartJangjungStrategy()
             if self.operation == 41:
                 if int(strf_time('%H%M%S')) >= 153500:
-                    self.AllRemoveRealreg()
+                    self.RemoveAllRealreg()
                     self.SaveTickData()
                     break
 
@@ -181,7 +183,7 @@ class ReceiverXing:
     def UpdateRealreg(self, rreg):
         gubun = rreg[0]
         code = rreg[1]
-        if gubun == 'Add':
+        if gubun == 'AddReal':
             self.xa_real_vi.AddRealData(code)
             if code not in self.list_kosd:
                 self.xa_real_jcp.AddRealData(code)
@@ -189,7 +191,7 @@ class ReceiverXing:
             else:
                 self.xa_real_jcd.AddRealData(code)
                 self.xa_real_hgd.AddRealData(code)
-        elif gubun == 'RemoveAll':
+        elif gubun == 'RemoveAllReal':
             self.xa_real_vi.RemoveAllRealData()
             self.xa_real_jcp.RemoveAllRealData()
             self.xa_real_hgp.RemoveAllRealData()
@@ -211,6 +213,8 @@ class ReceiverXing:
 
     def OperationRealreg(self):
         self.xa_real_op.AddRealData('1')
+        for code in self.list_kosp + self.list_kosd:
+            self.sreceivQ.put(['AddReal', code])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
 
     def ConditionSearchStart(self):
@@ -276,8 +280,8 @@ class ReceiverXing:
                 self.sstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
-    def AllRemoveRealreg(self):
-        self.sreceivQ.put(['ALL', 'ALL'])
+    def RemoveAllRealreg(self):
+        self.sreceivQ.put(['RemoveAllReal'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간 데이터 중단 완료'])
 
     def SaveTickData(self):
