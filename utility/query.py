@@ -41,7 +41,7 @@ class Query:
                         self.con1.commit()
                 elif len(query) == 4:
                     try:
-                        query[1].to_sql(query[2], self.con1, if_exists=query[3], chunksize=1000)
+                        query[1].to_sql(query[2], self.con1, if_exists=query[3], chunksize=1000, method='multi')
                     except Exception as e:
                         self.windowQ.put([ui_num['설정텍스트'], f'시스템 명령 오류 알림 - to_sql {e}'])
             elif query[0] == 2:
@@ -54,7 +54,7 @@ class Query:
                         self.con2.commit()
                 elif len(query) == 4:
                     try:
-                        query[1].to_sql(query[2], self.con2, if_exists=query[3], chunksize=1000)
+                        query[1].to_sql(query[2], self.con2, if_exists=query[3], chunksize=1000, method='multi')
                     except Exception as e:
                         if 's_' in query[2]:
                             self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 오류 알림 - to_sql {e}'])
@@ -70,7 +70,7 @@ class Query:
                         self.con3.commit()
                 elif len(query) == 4:
                     try:
-                        query[1].to_sql(query[2], self.con3, if_exists=query[3], chunksize=1000)
+                        query[1].to_sql(query[2], self.con3, if_exists=query[3], chunksize=1000, method='multi')
                     except Exception as e:
                         self.windowQ.put([ui_num['S전략텍스트'], f'시스템 명령 오류 알림 - to_sql {e}'])
             elif query[0] == 4:
@@ -83,6 +83,6 @@ class Query:
                         self.con4.commit()
                 elif len(query) == 4:
                     try:
-                        query[1].to_sql(query[2], self.con4, if_exists=query[3], chunksize=1000)
+                        query[1].to_sql(query[2], self.con4, if_exists=query[3], chunksize=1000, method='multi')
                     except Exception as e:
                         self.windowQ.put([ui_num['C전략텍스트'], f'시스템 명령 오류 알림 - to_sql {e}'])

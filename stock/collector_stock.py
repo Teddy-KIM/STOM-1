@@ -87,4 +87,4 @@ class CollectorStock:
             for code in list(self.dict_df.keys()):
                 if code not in codes:
                     del self.dict_df[code]
-        self.query2Q.put([1, self.dict_df])
+        self.query2Q.put([1, self.dict_df, '장마감후저장'])

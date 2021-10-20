@@ -8,7 +8,7 @@ import win32com.client
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import now, strf_time, strp_time, timedelta_sec, parse_res
+from utility.static import now, strf_time, strp_time, timedelta_sec, parseRes
 from utility.setting import ui_num, DICT_SET, DB_TRADELIST, E_OPENAPI_PATH
 
 USER_ID = ''
@@ -30,7 +30,6 @@ class XASession:
         self.com_obj.Login(user_id, password, cert, 0, 0)
         while not self.connected:
             pythoncom.PumpWaitingMessages()
-        print('XASession 로그인 완료')
 
 
 class XAQuery:
@@ -47,7 +46,7 @@ class XAQuery:
         self.com_obj.ResFileName = res_path
         with open(res_path, encoding='euc-kr') as f:
             res_lines = f.readlines()
-        res_data = parse_res(res_lines)
+        res_data = parseRes(res_lines)
         inblock_code = list(res_data['inblock'][0].keys())[0]
         inblock_field = list(res_data['inblock'][0].values())[0]
         for k in kwargs:
@@ -57,7 +56,7 @@ class XAQuery:
         self.com_obj.Request(False)
         while not self.received:
             pythoncom.PumpWaitingMessages()
-        ret = []
+        df = []
         for outblock in res_data['outblock']:
             outblock_code = list(outblock.keys())[0]
             outblock_field = list(outblock.values())[0]
@@ -65,11 +64,11 @@ class XAQuery:
             rows = self.com_obj.GetBlockCount(outblock_code)
             for i in range(rows):
                 elem = {k: self.com_obj.GetFieldData(outblock_code, k, i) for k in outblock_field}
-                print(elem)
                 data.append(elem)
-            df = pd.DataFrame(data=data)
-            ret.append(df)
-        return ret
+            df2 = pd.DataFrame(data=data)
+            df.append(df2)
+        df = pd.concat(df)
+        return df
 
 
 class XAReal:

@@ -31,15 +31,22 @@ class QueryTick:
                     if len(query) == 2:
                         start = now()
                         for code in list(query[1].keys()):
-                            query[1][code].to_sql(code, self.con1, if_exists='append', chunksize=1000)
+                            query[1][code].to_sql(code, self.con1, if_exists='append', chunksize=1000, method='multi')
                         k += 1
                         if k % 4 == 0 and now() > writetime:
                             save_time = float2str1p6((now() - start).total_seconds())
                             text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                             self.windowQ.put([ui_num['S단순텍스트'], text])
                             writetime = timedelta_sec(60)
+                    elif len(query) == 3:
+                        start = now()
+                        for code in list(query[1].keys()):
+                            query[1][code].to_sql(code, self.con1, if_exists='append', chunksize=1000, method='multi')
+                        save_time = float2str1p6((now() - start).total_seconds())
+                        text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
+                        self.windowQ.put([ui_num['S단순텍스트'], text])
                     elif len(query) == 4:
-                        query[1].to_sql(query[2], self.con1, if_exists=query[3], chunksize=1000)
+                        query[1].to_sql(query[2], self.con1, if_exists=query[3], chunksize=1000, method='multi')
                 except Exception as e:
                     self.windowQ.put([ui_num['S단순텍스트'], f'시스템 명령 오류 알림 - to_sql {e}'])
             elif query[0] == 2:
@@ -47,11 +54,11 @@ class QueryTick:
                     if len(query) == 2:
                         start = now()
                         for code in list(query[1].keys()):
-                            query[1][code].to_sql(code, self.con2, if_exists='append', chunksize=1000)
+                            query[1][code].to_sql(code, self.con2, if_exists='append', chunksize=1000, method='multi')
                         save_time = float2str1p6((now() - start).total_seconds())
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                         self.windowQ.put([ui_num['C단순텍스트'], text])
                     elif len(query) == 4:
-                        query[1].to_sql(query[2], self.con2, if_exists=query[3], chunksize=1000)
+                        query[1].to_sql(query[2], self.con2, if_exists=query[3], chunksize=1000, method='multi')
                 except Exception as e:
                     self.windowQ.put([ui_num['C단순텍스트'], f'시스템 명령 오류 알림 - to_sql {e}'])
