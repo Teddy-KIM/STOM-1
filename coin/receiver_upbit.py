@@ -36,7 +36,7 @@ class WebsTicker:
             '거래대금순위저장': now()
         }
 
-        self.list_gsjm = []
+        self.list_gsjm1 = []
         self.list_gsjm2 = []
         self.list_jang = []
         self.pre_top = []
@@ -45,7 +45,7 @@ class WebsTicker:
         self.df_mc = pd.DataFrame(columns=['최근거래대금'])
 
         self.str_jcct = strf_time('%Y%m%d') + '000000'
-        self.time_mcct = None
+        self.dt_mtct = None
         self.websQ_ticker = None
         self.codes = None
 
@@ -102,7 +102,7 @@ class WebsTicker:
                     self.UpdateTickData(c, o, h, low, per, dm, bids, asks, tbids, tasks, code, dt, now())
 
                 if now() > self.dict_time['거래대금순위기록']:
-                    if len(self.list_gsjm) > 0:
+                    if len(self.list_gsjm1) > 0:
                         self.UpdateMoneyTop()
                     self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
@@ -153,7 +153,7 @@ class WebsTicker:
                 self.list_gsjm2.append(code)
         elif '잔고청산' in data and code in self.list_jang:
             self.list_jang.remove(code)
-            if code not in self.list_gsjm and code in self.list_gsjm2:
+            if code not in self.list_gsjm1 and code in self.list_gsjm2:
                 self.cstgQ.put(['조건이탈', code])
                 self.list_gsjm2.remove(code)
 
@@ -173,16 +173,16 @@ class WebsTicker:
         Timer(10, self.ConditionSearch).start()
 
     def InsertGsjmlist(self, code):
-        if code not in self.list_gsjm:
-            self.list_gsjm.append(code)
+        if code not in self.list_gsjm1:
+            self.list_gsjm1.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
             if DICT_SET['업비트트레이더']:
                 self.cstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
     def DeleteGsjmlist(self, code):
-        if code in self.list_gsjm:
-            self.list_gsjm.remove(code)
+        if code in self.list_gsjm1:
+            self.list_gsjm1.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
             if DICT_SET['업비트트레이더']:
                 self.cstgQ.put(['조건이탈', code])
@@ -190,17 +190,18 @@ class WebsTicker:
 
     def UpdateMoneyTop(self):
         timetype = '%Y%m%d%H%M%S'
-        list_text = ';'.join(self.list_gsjm)
-        curr_strftime = self.str_jcct
-        curr_datetime = strp_time(timetype, curr_strftime)
-        if self.time_mcct is not None:
-            gap_seconds = (curr_datetime - self.time_mcct).total_seconds()
+        list_text = ';'.join(self.list_gsjm1)
+        curr_strtime = self.str_jcct
+        curr_datetime = strp_time(timetype, curr_strtime)
+        if self.dt_mtct is not None:
+            gap_seconds = (curr_datetime - self.dt_mtct).total_seconds()
             while gap_seconds > 1:
                 gap_seconds -= 1
                 pre_time = strf_time(timetype, timedelta_sec(-gap_seconds, curr_datetime))
                 self.df_mt.at[pre_time] = list_text
-        self.df_mt.at[curr_strftime] = list_text
-        self.time_mcct = curr_datetime
+        if curr_datetime != self.dt_mtct:
+            self.df_mt.at[curr_strtime] = list_text
+            self.dt_mtct = curr_datetime
 
         if now() > self.dict_time['거래대금순위저장']:
             self.query2Q.put([2, self.df_mt, 'moneytop', 'append'])
