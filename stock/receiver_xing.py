@@ -197,7 +197,6 @@ class ReceiverXing:
             else:
                 self.xa_real_jcd.AddRealData(code)
                 self.xa_real_hgd.AddRealData(code)
-            self.windowQ.put([ui_num['S단순텍스트'], f'시스템 명령 실행 알림 - 실시간 등록 완료 [{code}]'])
         elif gubun == 'RemoveAllReal':
             self.xa_real_vi.RemoveAllRealData()
             self.xa_real_jcp.RemoveAllRealData()
@@ -223,6 +222,7 @@ class ReceiverXing:
         for code in self.list_kosp + self.list_kosd:
             self.sreceivQ.put(['AddReal', code])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 전종목 실시간 등록 완료'])
 
     def ConditionSearchStart(self):
         """
