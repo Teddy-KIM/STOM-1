@@ -141,38 +141,6 @@ def parseDat(trcode, lines):
     return enc_data
 
 
-def parse_block(data):
-    block_info = data[0]
-    tokens = block_info.split(",")
-    block_code, block_type = tokens[0], tokens[-1][:-1]
-    field_codes = []
-    fields = data[2:]
-    for line in fields:
-        if len(line) > 0:
-            field_code = line.split(',')[1].strip()
-            field_codes.append(field_code)
-    ret_data = {block_code: field_codes}
-    return block_type, ret_data
-
-
-def parseRes(lines):
-    lines = [line.strip() for line in lines]
-    info_index = [i for i, x in enumerate(lines) if x.startswith((".Func", ".Feed"))][0]
-    begin_indices = [i - 1 for i, x in enumerate(lines) if x == "begin"]
-    end_indices = [i for i, x in enumerate(lines) if x == "end"]
-    block_indices = zip(begin_indices, end_indices)
-    ret_data = {"trcode": None, "inblock": [], "outblock": []}
-    tr_code = lines[info_index].split(',')[2].strip()
-    ret_data["trcode"] = tr_code
-    for start, end in block_indices:
-        block_type, block_data = parse_block(lines[start:end])
-        if block_type == "input":
-            ret_data["inblock"].append(block_data)
-        else:
-            ret_data["outblock"].append(block_data)
-    return ret_data
-
-
 class CustomViewBox(pyqtgraph.ViewBox):
     def __init__(self, *args, **kwds):
         pyqtgraph.ViewBox.__init__(self, *args, **kwds)
