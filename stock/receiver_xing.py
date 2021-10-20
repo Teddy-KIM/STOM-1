@@ -9,10 +9,6 @@ from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import ui_num, DICT_SET, DB_TRADELIST
 
-USER_ID = ''
-PASSWORD = ''
-CERT_PASS = ''
-
 MONEYTOP_MINUTE = 10        # 최근거래대금순위을 집계할 시간
 MONEYTOP_RANK = 20          # 최근거래대금순위중 관심종목으로 선정할 순위
 
@@ -89,12 +85,14 @@ class ReceiverXing:
         self.xa_session = XASession()
         self.xa_query = XAQuery()
 
+        self.xa_real_op = XAReal()
         self.xa_real_vi = XAReal()
         self.xa_real_jcp = XAReal()
         self.xa_real_jcd = XAReal()
         self.xa_real_hgp = XAReal()
         self.xa_real_hgd = XAReal()
 
+        self.xa_real_op.RegisterRes('JIF')
         self.xa_real_vi.RegisterRes('VI_')
         self.xa_real_jcp.RegisterRes('S3_')
         self.xa_real_jcd.RegisterRes('K3_')
@@ -108,7 +106,7 @@ class ReceiverXing:
         self.EventLoop()
 
     def XingLogin(self):
-        self.xa_session.Login(USER_ID, PASSWORD, CERT_PASS)
+        self.xa_session.Login(DICT_SET['아이디2'], DICT_SET['비밀번호2'], DICT_SET['인증서비밀번호2'])
 
         df = []
         df2 = self.xa_query.BlockRequest("t8430", gubun=2).set_index('shcode')
@@ -142,7 +140,6 @@ class ReceiverXing:
 
     def EventLoop(self):
         self.OperationRealreg()
-        self.ViRealreg()
         while True:
             if not self.sreceivQ.empty():
                 data = self.sreceivQ.get()
@@ -154,7 +151,7 @@ class ReceiverXing:
 
             if self.operation == 1 and now() > self.dict_time['휴무종료']:
                 break
-            if self.operation == 3:
+            if self.operation == 21:
                 if int(strf_time('%H%M%S')) < 100000:
                     if not self.dict_bool['실시간조건검색시작']:
                         self.ConditionSearchStart()
@@ -163,10 +160,11 @@ class ReceiverXing:
                         self.ConditionSearchStop()
                     if not self.dict_bool['장중단타전략시작']:
                         self.StartJangjungStrategy()
-            if self.operation == 8:
-                self.AllRemoveRealreg()
-                self.SaveTickData()
-                break
+            if self.operation == 41:
+                if int(strf_time('%H%M%S')) >= 153500:
+                    self.AllRemoveRealreg()
+                    self.SaveTickData()
+                    break
 
             if now() > self.dict_time['거래대금순위기록']:
                 if len(self.list_gsjm) > 0:
@@ -181,21 +179,22 @@ class ReceiverXing:
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
 
     def UpdateRealreg(self, rreg):
-        """
-        sn = rreg[0]
-        if len(rreg) == 2:
-            self.ocx.dynamicCall('SetRealRemove(QString, QString)', rreg)
-            self.windowQ.put([ui_num['S단순텍스트'], f'실시간 알림 중단 완료 - 모든 실시간 데이터 수신 중단'])
-        elif len(rreg) == 4:
-            ret = self.ocx.dynamicCall('SetRealReg(QString, QString, QString, QString)', rreg)
-            result = '완료' if ret == 0 else '실패'
-            if sn == sn_oper:
-                self.windowQ.put([ui_num['S단순텍스트'], f'실시간 알림 등록 {result} - 장운영시간 [{sn}]'])
+        gubun = rreg[0]
+        code = rreg[1]
+        if gubun == 'Add':
+            self.xa_real_vi.AddRealData(code)
+            if code not in self.list_kosd:
+                self.xa_real_jcp.AddRealData(code)
+                self.xa_real_hgp.AddRealData(code)
             else:
-                text = f"실시간 알림 등록 {result} - [{sn}] 종목갯수 {len(rreg[1].split(';'))}"
-                self.windowQ.put([ui_num['S단순텍스트'], text])
-        """
-        pass
+                self.xa_real_jcd.AddRealData(code)
+                self.xa_real_hgd.AddRealData(code)
+        elif gubun == 'RemoveAll':
+            self.xa_real_vi.RemoveAllRealData()
+            self.xa_real_jcp.RemoveAllRealData()
+            self.xa_real_hgp.RemoveAllRealData()
+            self.xa_real_jcd.RemoveAllRealData()
+            self.xa_real_hgd.RemoveAllRealData()
 
     def UpdateJangolist(self, data):
         code = data.split(' ')[1]
@@ -211,28 +210,8 @@ class ReceiverXing:
                 self.list_gsjm2.remove(code)
 
     def OperationRealreg(self):
-        """
-        self.sreceivQ.put([sn_oper, ' ', '215;20;214', 0])
-        self.list_code = self.SendCondition(sn_oper, self.dict_cond[1], 1, 0)
-        self.list_code1 = [code for i, code in enumerate(self.list_code) if i % 4 == 0]
-        self.list_code2 = [code for i, code in enumerate(self.list_code) if i % 4 == 1]
-        self.list_code3 = [code for i, code in enumerate(self.list_code) if i % 4 == 2]
-        self.list_code4 = [code for i, code in enumerate(self.list_code) if i % 4 == 3]
-        k = 0
-        for i in range(0, len(self.list_code), 100):
-            self.sreceivQ.put([sn_recv + k, ';'.join(self.list_code[i:i + 100]), '10;12;14;30;228;41;61;71;81', 1])
-            k += 1
-        """
+        self.xa_real_op.AddRealData('1')
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
-
-    def ViRealreg(self):
-        """
-        self.Block_Request('opt10054', 시장구분='000', 장전구분='1', 종목코드='', 발동구분='1', 제외종목='111111011',
-                           거래량구분='0', 거래대금구분='0', 발동방향='0', output='발동종목', next=0)
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - VI발동해제 등록 완료'])
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작 완료'])
-        """
-        pass
 
     def ConditionSearchStart(self):
         """
@@ -333,6 +312,122 @@ class ReceiverXing:
             self.query2Q.put([1, self.df_mt, 'moneytop', 'append'])
             self.df_mt = pd.DataFrame(columns=['거래대금순위'])
             self.dict_time['거래대금순위저장'] = timedelta_sec(10)
+
+    def OnReceiveOperData(self, data):
+        """
+        11:장전동시호가개시
+        25:장개시10분전
+        24:장개시5분전
+        23:장개시1분전
+        22:장개시10초전
+        21:장시작
+        44:장마감5분전
+        43:장마감1분전
+        42:장마감10초전
+        41:장마감
+        """
+        try:
+            status = int(data['jstatus'])
+        except Exception as e:
+            self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveOperData {e}'])
+        else:
+            self.operation = status
+
+    def OnReceiveVIData(self, data):
+        try:
+            code = data['shcode']
+            gubun = data['vi_gubun']
+            name = self.dict_name[code]
+        except Exception as e:
+            self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveVIData VI발동/해제 {e}'])
+        else:
+            if gubun == '1' and code in self.list_code and \
+                    (code not in self.dict_vipr.keys() or
+                     (self.dict_vipr[code][0] and now() > self.dict_vipr[code][1])):
+                self.UpdateViPrice(code, name)
+
+    def OnReceiveSearchRealData(self, field):
+        pass
+
+    def OnReceiveRealData(self, data):
+        try:
+            code = data['shcode']
+            c = int(data['price'])
+            o = int(data['open'])
+            v = int(data['cvolume'])
+            gubun = data['cgubun']
+            dt = self.str_tday + data['chetime']
+        except Exception as e:
+            self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData {e}'])
+        else:
+            if self.operation == 1:
+                self.operation = 21
+            if dt != self.str_jcct and int(dt) > int(self.str_jcct):
+                self.str_jcct = dt
+            if code not in self.dict_vipr.keys():
+                self.InsertViPrice(code, o)
+            if code in self.dict_vipr.keys() and not self.dict_vipr[code][0] and now() > self.dict_vipr[code][1]:
+                self.UpdateViPrice(code, c)
+            try:
+                predt = self.dict_tick[code][0]
+                bid_volumns = self.dict_tick[code][1]
+                ask_volumns = self.dict_tick[code][2]
+            except KeyError:
+                predt = None
+                bid_volumns = 0
+                ask_volumns = 0
+            if gubun == '+':
+                self.dict_tick[code] = [dt, bid_volumns + v, ask_volumns]
+            else:
+                self.dict_tick[code] = [dt, bid_volumns, ask_volumns + v]
+            if dt != predt:
+                bids = self.dict_tick[code][1]
+                asks = self.dict_tick[code][2]
+                self.dict_tick[code] = [dt, 0, 0]
+                try:
+                    h = int(data['high'])
+                    low = int(data['low'])
+                    per = float(data['drate'])
+                    dm = int(data['value'])
+                    ch = float(data['cpower'])
+                    name = self.dict_name[code]
+                except Exception as e:
+                    self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData {e}'])
+                else:
+                    if code in self.dict_hoga.keys():
+                        self.UpdateTickData(code, name, c, o, h, low, per, dm, ch, bids, asks, dt, now())
+
+    def OnReceiveHogaData(self, data):
+        try:
+            code = data['shcode']
+            tsjr = int(data['totofferrem'])
+            tbjr = int(data['totbidrem'])
+            s5hg = int(data['offerho5'])
+            s4hg = int(data['offerho4'])
+            s3hg = int(data['offerho3'])
+            s2hg = int(data['offerho2'])
+            s1hg = int(data['offerho1'])
+            b1hg = int(data['bidho1'])
+            b2hg = int(data['bidho2'])
+            b3hg = int(data['bidho3'])
+            b4hg = int(data['bidho4'])
+            b5hg = int(data['bidho5'])
+            s5jr = int(data['offerrem5'])
+            s4jr = int(data['offerrem4'])
+            s3jr = int(data['offerrem3'])
+            s2jr = int(data['offerrem2'])
+            s1jr = int(data['offerrem1'])
+            b1jr = int(data['bidrem1'])
+            b2jr = int(data['bidrem2'])
+            b3jr = int(data['bidrem3'])
+            b4jr = int(data['bidrem4'])
+            b5jr = int(data['bidrem5'])
+        except Exception as e:
+            self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData 주식호가잔량 {e}'])
+        else:
+            self.dict_hoga[code] = [tsjr, tbjr,
+                                    s5hg, s4hg, s3hg, s2hg, s1hg, b1hg, b2hg, b3hg, b4hg, b5hg,
+                                    s5jr, s4jr, s3jr, s2jr, s1jr, b1jr, b2jr, b3jr, b4jr, b5jr]
 
     def InsertViPrice(self, code, o):
         uvi, dvi, vid5price = self.GetVIPrice(code, o)

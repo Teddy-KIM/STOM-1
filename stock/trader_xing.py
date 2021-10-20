@@ -8,10 +8,6 @@ from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, DB_TRADELIST, DICT_SET
 
-USER_ID = ''
-PASSWORD = ''
-CERT_PASS = ''
-
 
 class TraderXing:
     app = QtWidgets.QApplication(sys.argv)
@@ -103,7 +99,7 @@ class TraderXing:
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 데이터베이스 정보 불러오기 완료'])
 
     def XingLogin(self):
-        self.xa_session.Login(USER_ID, PASSWORD, CERT_PASS)
+        self.xa_session.Login(DICT_SET['아이디1'], DICT_SET['비밀번호1'], DICT_SET['인증서비밀번호1'])
 
         df = []
         df2 = self.xa_query.BlockRequest("t8430", gubun=2)
@@ -230,15 +226,6 @@ class TraderXing:
             self.UpdateChejanData(code, name, '체결', gubun, c, c, oc, 0, strf_time('%Y%m%d%H%M%S%f'))
         else:
             self.stockQ.put([gubun, '4989', self.dict_strg['계좌번호'], on, code, oc, 0, '03', '', name])
-
-    def UpdateRealreg(self, rreg):
-        """
-        if len(rreg) == 2:
-            self.ocx.dynamicCall('SetRealRemove(QString, QString)', rreg)
-        elif len(rreg) == 4:
-            self.ocx.dynamicCall('SetRealReg(QString, QString, QString, QString)', rreg)
-        """
-        pass
 
     def TelegramCmd(self, work):
         if work == '/당일체결목록':
@@ -383,41 +370,6 @@ class TraderXing:
         self.windowQ.put([ui_num['S잔고목록'], self.df_jg])
         self.windowQ.put([ui_num['S잔고평가'], self.df_tj])
 
-    def OperationAlert(self, current):
-        if DICT_SET['주식알림소리']:
-            if current == '084000':
-                self.soundQ.put('장시작 20분 전입니다.')
-            elif current == '085000':
-                self.soundQ.put('장시작 10분 전입니다.')
-            elif current == '085500':
-                self.soundQ.put('장시작 5분 전입니다.')
-            elif current == '085900':
-                self.soundQ.put('장시작 1분 전입니다.')
-            elif current == '085930':
-                self.soundQ.put('장시작 30초 전입니다.')
-            elif current == '085940':
-                self.soundQ.put('장시작 20초 전입니다.')
-            elif current == '085950':
-                self.soundQ.put('장시작 10초 전입니다.')
-            elif current == '090000':
-                self.soundQ.put(f"{self.dict_strg['당일날짜'][:4]}년 {self.dict_strg['당일날짜'][4:6]}월 "
-                                f"{self.dict_strg['당일날짜'][6:]}일 장이 시작되었습니다.")
-            elif current == '152000':
-                self.soundQ.put('장마감 10분 전입니다.')
-            elif current == '152500':
-                self.soundQ.put('장마감 5분 전입니다.')
-            elif current == '152900':
-                self.soundQ.put('장마감 1분 전입니다.')
-            elif current == '152930':
-                self.soundQ.put('장마감 30초 전입니다.')
-            elif current == '152940':
-                self.soundQ.put('장마감 20초 전입니다.')
-            elif current == '152950':
-                self.soundQ.put('장마감 10초 전입니다.')
-            elif current == '153000':
-                self.soundQ.put(f"{self.dict_strg['당일날짜'][:4]}년 {self.dict_strg['당일날짜'][4:6]}월 "
-                                f"{self.dict_strg['당일날짜'][6:]}일 장이 종료되었습니다.")
-
     def UpdateJango(self, code, name, c):
         try:
             prec = self.df_jg['현재가'][code]
@@ -445,6 +397,68 @@ class TraderXing:
         sg = pg - bg
         sp = round(sg / bg * 100, 2)
         return pg, sg, sp
+
+    def OnReceiveOperData(self, data):
+        """
+        25:장개시10분전
+        24:장개시5분전
+        23:장개시1분전
+        22:장개시10초전
+        21:장시작
+        44:장마감5분전
+        43:장마감1분전
+        42:장마감10초전
+        41:장마감
+        """
+        try:
+            status = int(data['jstatus'])
+        except Exception as e:
+            self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveOperData {e}'])
+        else:
+            self.dict_intg['장운영상태'] = status
+            self.OperationAlert(status)
+
+    def OperationAlert(self, status):
+        if DICT_SET['주식알림소리']:
+            if status == 25:
+                self.soundQ.put('장시작 10분 전입니다.')
+            elif status == 24:
+                self.soundQ.put('장시작 5분 전입니다.')
+            elif status == 23:
+                self.soundQ.put('장시작 1분 전입니다.')
+            elif status == 22:
+                self.soundQ.put('장시작 10초 전입니다.')
+            elif status == 21:
+                self.soundQ.put(f"{self.dict_strg['당일날짜'][:4]}년 {self.dict_strg['당일날짜'][4:6]}월 "
+                                f"{self.dict_strg['당일날짜'][6:]}일 장이 시작되었습니다.")
+            elif status == 44:
+                self.soundQ.put('장마감 5분 전입니다.')
+            elif status == 43:
+                self.soundQ.put('장마감 1분 전입니다.')
+            elif status == 42:
+                self.soundQ.put('장마감 10초 전입니다.')
+            elif status == 41:
+                self.soundQ.put(f"{self.dict_strg['당일날짜'][:4]}년 {self.dict_strg['당일날짜'][4:6]}월 "
+                                f"{self.dict_strg['당일날짜'][6:]}일 장이 종료되었습니다.")
+
+    def OnReceiveChegeolData(self, data):
+        if DICT_SET['주식모의투자']:
+            return
+
+        try:
+            code = data['lsuno']
+            name = self.dict_name[code]
+            on = data['ordno']
+            og = '매도' if data['bnstp'] == '1' else '매수'
+            op = int(data['ordprc'])
+            oc = int(data['ordqty'])
+            cp = int(data['execprc'])
+            cc = int(data['execqty'])
+            omc = oc - cc
+        except Exception as e:
+            self.windowQ.put([ui_num['S로그텍스트'], f'OnReceiveChejanData {e}'])
+        else:
+            self.UpdateChejanData(code, name, '체결', og, op, cp, oc, omc, on)
 
     def UpdateChejanData(self, code, name, ot, og, op, cp, oc, omc, on):
         if ot == '체결' and omc == 0 and cp != 0:

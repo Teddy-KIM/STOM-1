@@ -121,8 +121,8 @@ class XARealEvents:
         for field in out_block['OutBlock']:
             data = self.user_obj.GetFielfData(field)
             out_data[field] = data
-        if trcode == 'SC0_':
-            self.user_obj.OnReceiveOrderData(out_data)
+        if trcode == 'JIF':
+            self.user_obj.OnReceiveOperData(out_data)
         elif trcode == 'SC1_':
             self.user_obj.OnReceiveChegeolData(out_data)
         elif trcode in ['S3_', 'K3_']:
@@ -132,8 +132,8 @@ class XARealEvents:
         elif trcode == 'VI_':
             self.user_obj.OnReceiveVIData(out_data)
 
-    def OnReceiveSearchRealData(self, trcode, field):
-        self.user_obj.OnReceiveSearchRealData(trcode, field)
+    def OnReceiveSearchRealData(self, trcode, data):
+        self.user_obj.OnReceiveSearchRealData(data)
 
 
 def parse_block(data):
