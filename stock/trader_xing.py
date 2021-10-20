@@ -104,16 +104,20 @@ class TraderXing:
 
         df = []
         df2 = self.xa_query.BlockRequest("t8430", gubun=2)
-        df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
+        df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
+        df2 = df2.set_index('index')
         df.append(df2)
 
         df2 = self.xa_query.BlockRequest("t8430", gubun=1)
-        df2 = df2.rename(columns={'shcode': 'index'}).set_index('index')
+        df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
+        df2 = df2.set_index('index')
         df.append(df2)
+        df = pd.concat(df)
+        df = df[['종목명']].copy()
 
         df = pd.concat(df)
         for code in df.index:
-            name = df['hname'][code]
+            name = df['종목명'][code]
             self.dict_name[code] = name
 
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
