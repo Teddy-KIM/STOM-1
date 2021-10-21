@@ -14,6 +14,7 @@ TESTPERIOD = 10        # 백테스팅 기간
 TOTALTIME = 864000     # 백테스팅 시간 총합, 단위 초
 START_TIME = 0
 END_TIME = 235900
+MULTI_COUNT = 6
 
 
 class BackTesterCoinVc:
@@ -526,7 +527,7 @@ if __name__ == "__main__":
                 w = Process(target=Total, args=(q, last, num))
                 w.start()
                 procs = []
-                workcount = int(last / 6) + 1
+                workcount = int(last / MULTI_COUNT) + 1
                 for j in range(0, last, workcount):
                     code_list = table_list[j:j + workcount]
                     p = Process(target=BackTesterCoinVc, args=(q, code_list, num, df1, False))
@@ -559,7 +560,7 @@ if __name__ == "__main__":
             w = Process(target=Total, args=(q, last, num))
             w.start()
             procs = []
-            workcount = int(last / 6) + 1
+            workcount = int(last / MULTI_COUNT) + 1
             for j in range(0, last, workcount):
                 code_list = table_list[j:j + workcount]
                 p = Process(target=BackTesterCoinVc, args=(q, code_list, num, df1, False))
@@ -599,7 +600,7 @@ if __name__ == "__main__":
         w = Process(target=Total, args=(q, last, num))
         w.start()
         procs = []
-        workcount = int(last / 6) + 1
+        workcount = int(last / MULTI_COUNT) + 1
         for j in range(0, last, workcount):
             db_list = table_list[j:j + workcount]
             p = Process(target=BackTesterCoinVc, args=(q, db_list, num, df1, True))
