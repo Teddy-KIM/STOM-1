@@ -9,8 +9,8 @@ from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import ui_num, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
 
-MONEYTOP_MINUTE = 10  # 최근거래대금순위을 집계할 시간
-MONEYTOP_RANK = 20  # 최근거래대금순위중 관심종목으로 선정할 순위
+MONEYTOP_MINUTE = 10    # 최근거래대금순위을 집계할 시간
+MONEYTOP_RANK = 20      # 최근거래대금순위중 관심종목으로 선정할 순위
 
 
 class ReceiverXing:
