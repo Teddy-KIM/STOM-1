@@ -92,9 +92,9 @@ class XAQuery:
 
 
 class XAReal:
-    def __init__(self):
+    def __init__(self, user_class):
         self.com_obj = win32com.client.Dispatch("XA_DataSet.XAReal")
-        win32com.client.WithEvents(self.com_obj, XARealEvents).connect(self)
+        win32com.client.WithEvents(self.com_obj, XARealEvents).connect(self, user_class)
         self.res = {}
 
     def RegisterRes(self, res_name):
@@ -122,51 +122,53 @@ class XAReal:
 
 class XASessionEvents:
     def __init__(self):
-        self.user_obj = None
+        self.com_class = None
 
-    def connect(self, user_obj):
-        self.user_obj = user_obj
+    def connect(self, com_class):
+        self.com_class = com_class
 
     def OnLogin(self, code, msg):
         if code == '0000':
-            self.user_obj.connected = True
+            self.com_class.connected = True
 
 
 class XAQueryEvents:
     def __init__(self):
-        self.user_obj = None
+        self.com_class = None
 
-    def connect(self, user_obj):
-        self.user_obj = user_obj
+    def connect(self, com_class):
+        self.com_class = com_class
 
     def OnReceiveData(self, code):
-        self.user_obj.received = True
+        self.com_class.received = True
 
 
 class XARealEvents:
     def __init__(self):
-        self.user_obj = None
+        self.com_class = None
+        self.user_class = None
 
-    def connect(self, user_obj):
-        self.user_obj = user_obj
+    def connect(self, com_class, user_class):
+        self.com_class = com_class
+        self.user_class = user_class
 
     def OnReceiveRealData(self, trcode):
-        res_data = self.user_obj.res.get(trcode)
+        res_data = self.com_class.res.get(trcode)
         out_data = {}
         out_block = res_data['outblock'][0]
         for field in out_block['OutBlock']:
-            data = self.user_obj.GetFielfData(field)
+            data = self.com_class.GetFielfData(field)
             out_data[field] = data
         if trcode == 'JIF':
-            self.user_obj.OnReceiveOperData(out_data)
+            self.user_class.OnReceiveOperData(out_data)
         elif trcode == 'VI_':
-            self.user_obj.OnReceiveVIData(out_data)
+            self.user_class.OnReceiveVIData(out_data)
         elif trcode in ['S3_', 'K3_']:
-            self.user_obj.OnReceiveRealData(out_data)
+            self.user_class.OnReceiveRealData(out_data)
         elif trcode in ['H1_', 'HA_']:
-            self.user_obj.OnReceiveHogaData(out_data)
+            self.user_class.OnReceiveHogaData(out_data)
         elif trcode == 'SC1_':
-            self.user_obj.OnReceiveChegeolData(out_data)
+            self.user_class.OnReceiveChegeolData(out_data)
 
     def OnReceiveSearchRealData(self, trcode, data):
-        self.user_obj.OnReceiveSearchRealData(data)
+        self.user_class.OnReceiveSearchRealData(data)

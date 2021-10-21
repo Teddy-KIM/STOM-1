@@ -86,12 +86,12 @@ class ReceiverXing:
         self.xa_session = XASession()
         self.xa_query = XAQuery()
 
-        self.xa_real_op = XAReal()
-        self.xa_real_vi = XAReal()
-        self.xa_real_jcp = XAReal()
-        self.xa_real_jcd = XAReal()
-        self.xa_real_hgp = XAReal()
-        self.xa_real_hgd = XAReal()
+        self.xa_real_op = XAReal(self)
+        self.xa_real_vi = XAReal(self)
+        self.xa_real_jcp = XAReal(self)
+        self.xa_real_jcd = XAReal(self)
+        self.xa_real_hgp = XAReal(self)
+        self.xa_real_hgd = XAReal(self)
 
         self.xa_real_op.RegisterRes('JIF')
         self.xa_real_vi.RegisterRes('VI_')
@@ -124,7 +124,13 @@ class ReceiverXing:
         df = pd.concat(df)
         df = df[['종목명']].copy()
 
-        for code in df.index:
+        self.list_code = list(df.index)
+        self.list_code1 = [x for i, x in enumerate(self.list_code) if i % 4 == 0]
+        self.list_code2 = [x for i, x in enumerate(self.list_code) if i % 4 == 1]
+        self.list_code3 = [x for i, x in enumerate(self.list_code) if i % 4 == 2]
+        self.list_code4 = [x for i, x in enumerate(self.list_code) if i % 4 == 3]
+
+        for code in self.list_code:
             name = df['종목명'][code]
             self.dict_name[code] = name
             self.dict_code[name] = code
@@ -219,7 +225,7 @@ class ReceiverXing:
 
     def OperationRealreg(self):
         self.xa_real_op.AddRealData()
-        for code in self.list_kosp + self.list_kosd:
+        for code in self.list_code:
             self.sreceivQ.put(['AddReal', code])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 전종목 실시간 등록 완료'])
