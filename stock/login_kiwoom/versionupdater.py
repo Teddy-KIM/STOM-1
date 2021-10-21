@@ -74,6 +74,8 @@ if __name__ == '__main__':
         print(' 버전처리 및 로그인창 닫힘 대기 중 ...\n')
         time.sleep(1)
         if now() > endtime:
+            if proc.is_alive():
+                proc.kill()
             break
 
     if update:
