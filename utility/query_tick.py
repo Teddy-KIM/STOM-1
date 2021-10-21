@@ -3,10 +3,6 @@ import pandas as pd
 from utility.static import now, float2str1p6
 from utility.setting import ui_num, DB_STOCK_TICK, DB_COIN_TICK
 
-pd.set_option('display.max_rows', 10000)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
-
 
 class QueryTick:
     def __init__(self, qlist):
@@ -24,7 +20,6 @@ class QueryTick:
         self.cur2 = self.con2.cursor()
         self.list_table1 = []
         self.list_table2 = []
-        self.create_trigger1()
         self.create_trigger2()
         self.Start()
 
@@ -39,8 +34,7 @@ class QueryTick:
         df = pd.DataFrame()
         while True:
             query = self.query2Q.get()
-            if query == '주식트리거초기화':
-                self.remove_trigger1()
+            if query == '주식디비트리거시작':
                 self.create_trigger1()
             elif query[0] == 1:
                 try:
@@ -53,7 +47,7 @@ class QueryTick:
                             for code in list(query[1].keys()):
                                 query[1][code]['종목코드'] = code
                                 df = df.append(query[1][code])
-                            if k == 4:
+                            if k % 4 == 0:
                                 start = now()
                                 df.to_sql("temp", self.con1, if_exists='append', method='multi')
                                 # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
@@ -63,7 +57,6 @@ class QueryTick:
                                 save_time = float2str1p6((now() - start).total_seconds())
                                 text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                                 self.windowQ.put([ui_num['S단순텍스트'], text])
-                                k = 0
                                 df = pd.DataFrame()
                     elif len(query) == 3:
                         start = now()
@@ -86,7 +79,8 @@ class QueryTick:
                         new_codes = set(list(query[1].keys())) - set(self.list_table2)
                         if len(new_codes) > 0:
                             for code in list(query[1].keys()):
-                                query[1][code].to_sql(code, self.con2, if_exists='append', chunksize=1000, method='multi')
+                                query[1][code].to_sql(
+                                    code, self.con2, if_exists='append', chunksize=1000, method='multi')
                             self.remove_trigger2()
                             self.create_trigger2()
                         else:
@@ -124,7 +118,7 @@ class QueryTick:
         query_create_temp = \
             'CREATE TABLE IF NOT EXISTS "temp" ("index" TEXT, "종목코드" TEXT, "현재가" REAL, "시가" REAL, "고가" REAL,' \
             '"저가" REAL, "등락율" REAL, "당일거래대금" REAL, "체결강도" REAL, "초당매수수량" REAL, "초당매도수량" REAL,' \
-            '"VI해제시간" REAL, "VI아래5호가" REAL, "매도총잔량" REAL, "매수총잔량" REAL, "매도호가5" REAL, "매도호가4" REAL,' \
+            '"VI해제시간" REAL, "VI아래5호가" TEXT, "매도총잔량" REAL, "매수총잔량" REAL, "매도호가5" REAL, "매도호가4" REAL,' \
             '"매도호가3" REAL, "매도호가2" REAL, "매도호가1" REAL, "매수호가1" REAL, "매수호가2" REAL, "매수호가3" REAL,' \
             '"매수호가4" REAL, "매수호가5" REAL, "매도잔량5" REAL, "매도잔량4" REAL, "매도잔량3" REAL, "매도잔량2" REAL,' \
             '"매도잔량1" REAL, "매수잔량1" REAL, "매수잔량2" REAL, "매수잔량3" REAL, "매수잔량4" REAL, "매수잔량5" REAL);'
@@ -135,12 +129,12 @@ class QueryTick:
             'CREATE TABLE IF NOT EXISTS "dist_chk" (uid integer primary key autoincrement, cnt integer,' \
             'reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL);'
 
-        s = 'CREATE TRIGGER IF NOT EXISTS "dist_trigger" INSERT ON "dist" BEGIN insert into "dist_chk" ("cnt") values (1);\n'
+        s = 'CREATE TRIGGER IF NOT EXISTS "dist_trigger" INSERT ON "dist" BEGIN INSERT INTO "dist_chk" ("cnt") values (1);\n'
         for i in range(len(self.list_table1)):
-            s += 'insert into "' + self.list_table1[i] + '" select ' + const_str + ' from temp where 종목코드 = "' + \
+            s += 'INSERT INTO "' + self.list_table1[i] + '" SELECT ' + const_str + ' FROM temp WHERE 종목코드 = "' + \
                 self.list_table1[i] + '";\n'
-        s += 'delete from temp;\n'
-        s += 'insert into "dist_chk" ("cnt") values (2);\n'  # 디버깅 속도측정용
+        s += 'DELETE FROM temp;\n'
+        s += 'INSERT INTO "dist_chk" ("cnt") values (2);\n'  # 디버깅 속도측정용
         s += 'END;\n'
         query_create_trigger = s
 
@@ -187,12 +181,12 @@ class QueryTick:
             'CREATE TABLE IF NOT EXISTS "dist_chk" (uid integer primary key autoincrement, cnt integer,' \
             'reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL);'
 
-        s = 'CREATE TRIGGER IF NOT EXISTS "dist_trigger" INSERT ON "dist" BEGIN insert into "dist_chk" ("cnt") values (1);\n'
+        s = 'CREATE TRIGGER IF NOT EXISTS "dist_trigger" INSERT ON "dist" BEGIN INSERT INTO "dist_chk" ("cnt") values (1);\n'
         for i in range(len(self.list_table2)):
-            s += 'insert into "' + self.list_table2[i] + '" select ' + const_str + ' from temp where 종목코드 = "' + \
+            s += 'INSERT INTO "' + self.list_table2[i] + '" SELECT ' + const_str + ' FROM temp WHERE 종목코드 = "' + \
                 self.list_table2[i] + '";\n'
-        s += 'delete from temp;\n'
-        s += 'insert into "dist_chk" ("cnt") values (2);\n'  # 디버깅 속도측정용
+        s += 'DELETE FROM temp;\n'
+        s += 'INSERT INTO "dist_chk" ("cnt") values (2);\n'  # 디버깅 속도측정용
         s += 'END;\n'
         query_create_trigger = s
 

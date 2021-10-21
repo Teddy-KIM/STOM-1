@@ -119,6 +119,7 @@ class ReceiverKiwoom:
         self.list_kosd = self.GetCodeListByMarket('10')
         list_code = self.GetCodeListByMarket('0') + self.list_kosd
 
+        query = ''
         df = pd.DataFrame(columns=['종목명'])
         for code in list_code:
             name = self.GetMasterCodeName(code)
@@ -126,18 +127,17 @@ class ReceiverKiwoom:
             self.dict_name[code] = name
             self.dict_code[name] = code
             if code not in table_list:
-                query = f'CREATE TABLE "{code}" ("index" TEXT, "현재가" REAL, "시가" REAL, "고가" REAL,' \
+                query += f'CREATE TABLE "{code}" ("index" TEXT, "현재가" REAL, "시가" REAL, "고가" REAL,' \
                          '"저가" REAL, "등락율" REAL, "당일거래대금" REAL, "체결강도" REAL, "초당매수수량" REAL,' \
-                         '"초당매도수량" REAL, "VI해제시간" REAL, "VI아래5호가" REAL, "매도총잔량" REAL, "매수총잔량" REAL,' \
+                         '"초당매도수량" REAL, "VI해제시간" TEXT, "VI아래5호가" REAL, "매도총잔량" REAL, "매수총잔량" REAL,' \
                          '"매도호가5" REAL, "매도호가4" REAL, "매도호가3" REAL, "매도호가2" REAL, "매도호가1" REAL,' \
                          '"매수호가1" REAL, "매수호가2" REAL, "매수호가3" REAL, "매수호가4" REAL, "매수호가5" REAL,' \
                          '"매도잔량5" REAL, "매도잔량4" REAL, "매도잔량3" REAL, "매도잔량2" REAL, "매도잔량1" REAL,' \
-                         '"매수잔량1" REAL, "매수잔량2" REAL, "매수잔량3" REAL, "매수잔량4" REAL, "매수잔량5" REAL);'
-                self.query2Q.put([1, query])
-                query = f'CREATE INDEX "ix_{code}_index" ON "{code}"("index")'
-                self.query2Q.put([1, query])
+                         '"매수잔량1" REAL, "매수잔량2" REAL, "매수잔량3" REAL, "매수잔량4" REAL, "매수잔량5" REAL);\n'
+                query += f'CREATE INDEX "ix_{code}_index" ON "{code}"("index");\n'
+        self.query2Q.put([1, query])
         self.query2Q.put([1, df, 'codename', 'replace'])
-        self.query2Q.put('주식트리거초기화')
+        self.query2Q.put('주식디비트리거시작')
 
         data = self.ocx.dynamicCall('GetConditionNameList()')
         conditions = data.split(';')[:-1]
