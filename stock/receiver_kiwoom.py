@@ -134,6 +134,8 @@ class ReceiverKiwoom:
                          '"매도잔량5" REAL, "매도잔량4" REAL, "매도잔량3" REAL, "매도잔량2" REAL, "매도잔량1" REAL,' \
                          '"매수잔량1" REAL, "매수잔량2" REAL, "매수잔량3" REAL, "매수잔량4" REAL, "매수잔량5" REAL);'
                 self.query2Q.put([1, query])
+                query = f'CREATE INDEX "ix_{code}_index" ON "{code}"("index")'
+                self.query2Q.put([1, query])
         self.query2Q.put([1, df, 'codename', 'replace'])
         self.query2Q.put('주식트리거초기화')
 

@@ -68,8 +68,8 @@ class TraderXing:
 
         self.xa_session = XASession()
         self.xa_query = XAQuery()
-        self.xa_real_od = XAReal()
-        self.xa_real_cg = XAReal()
+        self.xa_real_od = XAReal(self)
+        self.xa_real_cg = XAReal(self)
 
         self.xa_real_od.RegisterRes('SC0_')
         self.xa_real_cg.RegisterRes('SC1_')
@@ -409,12 +409,14 @@ class TraderXing:
 
     def OnReceiveOperData(self, data):
         try:
+            gubun = int(data['jangubun'])
             status = int(data['jstatus'])
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveOperData {e}'])
         else:
-            self.dict_intg['장운영상태'] = status
-            self.OperationAlert(status)
+            if gubun == 1:
+                self.dict_intg['장운영상태'] = status
+                self.OperationAlert(status)
 
     def OperationAlert(self, status):
         if DICT_SET['주식알림소리']:

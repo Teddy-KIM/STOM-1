@@ -88,12 +88,14 @@ class ReceiverXing:
         self.xa_query = XAQuery()
 
         self.xa_real_op = XAReal(self)
+        self.xa_real_vi = XAReal(self)
         self.xa_real_jcp = XAReal(self)
         self.xa_real_jcd = XAReal(self)
         self.xa_real_hgp = XAReal(self)
         self.xa_real_hgd = XAReal(self)
 
         self.xa_real_op.RegisterRes('JIF')
+        self.xa_real_vi.RegisterRes('VI_')
         self.xa_real_jcp.RegisterRes('S3_')
         self.xa_real_jcd.RegisterRes('K3_')
         self.xa_real_hgp.RegisterRes('H1_')
@@ -147,6 +149,8 @@ class ReceiverXing:
                          '"매도잔량5" REAL, "매도잔량4" REAL, "매도잔량3" REAL, "매도잔량2" REAL, "매도잔량1" REAL,' \
                          '"매수잔량1" REAL, "매수잔량2" REAL, "매수잔량3" REAL, "매수잔량4" REAL, "매수잔량5" REAL);'
                 self.query2Q.put([1, query])
+                query = f'CREATE INDEX "ix_{code}_index" ON "{code}"("index")'
+                self.query2Q.put([1, query])
         self.query2Q.put([1, df, 'codename', 'replace'])
         self.query2Q.put('주식트리거초기화')
 
@@ -163,7 +167,6 @@ class ReceiverXing:
             self.dict_cond[int(cond_index)] = cond_name
         """
 
-        self.windowQ.put([ui_num['S단순텍스트'], self.dict_cond])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
     def EventLoop(self):
@@ -237,6 +240,7 @@ class ReceiverXing:
 
     def OperationRealreg(self):
         self.xa_real_op.AddRealData()
+        self.xa_real_vi.AddRealData('000000')
         for code in self.list_code:
             self.sreceivQ.put(['AddReal', code])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
@@ -355,21 +359,24 @@ class ReceiverXing:
             41: '장마감'
         }
         try:
+            gubun = int(data['jangubun'])
             status = int(data['jstatus'])
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveOperData {e}'])
         else:
-            self.operation = status
-            self.windowQ.put([ui_num['S단순텍스트'], f'장운영 시간 수신 알림 - {dict_oper[status]}'])
+            if gubun == 1:
+                self.operation = status
+                self.windowQ.put([ui_num['S단순텍스트'], f'장운영 시간 수신 알림 - {dict_oper[status]}'])
 
     def OnReceiveVIData(self, data):
         try:
-            code = data['shcode']
+            code = data['ref_shcode']
             gubun = data['vi_gubun']
             name = self.dict_name[code]
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveVIData VI발동/해제 {e}'])
         else:
+            print(code, name, gubun)
             if gubun == '1' and code in self.list_code and \
                     (code not in self.dict_vipr.keys() or
                      (self.dict_vipr[code][0] and now() > self.dict_vipr[code][1])):
