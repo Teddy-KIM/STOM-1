@@ -1,10 +1,11 @@
+import os
 import sqlite3
 import pandas as pd
 from PyQt5.QtGui import QFont, QColor
 
 K_OPENAPI_PATH = 'D:/OpenAPI'
 E_OPENAPI_PATH = 'D:/xingAPI/Res/'
-SYSTEM_PATH = 'D:/PythonProjects/STOM'
+SYSTEM_PATH = ('/').join(os.getcwd().split('\\'))
 ICON_PATH = f'{SYSTEM_PATH}/utility/icon'
 LOGIN_PATH = f'{SYSTEM_PATH}/stock/login_kiwoom'
 GRAPH_PATH = f'{SYSTEM_PATH}/backtester/graph'
