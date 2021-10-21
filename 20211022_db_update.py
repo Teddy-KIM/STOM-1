@@ -24,7 +24,7 @@ print(f'데이터베이스 VI해제시간 오류 업데이트 시작')
 last = len(table_list)
 for i, code in enumerate(table_list):
     print(f'데이터베이스 VI해제시간 업데이트 중 ... [{i+1}/{last}]')
-    df = pd.read_sql(f"SELETE * FROM '{code}'", con)
+    df = pd.read_sql(f"SELECT * FROM '{code}'", con)
     df = df.set_index('index')
     df['VI해제시간'] = df['VI해제시간'].apply(lambda x: str(x.split('.')[0]) if type(x) == float else x)
     df.to_sql(code, con, if_exists='replace', chunksize=1000, method='multi')
