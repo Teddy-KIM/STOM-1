@@ -6,6 +6,7 @@ from multiprocessing import Process
 from PyQt5.QAxContainer import QAxWidget
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
 from utility.setting import K_OPENAPI_PATH
+from utility.static import timedelta_sec, now
 
 
 class Window(QtWidgets.QMainWindow):
@@ -48,6 +49,7 @@ if __name__ == '__main__':
     print(' 아이디 및 패스워드 입력 완료\n')
 
     update = False
+    endtime = timedelta_sec(120)
     while find_window('Open API login') != 0:
         hwnd = find_window('opstarter')
         if hwnd != 0:
@@ -71,6 +73,8 @@ if __name__ == '__main__':
                     proc.kill()
         print(' 버전처리 및 로그인창 닫힘 대기 중 ...\n')
         time.sleep(1)
+        if now() > endtime:
+            break
 
     if update:
         time.sleep(5)

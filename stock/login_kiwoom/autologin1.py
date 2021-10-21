@@ -37,6 +37,7 @@ class Window(QtWidgets.QMainWindow):
         os.system('taskkill /f /im opstarter.exe')
         print('\n')
         print(' 프로세스 종료 완료\n')
+        sys.exit()
 
 
 if __name__ == '__main__':
