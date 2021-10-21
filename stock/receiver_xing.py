@@ -103,7 +103,7 @@ class ReceiverXing:
 
     def Start(self):
         self.XingLogin()
-        #self.EventLoop()
+        self.EventLoop()
 
     def XingLogin(self):
         self.xa_session.Login(DICT_SET['아이디2'], DICT_SET['비밀번호2'], DICT_SET['인증서비밀번호2'])
