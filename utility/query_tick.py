@@ -35,28 +35,36 @@ class QueryTick:
         self.con2.close()
 
     def Start(self):
+        k = 0
+        df = pd.DataFrame()
         while True:
             query = self.query2Q.get()
-            if query[0] == 1:
+            if query == '주식트리거초기화':
+                self.remove_trigger1()
+                self.create_trigger1()
+            elif query[0] == 1:
                 try:
                     if len(query) == 2:
-                        start = now()
-                        new_codes = set(list(query[1].keys())) - set(self.list_table1)
-                        if len(new_codes) > 0:
-                            for code in list(query[1].keys()):
-                                query[1][code].to_sql(code, self.con1, if_exists='append', chunksize=1000, method='multi')
-                            self.remove_trigger1()
-                            self.create_trigger1()
+                        if type(query[1]) == str:
+                            self.cur1.execute(query[1])
+                            self.con1.commit()
                         else:
-                            df = pd.DataFrame()
+                            k += 1
                             for code in list(query[1].keys()):
                                 query[1][code]['종목코드'] = code
                                 df = df.append(query[1][code])
-                            df.to_sql("temp", self.con1, if_exists='append', method='multi')
-                            self.cur1.execute('insert into "dist" ("cnt") values (1);')
-                        save_time = float2str1p6((now() - start).total_seconds())
-                        text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
-                        self.windowQ.put([ui_num['S단순텍스트'], text])
+                            if k == 4:
+                                start = now()
+                                df.to_sql("temp", self.con1, if_exists='append', method='multi')
+                                # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
+                                # 트리거는 'temp' 테이블에 있는 데이터를 각 코인별 테이블로 나눠서 INSERT 시키고
+                                # 'temp' 테이블을 다시 초기화(delete from temp;)함.
+                                self.cur1.execute('insert into "dist" ("cnt") values (1);')
+                                save_time = float2str1p6((now() - start).total_seconds())
+                                text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
+                                self.windowQ.put([ui_num['S단순텍스트'], text])
+                                k = 0
+                                df = pd.DataFrame()
                     elif len(query) == 3:
                         start = now()
                         j = 0
@@ -87,9 +95,6 @@ class QueryTick:
                                 query[1][code]['종목코드'] = code
                                 df = df.append(query[1][code])
                             df.to_sql("temp", self.con2, if_exists='append', method='multi')
-                            # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
-                            # 트리거는 'temp' 테이블에 있는 데이터를 각 코인별 테이블로 나눠서 INSERT 시키고
-                            # 'temp' 테이블을 다시 초기화(delete from temp;)함.
                             self.cur2.execute('insert into "dist" ("cnt") values (1);')
                         save_time = (now() - start).total_seconds()
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'

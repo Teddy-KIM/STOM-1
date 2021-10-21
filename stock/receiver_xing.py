@@ -4,13 +4,14 @@ import time
 import sqlite3
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer
+
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
-from utility.setting import ui_num, DICT_SET, DB_TRADELIST
+from utility.setting import ui_num, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
 
-MONEYTOP_MINUTE = 10        # 최근거래대금순위을 집계할 시간
-MONEYTOP_RANK = 20          # 최근거래대금순위중 관심종목으로 선정할 순위
+MONEYTOP_MINUTE = 10  # 최근거래대금순위을 집계할 시간
+MONEYTOP_RANK = 20  # 최근거래대금순위중 관심종목으로 선정할 순위
 
 
 class ReceiverXing:
@@ -87,14 +88,12 @@ class ReceiverXing:
         self.xa_query = XAQuery()
 
         self.xa_real_op = XAReal(self)
-        self.xa_real_vi = XAReal(self)
         self.xa_real_jcp = XAReal(self)
         self.xa_real_jcd = XAReal(self)
         self.xa_real_hgp = XAReal(self)
         self.xa_real_hgd = XAReal(self)
 
         self.xa_real_op.RegisterRes('JIF')
-        self.xa_real_vi.RegisterRes('VI_')
         self.xa_real_jcp.RegisterRes('S3_')
         self.xa_real_jcd.RegisterRes('K3_')
         self.xa_real_hgp.RegisterRes('H1_')
@@ -104,10 +103,15 @@ class ReceiverXing:
 
     def Start(self):
         self.XingLogin()
-        self.EventLoop()
+        #self.EventLoop()
 
     def XingLogin(self):
         self.xa_session.Login(DICT_SET['아이디2'], DICT_SET['비밀번호2'], DICT_SET['인증서비밀번호2'])
+
+        con = sqlite3.connect(DB_STOCK_TICK)
+        df = pd.read_sql("SELECT name FROM sqlite_master WHERE TYPE = 'table'", con)
+        con.close()
+        table_list = list(df['name'].values)
 
         df = []
         df2 = self.xa_query.BlockRequest("t8430", gubun=2)
@@ -134,7 +138,17 @@ class ReceiverXing:
             name = df['종목명'][code]
             self.dict_name[code] = name
             self.dict_code[name] = code
+            if code not in table_list:
+                query = f'CREATE TABLE "{code}" ("index" TEXT, "현재가" REAL, "시가" REAL, "고가" REAL,' \
+                         '"저가" REAL, "등락율" REAL, "당일거래대금" REAL, "체결강도" REAL, "초당매수수량" REAL,' \
+                         '"초당매도수량" REAL, "VI해제시간" REAL, "VI아래5호가" REAL, "매도총잔량" REAL, "매수총잔량" REAL,' \
+                         '"매도호가5" REAL, "매도호가4" REAL, "매도호가3" REAL, "매도호가2" REAL, "매도호가1" REAL,' \
+                         '"매수호가1" REAL, "매수호가2" REAL, "매수호가3" REAL, "매수호가4" REAL, "매수호가5" REAL,' \
+                         '"매도잔량5" REAL, "매도잔량4" REAL, "매도잔량3" REAL, "매도잔량2" REAL, "매도잔량1" REAL,' \
+                         '"매수잔량1" REAL, "매수잔량2" REAL, "매수잔량3" REAL, "매수잔량4" REAL, "매수잔량5" REAL);'
+                self.query2Q.put([1, query])
         self.query2Q.put([1, df, 'codename', 'replace'])
+        self.query2Q.put('주식트리거초기화')
 
         """
         self.dict_bool['CD수신'] = False
@@ -196,7 +210,6 @@ class ReceiverXing:
         gubun = rreg[0]
         code = rreg[1]
         if gubun == 'AddReal':
-            self.xa_real_vi.AddRealData(code)
             if code not in self.list_kosd:
                 self.xa_real_jcp.AddRealData(code)
                 self.xa_real_hgp.AddRealData(code)
@@ -204,7 +217,6 @@ class ReceiverXing:
                 self.xa_real_jcd.AddRealData(code)
                 self.xa_real_hgd.AddRealData(code)
         elif gubun == 'RemoveAllReal':
-            self.xa_real_vi.RemoveAllRealData()
             self.xa_real_jcp.RemoveAllRealData()
             self.xa_real_hgp.RemoveAllRealData()
             self.xa_real_jcd.RemoveAllRealData()
