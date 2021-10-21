@@ -1,4 +1,4 @@
 @echo off
-cd /D D:/PythonProjects/STOM
+cd /D %~dp0
 python stom.py
 pause
