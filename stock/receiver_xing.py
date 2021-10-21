@@ -232,7 +232,7 @@ class ReceiverXing:
         self.list_code4 = [x for i, x in enumerate(self.list_code) if i % 4 == 3]
         for code in self.list_code:
             self.sreceivQ.put(['AddReal', code])
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간 등록 완료'])
+        self.windowQ.put([ui_num['S단순텍스트'], f'시스템 명령 실행 알림 - 실시간 등록 완료 종목개수[{len(self.list_code)}]'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작 완료'])
 
     def ConditionSearchStart(self):
