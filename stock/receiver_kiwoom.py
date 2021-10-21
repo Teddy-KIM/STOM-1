@@ -145,7 +145,12 @@ class ReceiverKiwoom:
             cond_index, cond_name = condition.split('^')
             self.dict_cond[int(cond_index)] = cond_name
 
-        self.windowQ.put([ui_num['S단순텍스트'], self.dict_cond])
+        if len(self.dict_cond) >= 2:
+            self.windowQ.put([ui_num['S단순텍스트'], self.dict_cond])
+        else:
+            self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 오류 알림 - 조건검색식 불러오기 실패'])
+            self.windowQ.put([ui_num['S단순텍스트'], '조건검색식은 두개가 필요하며 첫번째는 트레이더 및 전략연산이 사용할 관심종목용이고'])
+            self.windowQ.put([ui_num['S단순텍스트'], '두번째는 리시버 및 콜렉터가 사용할 틱데이터 수집용입니다.'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
     def EventLoop(self):

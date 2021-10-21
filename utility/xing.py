@@ -60,6 +60,9 @@ class XAQuery:
         win32com.client.WithEvents(self.com_obj, XAQueryEvents).connect(self)
         self.received = False
 
+    def RemoveService(self):
+        self.com_obj.RemoveService('t1857', False)
+
     def BlockRequest(self, *args, **kwargs):
         self.received = False
         res_name = args[0]
@@ -71,7 +74,10 @@ class XAQuery:
         inblock_code = list(res_data['inblock'][0].keys())[0]
         for k in kwargs:
             self.com_obj.SetFieldData(inblock_code, k, 0, kwargs[k])
-        self.com_obj.Request(False)
+        if res_name == 't1857':
+            self.com_obj.RequestService(res_name, False)
+        else:
+            self.com_obj.Request(False)
         sleeptime = timedelta_sec(0.25)
         while not self.received or now() < sleeptime:
             pythoncom.PumpWaitingMessages()
@@ -91,6 +97,9 @@ class XAQuery:
             df = df.set_index('query_index')
             df = df[['query_name']].copy()
             df = df.dropna()
+        elif res_name == 't1857':
+            df = list(df['shcode'].values)
+            del df[0]
         return df
 
 
@@ -173,6 +182,5 @@ class XARealEvents:
         elif trcode == 'SC1_':
             self.user_class.OnReceiveChegeolData(out_data)
 
-    def OnReceiveSearchRealData(self, trcode, data):
-        print(trcode, data)
-        self.user_class.OnReceiveSearchRealData(trcode, data)
+    def OnReceiveSearchRealData(self, trcode):
+        self.user_class.OnReceiveSearchRealData(trcode)

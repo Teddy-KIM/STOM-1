@@ -38,12 +38,6 @@ class ReceiverXing:
             '실시간조건검색시작': False,
             '실시간조건검색중단': False,
             '장중단타전략시작': False,
-
-            '로그인': False,
-            'TR수신': False,
-            'TR다음': False,
-            'CD수신': False,
-            'CR수신': False
         }
         self.dict_cdjm = {}
         self.dict_vipr = {}
@@ -51,24 +45,22 @@ class ReceiverXing:
         self.dict_hoga = {}
         self.dict_name = {}
         self.dict_code = {}
-        self.df_cond = None
 
-        self.list_gsjm = []
+        self.list_gsjm1 = []
         self.list_gsjm2 = []
-        self.list_trcd = []
         self.list_jang = []
-        self.pre_top = []
+        self.list_cond = None
+        self.list_prmt = None
         self.list_kosd = None
-        self.list_kosp = None
         self.list_code = None
         self.list_code1 = None
         self.list_code2 = None
         self.list_code3 = None
         self.list_code4 = None
 
-        self.operation = 1
         self.df_mt = pd.DataFrame(columns=['거래대금순위'])
         self.df_mc = pd.DataFrame(columns=['최근거래대금'])
+        self.operation = 1
         self.str_tday = strf_time('%Y%m%d')
         self.str_jcct = self.str_tday + '090000'
         self.time_mcct = None
@@ -84,22 +76,22 @@ class ReceiverXing:
         self.timer.setInterval(10000)
         self.timer.timeout.connect(self.ConditionSearch)
 
-        self.xa_session = XASession()
-        self.xa_query = XAQuery()
+        self.xas = XASession()
+        self.xaq = XAQuery()
 
-        self.xa_real_op = XAReal(self)
-        self.xa_real_vi = XAReal(self)
-        self.xa_real_jcp = XAReal(self)
-        self.xa_real_jcd = XAReal(self)
-        self.xa_real_hgp = XAReal(self)
-        self.xa_real_hgd = XAReal(self)
+        self.xar_op = XAReal(self)
+        self.xar_vi = XAReal(self)
+        self.xar_cp = XAReal(self)
+        self.xar_cd = XAReal(self)
+        self.xar_hp = XAReal(self)
+        self.xar_hd = XAReal(self)
 
-        self.xa_real_op.RegisterRes('JIF')
-        self.xa_real_vi.RegisterRes('VI_')
-        self.xa_real_jcp.RegisterRes('S3_')
-        self.xa_real_jcd.RegisterRes('K3_')
-        self.xa_real_hgp.RegisterRes('H1_')
-        self.xa_real_hgd.RegisterRes('HA_')
+        self.xar_op.RegisterRes('JIF')
+        self.xar_vi.RegisterRes('VI_')
+        self.xar_cp.RegisterRes('S3_')
+        self.xar_cd.RegisterRes('K3_')
+        self.xar_hp.RegisterRes('H1_')
+        self.xar_hd.RegisterRes('HA_')
 
         self.Start()
 
@@ -108,7 +100,7 @@ class ReceiverXing:
         self.EventLoop()
 
     def XingLogin(self):
-        self.xa_session.Login(DICT_SET['아이디2'], DICT_SET['비밀번호2'], DICT_SET['인증서비밀번호2'])
+        self.xas.Login(DICT_SET['아이디2'], DICT_SET['비밀번호2'], DICT_SET['인증서비밀번호2'])
 
         con = sqlite3.connect(DB_STOCK_TICK)
         df = pd.read_sql("SELECT name FROM sqlite_master WHERE TYPE = 'table'", con)
@@ -116,13 +108,13 @@ class ReceiverXing:
         table_list = list(df['name'].values)
 
         df = []
-        df2 = self.xa_query.BlockRequest("t8430", gubun=2)
+        df2 = self.xaq.BlockRequest("t8430", gubun=2)
         df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
         df2 = df2.set_index('index')
         self.list_kosd = list(df2.index)
         df.append(df2)
 
-        df2 = self.xa_query.BlockRequest("t8430", gubun=1)
+        df2 = self.xaq.BlockRequest("t8430", gubun=1)
         df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
         df2 = df2.set_index('index')
         df.append(df2)
@@ -147,7 +139,14 @@ class ReceiverXing:
         self.query2Q.put([1, df, 'codename', 'replace'])
         self.query2Q.put('주식디비트리거시작')
 
-        self.df_cond = self.xa_query.BlockRequest('t1866', user_id=DICT_SET['아이디2'], gb='2', group_name='STOM')
+        df = self.xaq.BlockRequest('t1866', user_id=DICT_SET['아이디2'], gb='2', group_name='STOM')
+        if len(df) >= 2:
+            self.list_cond = [[df.index[0], df['query_name'][0]], [df.index[1], df['query_name'][1]]]
+        else:
+            self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 오류 알림 - 조건검색식 불러오기 실패'])
+            self.windowQ.put([ui_num['S단순텍스트'], 'HTS로 조건검색식을 만들어 서버에 업로드해야하여 그룹명은 STOM으로 설정하십시오.'])
+            self.windowQ.put([ui_num['S단순텍스트'], '조건검색식은 두개가 필요하며 첫번째는 트레이더 및 전략연산이 사용할 관심종목용이고'])
+            self.windowQ.put([ui_num['S단순텍스트'], '두번째는 리시버 및 콜렉터가 사용할 틱데이터 수집용입니다.'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
     def EventLoop(self):
@@ -179,7 +178,7 @@ class ReceiverXing:
                     break
 
             if now() > self.dict_time['거래대금순위기록']:
-                if len(self.list_gsjm) > 0:
+                if len(self.list_gsjm1) > 0:
                     self.UpdateMoneyTop()
                 self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
@@ -195,16 +194,16 @@ class ReceiverXing:
         code = rreg[1]
         if gubun == 'AddReal':
             if code not in self.list_kosd:
-                self.xa_real_jcp.AddRealData(code)
-                self.xa_real_hgp.AddRealData(code)
+                self.xar_cp.AddRealData(code)
+                self.xar_hp.AddRealData(code)
             else:
-                self.xa_real_jcd.AddRealData(code)
-                self.xa_real_hgd.AddRealData(code)
+                self.xar_cd.AddRealData(code)
+                self.xar_hd.AddRealData(code)
         elif gubun == 'RemoveAllReal':
-            self.xa_real_jcp.RemoveAllRealData()
-            self.xa_real_hgp.RemoveAllRealData()
-            self.xa_real_jcd.RemoveAllRealData()
-            self.xa_real_hgd.RemoveAllRealData()
+            self.xar_cp.RemoveAllRealData()
+            self.xar_hp.RemoveAllRealData()
+            self.xar_cd.RemoveAllRealData()
+            self.xar_hd.RemoveAllRealData()
 
     def UpdateJangolist(self, data):
         code = data.split(' ')[1]
@@ -215,19 +214,15 @@ class ReceiverXing:
                 self.list_gsjm2.append(code)
         elif '잔고청산' in data and code in self.list_jang:
             self.list_jang.remove(code)
-            if code not in self.list_gsjm and code in self.list_gsjm2:
+            if code not in self.list_gsjm1 and code in self.list_gsjm2:
                 self.sstgQ.put(['조건이탈', code])
                 self.list_gsjm2.remove(code)
 
     def OperationRealreg(self):
-        self.xa_real_op.AddRealData()
-        self.xa_real_vi.AddRealData('000000')
-        """
-        TODO : 현재 조건검색식 수신 안됨
-        """
-        df = self.xa_query.BlockRequest('t1857', sRealFlag='0', sSearchFlag='S', query_index=self.df_cond.index[0])
-
-        self.list_code = list(df.index)
+        self.xar_op.AddRealData()
+        self.xar_vi.AddRealData('000000')
+        codes = self.xaq.BlockRequest('t1857', sRealFlag='0', sSearchFlag='S', query_index=self.list_cond.index[0])
+        self.list_code = codes
         self.list_code1 = [x for i, x in enumerate(self.list_code) if i % 4 == 0]
         self.list_code2 = [x for i, x in enumerate(self.list_code) if i % 4 == 1]
         self.list_code3 = [x for i, x in enumerate(self.list_code) if i % 4 == 2]
@@ -240,11 +235,7 @@ class ReceiverXing:
 
     def ConditionSearchStart(self):
         self.dict_bool['실시간조건검색시작'] = True
-        """
-        TODO : 현재 조건검색식 수신 안됨
-        """
-        df = self.xa_query.BlockRequest('t1857', sRealFlag='1', sSearchFlag='S', query_index=self.df_cond.index[1])
-        codes = list(df.index)
+        codes = self.xaq.BlockRequest('t1857', sRealFlag='1', sSearchFlag='S', query_index=self.list_cond.index[1])
         if len(codes) > 0:
             for code in codes:
                 self.InsertGsjmlist(code)
@@ -252,52 +243,50 @@ class ReceiverXing:
 
     def ConditionSearchStop(self):
         self.dict_bool['실시간조건검색중단'] = True
-        """
-        TODO : 실시간 조건검색식 중단
-        """
+        self.xaq.RemoveService()
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간조건검색 중단 완료'])
 
     def StartJangjungStrategy(self):
         self.dict_bool['장중단타전략시작'] = True
         self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
         list_top = list(self.df_mc.index[:MONEYTOP_RANK])
-        insert_list = set(list_top) - set(self.list_gsjm)
+        insert_list = set(list_top) - set(self.list_gsjm1)
         if len(insert_list) > 0:
             for code in list(insert_list):
                 self.InsertGsjmlist(code)
-        delete_list = set(self.list_gsjm) - set(list_top)
+        delete_list = set(self.list_gsjm1) - set(list_top)
         if len(delete_list) > 0:
             for code in list(delete_list):
                 self.DeleteGsjmlist(code)
-        self.pre_top = list_top
+        self.list_prmt = list_top
         self.timer.start()
 
     def ConditionSearch(self):
         self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
         list_top = list(self.df_mc.index[:MONEYTOP_RANK])
-        insert_list = set(list_top) - set(self.pre_top)
+        insert_list = set(list_top) - set(self.list_prmt)
         if len(insert_list) > 0:
             for code in list(insert_list):
                 self.InsertGsjmlist(code)
-        delete_list = set(self.pre_top) - set(list_top)
+        delete_list = set(self.list_prmt) - set(list_top)
         if len(delete_list) > 0:
             for code in list(delete_list):
                 self.DeleteGsjmlist(code)
-        self.pre_top = list_top
+        self.list_prmt = list_top
 
     def InsertGsjmlist(self, code):
-        if code not in self.list_gsjm:
-            self.list_gsjm.append(code)
+        if code not in self.list_gsjm1:
+            self.list_gsjm1.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
-            if DICT_SET['키움트레이더']:
+            if DICT_SET['이베스트트레이더']:
                 self.sstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
     def DeleteGsjmlist(self, code):
-        if code in self.list_gsjm:
-            self.list_gsjm.remove(code)
+        if code in self.list_gsjm1:
+            self.list_gsjm1.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
-            if DICT_SET['키움트레이더']:
+            if DICT_SET['이베스트트레이더']:
                 self.sstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
@@ -321,7 +310,7 @@ class ReceiverXing:
 
     def UpdateMoneyTop(self):
         timetype = '%Y%m%d%H%M%S'
-        list_text = ';'.join(self.list_gsjm)
+        list_text = ';'.join(self.list_gsjm1)
         curr_strftime = self.str_jcct
         curr_datetime = strp_time(timetype, curr_strftime)
         if self.time_mcct is not None:
@@ -431,28 +420,12 @@ class ReceiverXing:
     def OnReceiveHogaData(self, data):
         try:
             code = data['shcode']
-            tsjr = int(data['totofferrem'])
-            tbjr = int(data['totbidrem'])
-            s5hg = int(data['offerho5'])
-            s4hg = int(data['offerho4'])
-            s3hg = int(data['offerho3'])
-            s2hg = int(data['offerho2'])
-            s1hg = int(data['offerho1'])
-            b1hg = int(data['bidho1'])
-            b2hg = int(data['bidho2'])
-            b3hg = int(data['bidho3'])
-            b4hg = int(data['bidho4'])
-            b5hg = int(data['bidho5'])
-            s5jr = int(data['offerrem5'])
-            s4jr = int(data['offerrem4'])
-            s3jr = int(data['offerrem3'])
-            s2jr = int(data['offerrem2'])
-            s1jr = int(data['offerrem1'])
-            b1jr = int(data['bidrem1'])
-            b2jr = int(data['bidrem2'])
-            b3jr = int(data['bidrem3'])
-            b4jr = int(data['bidrem4'])
-            b5jr = int(data['bidrem5'])
+            tsjr, tbjr = int(data['totofferrem']), int(data['totbidrem'])
+            s5hg, b5hg, s5jr, b5jr = int(data['offerho5']), int(data['bidho5']), int(data['offerrem5']), int(data['bidrem5'])
+            s4hg, b4hg, s4jr, b4jr = int(data['offerho4']), int(data['bidho4']), int(data['offerrem4']), int(data['bidrem4'])
+            s3hg, b3hg, s3jr, b3jr = int(data['offerho3']), int(data['bidho3']), int(data['offerrem3']), int(data['bidrem3'])
+            s2hg, b2hg, s2jr, b2jr = int(data['offerho2']), int(data['bidho2']), int(data['offerrem2']), int(data['bidrem2'])
+            s1hg, b1hg, s1jr, b1jr = int(data['offerho1']), int(data['bidho1']), int(data['offerrem1']), int(data['bidrem1'])
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData 주식호가잔량 {e}'])
         else:
