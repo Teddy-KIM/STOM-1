@@ -221,7 +221,7 @@ class ReceiverXing:
     def OperationRealreg(self):
         self.xar_op.AddRealData()
         self.xar_vi.AddRealData('000000')
-        codes = self.xaq.BlockRequest('t1857', sRealFlag='0', sSearchFlag='S', query_index=self.list_cond.index[0])
+        codes = self.xaq.BlockRequest('t1857', sRealFlag='0', sSearchFlag='S', query_index=self.list_cond[1][0])
         self.list_code = codes
         self.list_code1 = [x for i, x in enumerate(self.list_code) if i % 4 == 0]
         self.list_code2 = [x for i, x in enumerate(self.list_code) if i % 4 == 1]
@@ -235,7 +235,7 @@ class ReceiverXing:
 
     def ConditionSearchStart(self):
         self.dict_bool['실시간조건검색시작'] = True
-        codes = self.xaq.BlockRequest('t1857', sRealFlag='1', sSearchFlag='S', query_index=self.list_cond.index[1])
+        codes = self.xaq.BlockRequest('t1857', sRealFlag='1', sSearchFlag='S', query_index=self.list_cond[0][0])
         if len(codes) > 0:
             for code in codes:
                 self.InsertGsjmlist(code)
