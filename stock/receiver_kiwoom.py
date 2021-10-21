@@ -222,6 +222,12 @@ class ReceiverKiwoom:
 
     def OperationRealreg(self):
         self.sreceivQ.put([sn_oper, ' ', '215;20;214', 0])
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
+
+        self.Block_Request('opt10054', 시장구분='000', 장전구분='1', 종목코드='', 발동구분='1', 제외종목='111111011',
+                           거래량구분='0', 거래대금구분='0', 발동방향='0', output='발동종목', next=0)
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - VI발동해제 등록 완료'])
+
         self.list_code = self.SendCondition(sn_oper, self.dict_cond[1], 1, 0)
         self.list_code1 = [code for i, code in enumerate(self.list_code) if i % 4 == 0]
         self.list_code2 = [code for i, code in enumerate(self.list_code) if i % 4 == 1]
@@ -231,12 +237,7 @@ class ReceiverKiwoom:
         for i in range(0, len(self.list_code), 100):
             self.sreceivQ.put([sn_recv + k, ';'.join(self.list_code[i:i + 100]), '10;12;14;30;228;41;61;71;81', 1])
             k += 1
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
-
-    def ViRealreg(self):
-        self.Block_Request('opt10054', 시장구분='000', 장전구분='1', 종목코드='', 발동구분='1', 제외종목='111111011',
-                           거래량구분='0', 거래대금구분='0', 발동방향='0', output='발동종목', next=0)
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - VI발동해제 등록 완료'])
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간 등록 완료'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작 완료'])
 
     def ConditionSearchStart(self):

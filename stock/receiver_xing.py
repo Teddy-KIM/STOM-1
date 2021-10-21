@@ -4,7 +4,6 @@ import time
 import sqlite3
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer
-
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
@@ -220,18 +219,21 @@ class ReceiverXing:
 
     def OperationRealreg(self):
         self.xar_op.AddRealData()
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
+
         self.xar_vi.AddRealData('000000')
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - VI발동/해제 등록 완료'])
+
         codes = self.xaq.BlockRequest('t1857', sRealFlag='0', sSearchFlag='S', query_index=self.list_cond[1][0])
         self.list_code = codes
         self.list_code1 = [x for i, x in enumerate(self.list_code) if i % 4 == 0]
         self.list_code2 = [x for i, x in enumerate(self.list_code) if i % 4 == 1]
         self.list_code3 = [x for i, x in enumerate(self.list_code) if i % 4 == 2]
         self.list_code4 = [x for i, x in enumerate(self.list_code) if i % 4 == 3]
-
         for code in self.list_code:
             self.sreceivQ.put(['AddReal', code])
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 전종목 실시간 등록 완료'])
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간 등록 완료'])
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작 완료'])
 
     def ConditionSearchStart(self):
         self.dict_bool['실시간조건검색시작'] = True
