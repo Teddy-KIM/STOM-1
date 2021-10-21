@@ -2,6 +2,7 @@ import pythoncom
 import pandas as pd
 import win32com.client
 from utility.setting import E_OPENAPI_PATH
+from utility.static import now, timedelta_sec
 
 
 def parse_block(data):
@@ -68,13 +69,11 @@ class XAQuery:
             res_lines = f.readlines()
         res_data = parseRes(res_lines)
         inblock_code = list(res_data['inblock'][0].keys())[0]
-        inblock_field = list(res_data['inblock'][0].values())[0]
         for k in kwargs:
             self.com_obj.SetFieldData(inblock_code, k, 0, kwargs[k])
-            if k not in inblock_field:
-                print('inblock field error')
         self.com_obj.Request(False)
-        while not self.received:
+        sleeptime = timedelta_sec(0.25)
+        while not self.received or now() < sleeptime:
             pythoncom.PumpWaitingMessages()
         df = []
         for outblock in res_data['outblock']:
@@ -88,6 +87,10 @@ class XAQuery:
             df2 = pd.DataFrame(data=data)
             df.append(df2)
         df = pd.concat(df)
+        if res_name == 't1866':
+            df = df.set_index('query_index')
+            df = df[['query_name']].copy()
+            df = df.dropna()
         return df
 
 
@@ -139,7 +142,7 @@ class XAQueryEvents:
     def connect(self, com_class):
         self.com_class = com_class
 
-    def OnReceiveData(self, code):
+    def OnReceiveData(self, trcode):
         self.com_class.received = True
 
 
@@ -171,4 +174,5 @@ class XARealEvents:
             self.user_class.OnReceiveChegeolData(out_data)
 
     def OnReceiveSearchRealData(self, trcode, data):
-        pass
+        print(trcode, data)
+        self.user_class.OnReceiveSearchRealData(trcode, data)

@@ -181,15 +181,10 @@ class TraderXing:
         self.teleQ.put('주식 트레이더를 종료하였습니다.')
 
     def SendOrder(self, order):
-        """
-        name = order[-1]
-        del order[-1]
-        ret = self.ocx.dynamicCall(
-            'SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)', order)
-        if ret != 0:
-            self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 오류 알림 - {name} {order[5]}주 {order[0]} 주문 실패'])
-        """
         pass
+        """
+        TODO 주문 전송
+        """
 
     def BuySell(self, gubun, code, name, c, oc):
         if gubun == '매수':
@@ -255,8 +250,10 @@ class TraderXing:
                 self.JangoChungsan2()
 
     def GetAccountjanGo(self):
-        """
         while True:
+            """
+            TODO 예수금 및 추정예탁자산 조회
+            """
             df = self.xa_query.BlockRequest(
                 't0424', accno=self.dict_strg['계좌번호'], passwd=DICT_SET['계좌비밀번호1'],
                 prcgb='1', chegb='2', dangb='0', charge='1', cts_expcode=' '
@@ -276,6 +273,9 @@ class TraderXing:
                 time.sleep(3.35)
 
         while True:
+            """
+            TODO 잔고 조회
+            """
             if df['추정예탁자산'][0] != '':
                 if int(strf_time('%H%M%S')) < 100000:
                     maxbuycount = DICT_SET['주식장초최대매수종목수']
@@ -304,7 +304,6 @@ class TraderXing:
             else:
                 self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 오류 알림 - 오류가 발생하여 계좌평가결과를 재조회합니다.'])
                 time.sleep(3.35)
-        """
 
         if len(self.df_td) > 0:
             self.UpdateTotaltradelist(first=True)

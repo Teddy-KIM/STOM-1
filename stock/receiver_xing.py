@@ -49,9 +49,9 @@ class ReceiverXing:
         self.dict_vipr = {}
         self.dict_tick = {}
         self.dict_hoga = {}
-        self.dict_cond = {}
         self.dict_name = {}
         self.dict_code = {}
+        self.df_cond = None
 
         self.list_gsjm = []
         self.list_gsjm2 = []
@@ -125,19 +125,12 @@ class ReceiverXing:
         df2 = self.xa_query.BlockRequest("t8430", gubun=1)
         df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
         df2 = df2.set_index('index')
-        self.list_kosp = list(df2.index)
         df.append(df2)
         df = pd.concat(df)
         df = df[['종목명']].copy()
 
-        self.list_code = list(df.index)
-        self.list_code1 = [x for i, x in enumerate(self.list_code) if i % 4 == 0]
-        self.list_code2 = [x for i, x in enumerate(self.list_code) if i % 4 == 1]
-        self.list_code3 = [x for i, x in enumerate(self.list_code) if i % 4 == 2]
-        self.list_code4 = [x for i, x in enumerate(self.list_code) if i % 4 == 3]
-
         query = ''
-        for code in self.list_code:
+        for code in list(df.index):
             name = df['종목명'][code]
             self.dict_name[code] = name
             self.dict_code[name] = code
@@ -154,19 +147,7 @@ class ReceiverXing:
         self.query2Q.put([1, df, 'codename', 'replace'])
         self.query2Q.put('주식디비트리거시작')
 
-        """
-        self.dict_bool['CD수신'] = False
-        self.ocx.dynamicCall('GetConditionLoad()')
-        while not self.dict_bool['CD수신']:
-            pythoncom.PumpWaitingMessages()
-
-        data = self.ocx.dynamicCall('GetConditionNameList()')
-        conditions = data.split(';')[:-1]
-        for condition in conditions:
-            cond_index, cond_name = condition.split('^')
-            self.dict_cond[int(cond_index)] = cond_name
-        """
-
+        self.df_cond = self.xa_query.BlockRequest('t1866', user_id=DICT_SET['아이디2'], gb='2', group_name='STOM')
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
     def EventLoop(self):
@@ -241,29 +222,40 @@ class ReceiverXing:
     def OperationRealreg(self):
         self.xa_real_op.AddRealData()
         self.xa_real_vi.AddRealData('000000')
+        """
+        TODO : 현재 조건검색식 수신 안됨
+        """
+        df = self.xa_query.BlockRequest('t1857', sRealFlag='0', sSearchFlag='S', query_index=self.df_cond.index[0])
+
+        self.list_code = list(df.index)
+        self.list_code1 = [x for i, x in enumerate(self.list_code) if i % 4 == 0]
+        self.list_code2 = [x for i, x in enumerate(self.list_code) if i % 4 == 1]
+        self.list_code3 = [x for i, x in enumerate(self.list_code) if i % 4 == 2]
+        self.list_code4 = [x for i, x in enumerate(self.list_code) if i % 4 == 3]
+
         for code in self.list_code:
             self.sreceivQ.put(['AddReal', code])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 전종목 실시간 등록 완료'])
 
     def ConditionSearchStart(self):
-        """
         self.dict_bool['실시간조건검색시작'] = True
-        codes = self.SendCondition(sn_cond, self.dict_cond[0], 0, 1)
+        """
+        TODO : 현재 조건검색식 수신 안됨
+        """
+        df = self.xa_query.BlockRequest('t1857', sRealFlag='1', sSearchFlag='S', query_index=self.df_cond.index[1])
+        codes = list(df.index)
         if len(codes) > 0:
             for code in codes:
                 self.InsertGsjmlist(code)
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간조건검색 등록 완료'])
-        """
-        pass
 
     def ConditionSearchStop(self):
-        """
         self.dict_bool['실시간조건검색중단'] = True
-        self.ocx.dynamicCall("SendConditionStop(QString, QString, int)", sn_cond, self.dict_cond[0], 0)
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간조건검색 중단 완료'])
         """
-        pass
+        TODO : 실시간 조건검색식 중단
+        """
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간조건검색 중단 완료'])
 
     def StartJangjungStrategy(self):
         self.dict_bool['장중단타전략시작'] = True
@@ -348,14 +340,14 @@ class ReceiverXing:
 
     def OnReceiveOperData(self, data):
         dict_oper = {
-            25: '장개시 10분전',
-            24: '장개시 5분전',
-            23: '장개시 1분전',
-            22: '장개시 10초전',
+            25: '장시작 10분전전입니다.',
+            24: '장시작 5분전전입니다.',
+            23: '장시작 1분전전입니다.',
+            22: '장시작 10초전입니다.',
             21: '장시작',
-            44: '장마감 5분전',
-            43: '장마감 1분전',
-            42: '장마감 10초전',
+            44: '장마감 5분전전입니다.',
+            43: '장마감 1분전전입니다.',
+            42: '장마감 10초전전입니다.',
             41: '장마감'
         }
         try:
@@ -384,6 +376,9 @@ class ReceiverXing:
 
     def OnReceiveSearchRealData(self, field):
         pass
+        """
+        TODO 실시간 조건검색식 진입 및 이탈 확인 후 처리
+        """
 
     def OnReceiveRealData(self, data):
         try:

@@ -106,11 +106,6 @@ class ReceiverKiwoom:
         while not self.dict_bool['로그인']:
             pythoncom.PumpWaitingMessages()
 
-        self.dict_bool['CD수신'] = False
-        self.ocx.dynamicCall('GetConditionLoad()')
-        while not self.dict_bool['CD수신']:
-            pythoncom.PumpWaitingMessages()
-
         con = sqlite3.connect(DB_STOCK_TICK)
         df = pd.read_sql("SELECT name FROM sqlite_master WHERE TYPE = 'table'", con)
         con.close()
@@ -138,6 +133,11 @@ class ReceiverKiwoom:
         self.query2Q.put([1, query])
         self.query2Q.put([1, df, 'codename', 'replace'])
         self.query2Q.put('주식디비트리거시작')
+
+        self.dict_bool['CD수신'] = False
+        self.ocx.dynamicCall('GetConditionLoad()')
+        while not self.dict_bool['CD수신']:
+            pythoncom.PumpWaitingMessages()
 
         data = self.ocx.dynamicCall('GetConditionNameList()')
         conditions = data.split(';')[:-1]
