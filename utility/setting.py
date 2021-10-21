@@ -5,7 +5,7 @@ from PyQt5.QtGui import QFont, QColor
 
 K_OPENAPI_PATH = 'D:/OpenAPI'
 E_OPENAPI_PATH = 'D:/xingAPI/Res/'
-SYSTEM_PATH = ('/').join(os.getcwd().split('\\'))
+SYSTEM_PATH = '/'.join(os.getcwd().split('\\'))
 ICON_PATH = f'{SYSTEM_PATH}/utility/icon'
 LOGIN_PATH = f'{SYSTEM_PATH}/stock/login_kiwoom'
 GRAPH_PATH = f'{SYSTEM_PATH}/backtester/graph'
@@ -29,7 +29,7 @@ connn.close()
 DICT_SET = {
     '키움콜렉터': df_m['키움콜렉터'][0],
     '키움트레이더': df_m['키움트레이더'][0],
-    '이베스트콜렉터': False,
+    '이베스트콜렉터': True,
     '이베스트트레이더': False,
     '업비트콜렉터': df_m['업비트콜렉터'][0],
     '업비트트레이더': df_m['업비트트레이더'][0],
