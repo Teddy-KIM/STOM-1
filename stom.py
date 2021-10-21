@@ -49,7 +49,7 @@ class Window(QtWidgets.QMainWindow):
 
         self.dict_name = {}
         self.dict_code = {}
-        con = sqlite3.connect(DB_STOCK_TICK)
+        con = sqlite3.connect(DB_SETTING)
         df = pd.read_sql('SELECT * FROM codename', con).set_index('index')
         con.close()
         for code in df.index:
@@ -1630,10 +1630,6 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
         )
         if buttonReply == QtWidgets.QMessageBox.Yes:
-            sound_proc.kill()
-            query_proc1.kill()
-            query_proc2.kill()
-            tele_proc.kill()
             if self.dialog.isVisible():
                 self.dialog.close()
             if self.qtimer1.isActive():
@@ -1642,6 +1638,10 @@ class Window(QtWidgets.QMainWindow):
                 self.qtimer2.stop()
             if self.qtimer3.isActive():
                 self.qtimer3.stop()
+            sound_proc.kill()
+            query_proc1.kill()
+            query_proc2.kill()
+            tele_proc.kill()
             wsk1Q.put('terminate')
             wsk2Q.put('terminate')
             QTest.qWait(2000)

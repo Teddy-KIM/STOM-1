@@ -9,8 +9,8 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.setting import ui_num, DICT_SET
 from utility.static import now, strf_time, strp_time, timedelta_hour, timedelta_sec
 
-MONEYTOP_MINUTE = 10        # 최근거래대금순위을 집계할 시간
-MONEYTOP_RANK = 20          # 최근거래대금순위중 관심종목으로 선정할 순위
+MONEYTOP_MINUTE = 10  # 최근거래대금순위을 집계할 시간
+MONEYTOP_RANK = 20  # 최근거래대금순위중 관심종목으로 선정할 순위
 
 
 class WebsTicker:
@@ -56,7 +56,7 @@ class WebsTicker:
     def Start(self):
         """ get_tickers 리턴 리스트의 갯수가 다른 버그 발견, 1초 간격 3회 조회 후 길이가 긴 리스트를 티커리스트로 정한다 """
         dict_tsbc = {}
-        self.GetTickersAndMoneyTop()
+        self.GetTickers()
         self.websQ_ticker = WebSocketManager('ticker', self.codes)
         while True:
             if not self.creceivQ.empty():
@@ -119,7 +119,7 @@ class WebsTicker:
                 self.websQ_ticker.terminate()
                 break
 
-    def GetTickersAndMoneyTop(self):
+    def GetTickers(self):
         codes = pyupbit.get_tickers(fiat="KRW")
         time.sleep(1)
         codes2 = pyupbit.get_tickers(fiat="KRW")
@@ -128,6 +128,7 @@ class WebsTicker:
         codes2 = pyupbit.get_tickers(fiat="KRW")
         codes = codes2 if len(codes2) > len(codes) else codes
         self.codes = codes
+
         df_mc = pd.DataFrame(columns=['최근거래대금'])
         for code in self.codes:
             if 90000 < int(strf_time('%H%M%S')) < 100000:
