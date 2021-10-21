@@ -41,6 +41,8 @@ class CollectorStock:
         self.Start()
 
     def Start(self):
+        if self.gubun == 4:
+            self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작'])
         while True:
             data = self.tickQ.get()
             if len(data) != 2:

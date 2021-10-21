@@ -55,6 +55,7 @@ class WebsTicker:
 
     def Start(self):
         """ get_tickers 리턴 리스트의 갯수가 다른 버그 발견, 1초 간격 3회 조회 후 길이가 긴 리스트를 티커리스트로 정한다 """
+        self.windowQ.put([ui_num['C단순텍스트'], '시스템 명령 오류 알림 - 리시버 시작'])
         dict_tsbc = {}
         self.GetTickers()
         self.websQ_ticker = WebSocketManager('ticker', self.codes)

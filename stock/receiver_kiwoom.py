@@ -155,7 +155,6 @@ class ReceiverKiwoom:
 
     def EventLoop(self):
         self.OperationRealreg()
-        self.ViRealreg()
         while True:
             if not self.sreceivQ.empty():
                 data = self.sreceivQ.get()
@@ -238,7 +237,7 @@ class ReceiverKiwoom:
             self.sreceivQ.put([sn_recv + k, ';'.join(self.list_code[i:i + 100]), '10;12;14;30;228;41;61;71;81', 1])
             k += 1
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간 등록 완료'])
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작 완료'])
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 시작'])
 
     def ConditionSearchStart(self):
         self.dict_bool['실시간조건검색시작'] = True

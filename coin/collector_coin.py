@@ -23,6 +23,7 @@ class CollectorCoin:
         self.Start()
 
     def Start(self):
+        self.windowQ.put([ui_num['C단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작'])
         while True:
             data = self.tick5Q.get()
             self.UpdateTickData(data)

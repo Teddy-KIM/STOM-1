@@ -56,6 +56,7 @@ class StrategyStock:
         self.Start()
 
     def Start(self):
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 전략 연산 시작'])
         while True:
             data = self.sstgQ.get()
             if type(data) == int:
@@ -78,7 +79,7 @@ class StrategyStock:
                 self.windowQ.put([ui_num['S관심종목'], self.dict_gsjm])
                 self.dict_time['관심종목'] = timedelta_sec(1)
 
-        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 전략 연산 종료'])
 
     def UpdateList(self, gubun, code):
         if '조건진입' in gubun:

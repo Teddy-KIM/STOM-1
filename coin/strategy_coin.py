@@ -61,6 +61,7 @@ class StrategyCoin:
         self.Start()
 
     def Start(self):
+        self.windowQ.put([ui_num['C단순텍스트'], '시스템 명령 실행 알림 - 전략 연산 시작'])
         while True:
             data = self.cstgQ.get()
             if type(data) == int:

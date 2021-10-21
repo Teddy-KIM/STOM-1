@@ -175,7 +175,7 @@ class TraderXing:
                 time.sleep(0.0001)
 
         self.sstgQ.put('전략프로세스종료')
-        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더를 종료합니다.'])
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
         if DICT_SET['주식알림소리']:
             self.soundQ.put('주식 트레이더를 종료합니다.')
         self.teleQ.put('주식 트레이더를 종료하였습니다.')
@@ -310,7 +310,7 @@ class TraderXing:
 
     def OperationRealreg(self):
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
-        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 시작 완료'])
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 시작'])
 
     def JangoChungsan1(self):
         self.dict_bool['장초전략잔고청산'] = True

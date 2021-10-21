@@ -135,6 +135,7 @@ class TraderUpbit:
         self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 예수금 조회 완료'])
 
     def EventLoop(self):
+        self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 트레이더 시작'])
         while True:
             """ 주문 및 잔고갱신용 큐를 감시한다. """
             if not self.coinQ.empty():
