@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.setting import DB_STOCK_TICK, DB_BACKTEST, GRAPH_PATH
+from utility.setting import DB_STOCK_TICK, DB_BACKTEST, GRAPH_PATH, DB_SETTING
 from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
 BETTING = 10000000     # 종목당 배팅금액
@@ -499,8 +499,10 @@ if __name__ == "__main__":
 
     con = sqlite3.connect(DB_STOCK_TICK)
     df = pd.read_sql("SELECT name FROM sqlite_master WHERE TYPE = 'table'", con)
-    df1 = pd.read_sql('SELECT * FROM codename', con).set_index('index')
     df2 = pd.read_sql('SELECT * FROM moneytop', con).set_index('index')
+    con.close()
+    con = sqlite3.connect(DB_SETTING)
+    df1 = pd.read_sql('SELECT * FROM codename', con).set_index('index')
     con.close()
 
     table_list = list(df['name'].values)
