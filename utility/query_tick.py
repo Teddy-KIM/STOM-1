@@ -20,6 +20,8 @@ class QueryTick:
         self.cur2 = self.con2.cursor()
         self.list_table1 = []
         self.list_table2 = []
+        self.remove_trigger1()
+        self.remove_trigger2()
         self.create_trigger2()
         self.Start()
 
