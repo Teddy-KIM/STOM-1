@@ -32,7 +32,7 @@ class QueryTick:
 
     def Start(self):
         k = 0
-        df = pd.DataFrame()
+        dfs = pd.DataFrame()
         while True:
             query = self.query2Q.get()
             if query == '주식디비트리거시작':
@@ -48,10 +48,10 @@ class QueryTick:
                             k += 1
                             for code in list(query[1].keys()):
                                 query[1][code]['종목코드'] = code
-                                df = df.append(query[1][code])
+                                dfs = dfs.append(query[1][code])
                             if k % 4 == 0 and self.trigger:
                                 start = now()
-                                df.to_sql("temp", self.con1, if_exists='append', chunksize=1000, method='multi')
+                                dfs.to_sql("temp", self.con1, if_exists='append', chunksize=1000, method='multi')
                                 # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
                                 # 트리거는 'temp' 테이블에 있는 데이터를 각 코인별 테이블로 나눠서 INSERT 시키고
                                 # 'temp' 테이블을 다시 초기화(delete from temp;)함.
@@ -59,7 +59,7 @@ class QueryTick:
                                 save_time = float2str1p6((now() - start).total_seconds())
                                 text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                                 self.windowQ.put([ui_num['S단순텍스트'], text])
-                                df = pd.DataFrame()
+                                dfs = pd.DataFrame()
                     elif len(query) == 3:
                         start = now()
                         j = 0
@@ -86,11 +86,11 @@ class QueryTick:
                             self.remove_trigger2()
                             self.create_trigger2()
                         else:
-                            df = pd.DataFrame()
+                            dfc = pd.DataFrame()
                             for code in list(query[1].keys()):
                                 query[1][code]['종목코드'] = code
-                                df = df.append(query[1][code])
-                            df.to_sql("temp", self.con2, if_exists='append', chunksize=1000, method='multi')
+                                dfc = dfc.append(query[1][code])
+                            dfc.to_sql("temp", self.con2, if_exists='append', chunksize=1000, method='multi')
                             self.cur2.execute('INSERT INTO "dist" ("cnt") values (1);')
                         save_time = (now() - start).total_seconds()
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
