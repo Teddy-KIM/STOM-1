@@ -148,13 +148,14 @@ class ReceiverXing:
         self.query2Q.put('주식디비트리거시작')
 
         df = self.xaq.BlockRequest('t1866', user_id=DICT_SET['아이디2'], gb='2', group_name='STOM')
-        if len(df) >= 2:
+        try:
             self.list_cond = [[df.index[0], df['query_name'][0]], [df.index[1], df['query_name'][1]]]
-        else:
-            self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 오류 알림 - 조건검색식 불러오기 실패'])
-            self.windowQ.put([ui_num['S단순텍스트'], 'HTS로 조건검색식을 만들어 서버에 업로드해야하여 그룹명은 STOM으로 설정하십시오.'])
-            self.windowQ.put([ui_num['S단순텍스트'], '조건검색식은 두개가 필요하며 첫번째는 트레이더 및 전략연산이 사용할 관심종목용이고'])
-            self.windowQ.put([ui_num['S단순텍스트'], '두번째는 리시버 및 콜렉터가 사용할 틱데이터 수집용입니다.'])
+        except KeyError:
+            print('시스템 명령 오류 알림 - 조건검색식 불러오기 실패')
+            print('HTS로 조건검색식을 두개 만들어 전략관리 메뉴에서 전략서버에 업로드해야합니다.')
+            print('첫번째는 트레이더가 사용할 관심종목용이고')
+            print('두번째는 리시버가 사용할 감시종목용입니다.')
+            print('전략서버에 그룹명을 반드시 STOM으로 생성하십시오.')
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
     def EventLoop(self):
