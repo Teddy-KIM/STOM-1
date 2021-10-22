@@ -218,6 +218,7 @@ class ReceiverXing:
                 self.list_gsjm2.remove(code)
 
     def OperationRealreg(self):
+        self.xaq.RemoveService()
         self.xar_op.AddRealData()
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
 
