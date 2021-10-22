@@ -178,7 +178,7 @@ class WebsTicker:
         if code not in self.list_gsjm1:
             self.list_gsjm1.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
-            if DICT_SET['업비트트레이더']:
+            if DICT_SET['코인트레이더']:
                 self.cstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
@@ -186,7 +186,7 @@ class WebsTicker:
         if code in self.list_gsjm1:
             self.list_gsjm1.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
-            if DICT_SET['업비트트레이더']:
+            if DICT_SET['코인트레이더']:
                 self.cstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
@@ -226,13 +226,14 @@ class WebsTicker:
                 self.dict_cdjm[code].drop(index=self.dict_cdjm[code].index[0], inplace=True)
 
         data = [c, o, h, low, per, dm, bids, asks, tbids, tasks, code, dt, receivetime]
-        if DICT_SET['업비트트레이더'] and code in self.list_gsjm2:
+        if DICT_SET['코인트레이더'] and code in self.list_gsjm2:
             injango = code in self.list_jang
             self.cstgQ.put(data + [injango])
             if injango:
                 self.coinQ.put([code, c])
 
-        self.tick5Q.put(data)
+        if DICT_SET['코인콜렉터']:
+            self.tick5Q.put(data)
 
 
 class WebsOrderbook:
@@ -295,7 +296,7 @@ class WebsOrderbook:
                         s5hg, s4hg, s3hg, s2hg, s1hg, b1hg, b2hg, b3hg, b4hg, b5hg,
                         s5jr, s4jr, s3jr, s2jr, s1jr, b1jr, b2jr, b3jr, b4jr, b5jr]
                 self.tick5Q.put(data)
-                if DICT_SET['업비트트레이더']:
+                if DICT_SET['코인트레이더']:
                     self.cstgQ.put(data)
 
             if now() > self.time_tickers:

@@ -49,6 +49,7 @@ class ReceiverXing:
         self.list_gsjm1 = []
         self.list_gsjm2 = []
         self.list_jang = []
+        self.list_alertnum = []
         self.list_cond = None
         self.list_prmt = None
         self.list_kosd = None
@@ -92,7 +93,6 @@ class ReceiverXing:
         self.xar_cd.RegisterRes('K3_')
         self.xar_hp.RegisterRes('H1_')
         self.xar_hd.RegisterRes('HA_')
-        self.list_alertnum = []
 
         self.Start()
 
@@ -117,13 +117,15 @@ class ReceiverXing:
         df2 = self.xaq.BlockRequest("t8430", gubun=2)
         df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
         df2 = df2.set_index('index')
-        self.list_kosd = list(df2.index)
         df.append(df2)
+
+        self.list_kosd = list(df2.index)
 
         df2 = self.xaq.BlockRequest("t8430", gubun=1)
         df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
         df2 = df2.set_index('index')
         df.append(df2)
+
         df = pd.concat(df)
         df = df[['종목명']].copy()
 
@@ -303,7 +305,7 @@ class ReceiverXing:
         if code not in self.list_gsjm1:
             self.list_gsjm1.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
-            if DICT_SET['이베스트트레이더']:
+            if DICT_SET['주식트레이더']:
                 self.sstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
@@ -311,7 +313,7 @@ class ReceiverXing:
         if code in self.list_gsjm1:
             self.list_gsjm1.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
-            if DICT_SET['이베스트트레이더']:
+            if DICT_SET['주식트레이더']:
                 self.sstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
@@ -415,7 +417,7 @@ class ReceiverXing:
                 self.str_jcct = dt
             if code not in self.dict_vipr.keys():
                 self.InsertViPrice(code, o)
-            if code in self.dict_vipr.keys() and not self.dict_vipr[code][0] and now() > self.dict_vipr[code][1]:
+            elif not self.dict_vipr[code][0] and now() > self.dict_vipr[code][1]:
                 self.UpdateViPrice(code, c)
             try:
                 predt = self.dict_tick[code][0]
@@ -528,18 +530,19 @@ class ReceiverXing:
         data = [c, o, h, low, per, dm, ch, bids, asks, vitime, vid5price]
         data += self.dict_hoga[code] + [code, dt, receivetime]
 
-        if DICT_SET['이베스트트레이더'] and code in self.list_gsjm2:
+        if DICT_SET['주식트레이더'] and code in self.list_gsjm2:
             injango = code in self.list_jang
             self.sstgQ.put(data + [name, injango])
             if injango:
                 self.stockQ.put([code, name, c])
 
-        data[9] = strf_time('%Y%m%d%H%M%S', vitime)
-        if code in self.list_code1:
-            self.tick1Q.put(data)
-        elif code in self.list_code2:
-            self.tick2Q.put(data)
-        elif code in self.list_code3:
-            self.tick3Q.put(data)
-        elif code in self.list_code4:
-            self.tick4Q.put(data)
+        if DICT_SET['주식콜렉터']:
+            data[9] = strf_time('%Y%m%d%H%M%S', vitime)
+            if code in self.list_code1:
+                self.tick1Q.put(data)
+            elif code in self.list_code2:
+                self.tick2Q.put(data)
+            elif code in self.list_code3:
+                self.tick3Q.put(data)
+            elif code in self.list_code4:
+                self.tick4Q.put(data)

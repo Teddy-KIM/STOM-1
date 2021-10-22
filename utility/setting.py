@@ -4,7 +4,7 @@ import pandas as pd
 from PyQt5.QtGui import QFont, QColor
 
 K_OPENAPI_PATH = 'D:/OpenAPI'
-E_OPENAPI_PATH = 'D:/xingAPI/Res/'
+E_OPENAPI_PATH = 'D:/xingAPI'
 SYSTEM_PATH = os.getcwd()
 ICON_PATH = f'{SYSTEM_PATH}/utility/icon'
 LOGIN_PATH = f'{SYSTEM_PATH}/stock/login_kiwoom'
@@ -21,22 +21,20 @@ connn = sqlite3.connect(DB_SETTING)
 df_m = pd.read_sql('SELECT * FROM main', connn).set_index('index')
 df_s = pd.read_sql('SELECT * FROM stock', connn).set_index('index')
 df_c = pd.read_sql('SELECT * FROM coin', connn).set_index('index')
-df_k = pd.read_sql('SELECT * FROM kiwoom', connn).set_index('index')
-df_u = pd.read_sql('SELECT * FROM upbit', connn).set_index('index')
+df_k = pd.read_sql('SELECT * FROM sacc', connn).set_index('index')
+df_u = pd.read_sql('SELECT * FROM cacc', connn).set_index('index')
 df_t = pd.read_sql('SELECT * FROM telegram', connn).set_index('index')
 connn.close()
 
 DICT_SET = {
-    '키움콜렉터': df_m['키움콜렉터'][0],
-    '키움트레이더': df_m['키움트레이더'][0],
-    '이베스트콜렉터': False,
-    '이베스트트레이더': False,
-    '업비트콜렉터': df_m['업비트콜렉터'][0],
-    '업비트트레이더': df_m['업비트트레이더'][0],
-    '주식최적화백테스터': df_m['주식최적화백테스터'][0],
-    '주식백테시작시간': df_m['주식백테시작시간'][0],
-    '코인최적화백테스터': df_m['코인최적화백테스터'][0],
-    '코인백테시작시간': df_m['코인백테시작시간'][0],
+    '증권사': df_m['증권사'][0],
+    '주식리시버': df_m['주식리시버'][0],
+    '주식콜렉터': df_m['주식콜렉터'][0],
+    '주식트레이더': df_m['주식트레이더'][0],
+    '거래소': df_m['거래소'][0],
+    '코인리시버': df_m['코인리시버'][0],
+    '코인콜렉터': df_m['코인콜렉터'][0],
+    '코인트레이더': df_m['코인트레이더'][0],
 
     '아이디1': df_k['아이디1'][0] if len(df_k) > 0 and df_k['아이디1'][0] != '' else None,
     '비밀번호1': df_k['비밀번호1'][0] if len(df_k) > 0 and df_k['비밀번호1'][0] != '' else None,
@@ -127,8 +125,7 @@ columns_dd = ['체결시간', '종목명', '매수금액', '매도금액', '주�
 columns_nt = ['기간', '누적매수금액', '누적매도금액', '누적수익금액', '누적손실금액', '수익률', '누적수익금']
 columns_nd = ['일자', '총매수금액', '총매도금액', '총수익금액', '총손실금액', '수익률', '수익금합계']
 
-columns_sm = ['키움콜렉터', '키움트레이더', '업비트콜렉터', '업비트트레이더', '주식최적화백테스터', '주식백테시작시간',
-              '코인최적화백테스터', '코인백테시작시간']
+columns_sm = ['증권사', '주식리시버', '주식콜렉터', '주식트레이더', '거래소', '코인리시버', '코인콜렉터', '코인트레이더']
 columns_sk = ['아이디1', '비밀번호1', '인증서비밀번호1', '계좌비밀번호1', '아이디2', '비밀번호2', '인증서비밀번호2', '계좌비밀번호2']
 columns_su = ['Access_key', 'Secret_key']
 columns_st = ['str_bot', 'int_id']

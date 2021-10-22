@@ -436,31 +436,36 @@ def SetUI(self):
     self.sc_textEdit = setTextEdit(self.lg_tab)
     self.cc_textEdit = setTextEdit(self.lg_tab)
 
-    title = ' 콜렉터 및 트레이더 : 프로그램 구동시 실행될 프로세스를 선택한다.'
+    title = ' 증권사, 거래소, 프로세스 : 사용할 증권사 및 거래소를 선택하고 실행될 프로세스를 설정한다.'
     self.sj_groupBox_01 = QtWidgets.QGroupBox(title, self.sj_tab)
-    title = ' 키움증권 계정 : 자동매매용 첫번째 계정과 틱수집 및 버전업용 두번째 계정을 설정한다.'
+    title = ' 주식 계정 : 트레이더용 첫번째 계정과 리시버용 두번째 계정을 설정한다.'
     self.sj_groupBox_02 = QtWidgets.QGroupBox(title, self.sj_tab)
     title = ' 업비트 계정 : 업비트 주문 및 주문 확인용 Access 키와 Srcret 키를 설정한다.'
     self.sj_groupBox_03 = QtWidgets.QGroupBox(title, self.sj_tab)
     title = ' 텔레그램 : 봇토큰 및 사용자 채팅 아이디를 설정한다.'
     self.sj_groupBox_04 = QtWidgets.QGroupBox(title, self.sj_tab)
-    title = ' 주식 : 모의투자 모드와 알림소리, 전략의 세부 변수를 설정한다.'
+    title = ' 주식 : 모의투자 모드, 알림소리, 전략를 설정한다.'
     self.sj_groupBox_05 = QtWidgets.QGroupBox(title, self.sj_tab)
-    title = ' 코인 : 모의투자 모드와 알림소리, 전략의 세부 변수를 설정한다.'
+    title = ' 코인 : 모의투자 모드, 알림소리, 전략를 설정한다.'
     self.sj_groupBox_06 = QtWidgets.QGroupBox(title, self.sj_tab)
     self.sj_textEdit = setTextEdit(self.sj_tab)
 
-    self.sj_main_checkBox_01 = QtWidgets.QCheckBox('주식 콜렉터', self.sj_groupBox_01)
+    self.sj_main_comboBox_01 = setCombobox(self.sj_groupBox_01)
+    self.sj_main_comboBox_01.addItem('키움증권')
+    self.sj_main_comboBox_01.addItem('이베스트투자증권')
+    self.sj_main_checkBox_01 = QtWidgets.QCheckBox('주식 리시버', self.sj_groupBox_01)
     self.sj_main_checkBox_01.stateChanged.connect(self.CheckboxChanged_01)
-    self.sj_main_checkBox_02 = QtWidgets.QCheckBox('주식 트레이더', self.sj_groupBox_01)
+    self.sj_main_checkBox_02 = QtWidgets.QCheckBox('주식 콜렉터', self.sj_groupBox_01)
     self.sj_main_checkBox_02.stateChanged.connect(self.CheckboxChanged_02)
-    self.sj_main_checkBox_03 = QtWidgets.QCheckBox('코인 콜렉터', self.sj_groupBox_01)
-    self.sj_main_checkBox_04 = QtWidgets.QCheckBox('코인 트레이더', self.sj_groupBox_01)
-    self.sj_main_checkBox_04.stateChanged.connect(self.CheckboxChanged_03)
-    self.sj_main_checkBox_05 = QtWidgets.QCheckBox('주식최적화백테스팅  :  시작시간', self.sj_groupBox_01)
-    self.sj_main_checkBox_06 = QtWidgets.QCheckBox('코인최적화백테스팅  :  시작시간', self.sj_groupBox_01)
-    self.sj_main_lineEdit_01 = setLineedit(self.sj_groupBox_01)
-    self.sj_main_lineEdit_02 = setLineedit(self.sj_groupBox_01)
+    self.sj_main_checkBox_03 = QtWidgets.QCheckBox('주식 트레이더', self.sj_groupBox_01)
+    self.sj_main_checkBox_03.stateChanged.connect(self.CheckboxChanged_03)
+
+    self.sj_main_comboBox_02 = setCombobox(self.sj_groupBox_01)
+    self.sj_main_comboBox_02.addItem('업비트')
+    self.sj_main_checkBox_04 = QtWidgets.QCheckBox('코인 리시버', self.sj_groupBox_01)
+    self.sj_main_checkBox_05 = QtWidgets.QCheckBox('코인 콜렉터', self.sj_groupBox_01)
+    self.sj_main_checkBox_06 = QtWidgets.QCheckBox('코인 트레이더', self.sj_groupBox_01)
+    self.sj_main_checkBox_06.stateChanged.connect(self.CheckboxChanged_04)
 
     self.sj_sacc_labellll_01 = QtWidgets.QLabel('첫번째 계정 아이디', self.sj_groupBox_02)
     self.sj_sacc_lineEdit_01 = setLineedit(self.sj_groupBox_02)
@@ -509,7 +514,7 @@ def SetUI(self):
     self.sj_coin_checkBox_01 = QtWidgets.QCheckBox('모의투자', self.sj_groupBox_06)
     self.sj_coin_checkBox_02 = QtWidgets.QCheckBox('알림소리', self.sj_groupBox_06)
     text = '장초전략 매수                                            매도                                              '\
-           '평균값계산틱수                      최대매수종목수'
+           '평균값계산틱수                       최대매수종목수'
     self.sj_coin_labellll_01 = QtWidgets.QLabel(text, self.sj_groupBox_06)
     self.sj_coin_comboBox_01 = setCombobox(self.sj_groupBox_06)
     self.sj_coin_comboBox_02 = setCombobox(self.sj_groupBox_06)
@@ -770,14 +775,15 @@ def SetUI(self):
     self.sc_textEdit.setGeometry(5, 377, 668, 367)
     self.cc_textEdit.setGeometry(678, 377, 668, 367)
 
-    self.sj_main_checkBox_01.setGeometry(10, 25, 100, 30)
-    self.sj_main_checkBox_02.setGeometry(120, 25, 100, 30)
-    self.sj_main_checkBox_03.setGeometry(230, 25, 100, 30)
-    self.sj_main_checkBox_04.setGeometry(340, 25, 100, 30)
-    self.sj_main_checkBox_05.setGeometry(450, 25, 180, 30)
-    self.sj_main_checkBox_06.setGeometry(710, 25, 180, 30)
-    self.sj_main_lineEdit_01.setGeometry(640, 30, 50, 20)
-    self.sj_main_lineEdit_02.setGeometry(900, 30, 50, 20)
+    self.sj_main_comboBox_01.setGeometry(10, 28, 120, 25)
+    self.sj_main_checkBox_01.setGeometry(150, 25, 90, 30)
+    self.sj_main_checkBox_02.setGeometry(250, 25, 90, 30)
+    self.sj_main_checkBox_03.setGeometry(350, 25, 90, 30)
+
+    self.sj_main_comboBox_02.setGeometry(490, 28, 120, 25)
+    self.sj_main_checkBox_04.setGeometry(630, 25, 90, 30)
+    self.sj_main_checkBox_05.setGeometry(730, 25, 90, 30)
+    self.sj_main_checkBox_06.setGeometry(830, 25, 90, 30)
 
     self.sj_sacc_labellll_01.setGeometry(10, 30, 100, 20)
     self.sj_sacc_lineEdit_01.setGeometry(115, 30, 100, 20)

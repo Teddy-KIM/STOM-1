@@ -63,7 +63,7 @@ class XAQuery:
     def BlockRequest(self, *args, **kwargs):
         self.received = False
         res_name = args[0]
-        res_path = E_OPENAPI_PATH + res_name + '.res'
+        res_path = E_OPENAPI_PATH + '/Res/' + res_name + '.res'
         self.com_obj.ResFileName = res_path
         with open(res_path, encoding='euc-kr') as f:
             res_lines = f.readlines()
@@ -118,15 +118,19 @@ class XAReal:
         self.res = {}
 
     def RegisterRes(self, res_name):
-        res_path = E_OPENAPI_PATH + res_name + '.res'
+        res_path = E_OPENAPI_PATH + '/Res/' + res_name + '.res'
         self.com_obj.ResFileName = res_path
         with open(res_path, encoding="euc-kr") as f:
             res_lines = f.readlines()
             res_data = parseRes(res_lines)
             self.res[res_name] = res_data
 
-    def AddRealData(self, code):
-        self.com_obj.SetFieldData('InBlock', 'shcode', code)
+    def AddRealData(self, code=None):
+        if code is not None:
+            if code == '0':
+                self.com_obj.SetFieldData('InBlock', 'jangubun', code)
+            else:
+                self.com_obj.SetFieldData('InBlock', 'shcode', code)
         self.com_obj.AdviseRealData()
 
     def RemoveRealData(self, code):

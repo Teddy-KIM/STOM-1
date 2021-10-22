@@ -84,8 +84,8 @@ class Window(QtWidgets.QMainWindow):
         self.qtimer3.start()
 
         self.showQsize = False
-        self.startUpbitTrader = False
-        self.startUpbitCollector = False
+        self.startCoinTrader = False
+        self.startCoinReceiver = False
         self.backtester_proc = None
 
         self.receiver_coin_proc1 = Process(target=WebsTicker, args=(qlist,))
@@ -106,30 +106,26 @@ class Window(QtWidgets.QMainWindow):
 
     def ProcessStarter(self):
         if now().weekday() not in [6, 7]:
-            if self.int_time < 85000 <= int(strf_time('%H%M%S')) and (DICT_SET['키움콜렉터'] or DICT_SET['이베스트콜렉터']):
-                self.StockCollectorStart()
-            if self.int_time < 85200 <= int(strf_time('%H%M%S')) and (DICT_SET['키움트레이더'] or DICT_SET['이베스트트레이더']):
+            if self.int_time < 85000 <= int(strf_time('%H%M%S')) and DICT_SET['주식리시버']:
+                self.StockReceiverStart()
+            if self.int_time < 85200 <= int(strf_time('%H%M%S')) and DICT_SET['주식트레이더']:
                 self.StockTraderStart()
-        if DICT_SET['업비트콜렉터'] and not self.startUpbitCollector:
-            self.CoinCollectorStart()
-        if DICT_SET['업비트트레이더'] and not self.startUpbitTrader:
+        if DICT_SET['코인리시버'] and not self.startCoinReceiver:
+            self.CoinReceiverStart()
+        if DICT_SET['코인트레이더'] and not self.startCoinTrader:
             self.CoinTraderStart()
-        if DICT_SET['주식최적화백테스터'] and self.int_time < DICT_SET['주식백테시작시간'] <= int(strf_time('%H%M%S')):
-            self.StockBacktestStart()
-        if DICT_SET['코인최적화백테스터'] and self.int_time < DICT_SET['코인백테시작시간'] <= int(strf_time('%H%M%S')):
-            self.CoinBacktestStart()
         if self.int_time < 100 <= int(strf_time('%H%M%S')):
             self.ClearTextEdit()
         self.UpdateWindowTitle()
         self.int_time = int(strf_time('%H%M%S'))
 
-    def StockCollectorStart(self):
+    def StockReceiverStart(self):
         self.backtester_proc = None
         if DICT_SET['아이디2'] is not None:
-            if DICT_SET['키움콜렉터']:
+            if DICT_SET['증권사'] == '키움증권':
                 os.system(f'python {LOGIN_PATH}/versionupdater.py')
                 os.system(f'python {LOGIN_PATH}/autologin2.py')
-            if DICT_SET['키움콜렉터'] or DICT_SET['이베스트콜렉터']:
+            if DICT_SET['주식콜렉터']:
                 if not self.collector_stock_proc1.is_alive():
                     self.collector_stock_proc1.start()
                 if not self.collector_stock_proc2.is_alive():
@@ -138,44 +134,49 @@ class Window(QtWidgets.QMainWindow):
                     self.collector_stock_proc3.start()
                 if not self.collector_stock_proc4.is_alive():
                     self.collector_stock_proc4.start()
-            if DICT_SET['키움콜렉터'] and not self.receiver_kiwoom_proc.is_alive():
+            if DICT_SET['증권사'] == '키움증권' and not self.receiver_kiwoom_proc.is_alive():
                 self.receiver_kiwoom_proc.start()
-            elif DICT_SET['이베스트콜렉터'] and not self.receiver_xing_proc.is_alive():
+            elif DICT_SET['증권사'] == '이베스트투자증권' and not self.receiver_xing_proc.is_alive():
                 self.receiver_xing_proc.start()
-            if DICT_SET['키움콜렉터'] or DICT_SET['이베스트콜렉터']:
+            if DICT_SET['주식콜렉터']:
                 text = '주식 리시버 및 콜렉터를 시작하였습니다.'
-                soundQ.put(text)
-                teleQ.put(text)
+            else:
+                text = '주식 리시버를 시작하였습니다.'
+            soundQ.put(text)
+            teleQ.put(text)
         else:
             QtWidgets.QMessageBox.critical(
                 self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
 
     def StockTraderStart(self):
         if DICT_SET['아이디1'] is not None:
-            if DICT_SET['키움트레이더']:
+            if DICT_SET['증권사'] == '키움증권':
                 os.system(f'python {LOGIN_PATH}/autologin1.py')
-            if (DICT_SET['키움트레이더'] or DICT_SET['이베스트트레이더']) and not self.strategy_stock_proc.is_alive():
+            if not self.strategy_stock_proc.is_alive():
                 self.strategy_stock_proc.start()
-            if DICT_SET['키움트레이더'] and not self.trader_kiwoom_proc.is_alive():
+            if DICT_SET['증권사'] == '키움증권' and not self.trader_kiwoom_proc.is_alive():
                 self.trader_kiwoom_proc.start()
-            elif DICT_SET['이베스트트레이더'] and not self.trader_xing_proc.is_alive():
+            elif DICT_SET['증권사'] == '이베스트투자증권' and not self.trader_xing_proc.is_alive():
                 self.trader_xing_proc.start()
-            if DICT_SET['키움트레이더'] or DICT_SET['이베스트트레이더']:
-                text = '주식 트레이더를 시작하였습니다.'
-                soundQ.put(text)
-                teleQ.put(text)
+            text = '주식 트레이더를 시작하였습니다.'
+            soundQ.put(text)
+            teleQ.put(text)
         else:
             QtWidgets.QMessageBox.critical(
                 self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
 
-    def CoinCollectorStart(self):
+    def CoinReceiverStart(self):
+        if DICT_SET['코인콜렉터']:
+            self.collector_coin_proc.start()
         self.receiver_coin_proc1.start()
         self.receiver_coin_proc2.start()
-        self.collector_coin_proc.start()
-        text = '코인 리시버 및 콜렉터를 시작하였습니다.'
+        if DICT_SET['코인콜렉터']:
+            text = '코인 리시버 및 콜렉터를 시작하였습니다.'
+        else:
+            text = '코인 리시버를 시작하였습니다.'
         soundQ.put(text)
         teleQ.put(text)
-        self.startUpbitCollector = True
+        self.startCoinReceiver = True
 
     def CoinTraderStart(self):
         if DICT_SET['Access_key'] is not None:
@@ -184,7 +185,7 @@ class Window(QtWidgets.QMainWindow):
             text = '코인 트레이더를 시작하였습니다.'
             soundQ.put(text)
             teleQ.put(text)
-            self.startUpbitTrader = True
+            self.startCoinTrader = True
         else:
             QtWidgets.QMessageBox.critical(
                 self, '오류 알림', '업비트 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
@@ -254,30 +255,40 @@ class Window(QtWidgets.QMainWindow):
     def CheckboxChanged_01(self, state):
         if state == Qt.Checked:
             con = sqlite3.connect(DB_SETTING)
-            df = pd.read_sql('SELECT * FROM kiwoom', con).set_index('index')
+            df = pd.read_sql('SELECT * FROM sacc', con).set_index('index')
             con.close()
             if len(df) == 0 or df['아이디2'][0] == '':
                 self.sj_main_checkBox_01.nextCheckState()
                 QtWidgets.QMessageBox.critical(
-                    self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+                    self, '오류 알림', '두번째 계정이 설정되지 않아\n리시버를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
 
     def CheckboxChanged_02(self, state):
         if state == Qt.Checked:
             con = sqlite3.connect(DB_SETTING)
-            df = pd.read_sql('SELECT * FROM kiwoom', con).set_index('index')
+            df = pd.read_sql('SELECT * FROM sacc', con).set_index('index')
             con.close()
-            if len(df) == 0 or df['아이디1'][0] == '':
+            if len(df) == 0 or df['아이디2'][0] == '':
                 self.sj_main_checkBox_02.nextCheckState()
                 QtWidgets.QMessageBox.critical(
-                    self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+                    self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
 
     def CheckboxChanged_03(self, state):
         if state == Qt.Checked:
             con = sqlite3.connect(DB_SETTING)
-            df = pd.read_sql('SELECT * FROM upbit', con).set_index('index')
+            df = pd.read_sql('SELECT * FROM sacc', con).set_index('index')
+            con.close()
+            if len(df) == 0 or df['아이디1'][0] == '':
+                self.sj_main_checkBox_03.nextCheckState()
+                QtWidgets.QMessageBox.critical(
+                    self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+
+    def CheckboxChanged_04(self, state):
+        if state == Qt.Checked:
+            con = sqlite3.connect(DB_SETTING)
+            df = pd.read_sql('SELECT * FROM cacc', con).set_index('index')
             con.close()
             if len(df) == 0 or df['Access_key'][0] == '':
-                self.sj_main_checkBox_04.nextCheckState()
+                self.sj_main_checkBox_06.nextCheckState()
                 QtWidgets.QMessageBox.critical(
                     self, '오류 알림', '업비트 계정이 설정되지 않아\n트레이더를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
 
@@ -544,15 +555,15 @@ class Window(QtWidgets.QMainWindow):
     # noinspection PyArgumentList
     def ButtonClicked_02(self):
         buttonReply = QtWidgets.QMessageBox.question(
-            self, '주식 수동 시작', '주식 콜렉터 또는 트레이더를 시작합니다.\n계속하시겠습니까?\n',
+            self, '주식 수동 시작', '주식 리시버 또는 트레이더를 시작합니다.\n계속하시겠습니까?\n',
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
         )
         if buttonReply == QtWidgets.QMessageBox.Yes:
             if DICT_SET['아이디2'] is None:
                 QtWidgets.QMessageBox.critical(
-                    self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
+                    self, '오류 알림', '두번째 계정이 설정되지 않아\n리시버를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
             else:
-                self.StockCollectorStart()
+                self.StockReceiverStart()
                 QTest.qWait(20000)
             if DICT_SET['아이디1'] is None:
                 QtWidgets.QMessageBox.critical(
@@ -590,8 +601,8 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
         )
         if buttonReply == QtWidgets.QMessageBox.Yes:
-            query1Q.put([1, 'DELETE FROM kiwoom'])
-            query1Q.put([1, 'DELETE FROM upbit'])
+            query1Q.put([1, 'DELETE FROM sacc'])
+            query1Q.put([1, 'DELETE FROM cacc'])
             query1Q.put([1, 'DELETE FROM telegram'])
             self.sd_pushButton.setStyleSheet(style_bc_dk)
 
@@ -1117,21 +1128,21 @@ class Window(QtWidgets.QMainWindow):
         df = pd.read_sql('SELECT * FROM main', con).set_index('index')
         con.close()
         if len(df) > 0:
-            self.sj_main_checkBox_01.setChecked(True) if df['키움콜렉터'][0] else self.sj_main_checkBox_01.setChecked(False)
-            self.sj_main_checkBox_02.setChecked(True) if df['키움트레이더'][0] else self.sj_main_checkBox_02.setChecked(False)
-            self.sj_main_checkBox_03.setChecked(True) if df['업비트콜렉터'][0] else self.sj_main_checkBox_03.setChecked(False)
-            self.sj_main_checkBox_04.setChecked(True) if df['업비트트레이더'][0] else self.sj_main_checkBox_04.setChecked(False)
-            self.sj_main_checkBox_05.setChecked(True) if df['주식최적화백테스터'][0] else self.sj_main_checkBox_05.setChecked(False)
-            self.sj_main_checkBox_06.setChecked(True) if df['코인최적화백테스터'][0] else self.sj_main_checkBox_06.setChecked(False)
-            self.sj_main_lineEdit_01.setText(str(df['주식백테시작시간'][0]))
-            self.sj_main_lineEdit_02.setText(str(df['코인백테시작시간'][0]))
+            self.sj_main_comboBox_01.setCurrentText(df['증권사'][0])
+            self.sj_main_checkBox_01.setChecked(True) if df['주식리시버'][0] else self.sj_main_checkBox_01.setChecked(False)
+            self.sj_main_checkBox_02.setChecked(True) if df['주식콜렉터'][0] else self.sj_main_checkBox_02.setChecked(False)
+            self.sj_main_checkBox_03.setChecked(True) if df['주식트레이더'][0] else self.sj_main_checkBox_03.setChecked(False)
+            self.sj_main_comboBox_02.setCurrentText(df['거래소'][0])
+            self.sj_main_checkBox_04.setChecked(True) if df['코인리시버'][0] else self.sj_main_checkBox_04.setChecked(False)
+            self.sj_main_checkBox_05.setChecked(True) if df['코인콜렉터'][0] else self.sj_main_checkBox_05.setChecked(False)
+            self.sj_main_checkBox_06.setChecked(True) if df['코인트레이더'][0] else self.sj_main_checkBox_06.setChecked(False)
             self.UpdateTexedit([ui_num['설정텍스트'], '시스템 기본 설정값 불러오기 완료'])
         else:
             QtWidgets.QMessageBox.critical(self, '오류 알림', '시스템 기본 설정값이\n존재하지 않습니다.\n')
 
     def ButtonClicked_72(self):
         con = sqlite3.connect(DB_SETTING)
-        df = pd.read_sql('SELECT * FROM kiwoom', con).set_index('index')
+        df = pd.read_sql('SELECT * FROM sacc', con).set_index('index')
         con.close()
         if len(df) > 0:
             self.sj_sacc_lineEdit_01.setText(df['아이디1'][0])
@@ -1148,7 +1159,7 @@ class Window(QtWidgets.QMainWindow):
 
     def ButtonClicked_73(self):
         con = sqlite3.connect(DB_SETTING)
-        df = pd.read_sql('SELECT * FROM upbit', con).set_index('index')
+        df = pd.read_sql('SELECT * FROM cacc', con).set_index('index')
         con.close()
         if len(df) > 0:
             self.sj_cacc_lineEdit_01.setText(df['Access_key'][0])
@@ -1247,32 +1258,28 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, '오류 알림', '코인 전략 설정값이\n존재하지 않습니다.\n')
 
     def ButtonClicked_77(self):
-        kc = 1 if self.sj_main_checkBox_01.isChecked() else 0
-        kt = 1 if self.sj_main_checkBox_02.isChecked() else 0
-        cc = 1 if self.sj_main_checkBox_03.isChecked() else 0
-        ct = 1 if self.sj_main_checkBox_04.isChecked() else 0
-        sbt = 1 if self.sj_main_checkBox_05.isChecked() else 0
-        cbt = 1 if self.sj_main_checkBox_06.isChecked() else 0
-        sbst = self.sj_main_lineEdit_01.text()
-        if sbst == '':
-            sbst = 0
-        cbst = self.sj_main_lineEdit_02.text()
-        if cbst == '':
-            cbst = 0
-        df = pd.DataFrame([[kc, kt, cc, ct, sbt, int(sbst), cbt, int(cbst)]], columns=columns_sm, index=[0])
+        sg = self.sj_main_comboBox_01.currentText()
+        sr = 1 if self.sj_main_checkBox_01.isChecked() else 0
+        sc = 1 if self.sj_main_checkBox_02.isChecked() else 0
+        st = 1 if self.sj_main_checkBox_03.isChecked() else 0
+        cg = self.sj_main_comboBox_02.currentText()
+        cr = 1 if self.sj_main_checkBox_04.isChecked() else 0
+        cc = 1 if self.sj_main_checkBox_05.isChecked() else 0
+        ct = 1 if self.sj_main_checkBox_06.isChecked() else 0
+        df = pd.DataFrame([[sg, sr, sc, st, cg, cr, cc, ct]], columns=columns_sm, index=[0])
         query1Q.put([1, df, 'main', 'replace'])
         self.UpdateTexedit([ui_num['설정텍스트'], '시스템 기본 설정값 저장하기 완료'])
 
         # noinspection PyGlobalUndefined
         global DICT_SET
-        DICT_SET['키움콜렉터'] = kc
-        DICT_SET['키움트레이더'] = kt
-        DICT_SET['업비트콜렉터'] = cc
-        DICT_SET['업비트트레이더'] = ct
-        DICT_SET['주식최적화백테스터'] = sbt
-        DICT_SET['주식백테시작시간'] = int(sbst)
-        DICT_SET['코인최적화백테스터'] = cbt
-        DICT_SET['코인백테시작시간'] = int(cbst)
+        DICT_SET['증권사'] = sg
+        DICT_SET['주식리시버'] = sr
+        DICT_SET['주식콜렉터'] = sc
+        DICT_SET['주식트레이더'] = st
+        DICT_SET['거래소'] = cg
+        DICT_SET['코인리시버'] = cr
+        DICT_SET['코인콜렉터'] = cc
+        DICT_SET['코인트레이더'] = ct
 
     def ButtonClicked_78(self):
         id1 = self.sj_sacc_lineEdit_01.text()
@@ -1287,7 +1294,7 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, '오류 알림', '일부 설정값이 입력되지 않았습니다.\n')
         else:
             df = pd.DataFrame([[id1, ps1, cp1, ap1, id2, ps2, cp2, ap2]], columns=columns_sk, index=[0])
-            query1Q.put([1, df, 'kiwoom', 'replace'])
+            query1Q.put([1, df, 'sacc', 'replace'])
             self.UpdateTexedit([ui_num['설정텍스트'], '주식 계정 설정값 저장하기 완료'])
 
             # noinspection PyGlobalUndefined
@@ -1308,7 +1315,7 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, '오류 알림', '일부 설정값이 입력되지 않았습니다.\n')
         else:
             df = pd.DataFrame([[access_key, secret_key]], columns=columns_su, index=[0])
-            query1Q.put([1, df, 'upbit', 'replace'])
+            query1Q.put([1, df, 'cacc', 'replace'])
             self.UpdateTexedit([ui_num['설정텍스트'], '업비트 계정 설정값 저장하기 완료'])
 
             # noinspection PyGlobalUndefined

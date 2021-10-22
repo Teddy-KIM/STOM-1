@@ -56,7 +56,7 @@ class StrategyStock:
         self.Start()
 
     def Start(self):
-        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 전략 연산 시작'])
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 전략 연산 시작'])
         while True:
             data = self.sstgQ.get()
             if type(data) == int:

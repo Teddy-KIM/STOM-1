@@ -285,7 +285,7 @@ class ReceiverKiwoom:
         if code not in self.list_gsjm1:
             self.list_gsjm1.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
-            if DICT_SET['키움트레이더']:
+            if DICT_SET['주식트레이더']:
                 self.sstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
@@ -293,7 +293,7 @@ class ReceiverKiwoom:
         if code in self.list_gsjm1:
             self.list_gsjm1.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
-            if DICT_SET['키움트레이더']:
+            if DICT_SET['주식트레이더']:
                 self.sstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
@@ -531,21 +531,22 @@ class ReceiverKiwoom:
         data = [c, o, h, low, per, dm, ch, bids, asks, vitime, vid5price]
         data += self.dict_hoga[code] + [code, dt, receivetime]
 
-        if DICT_SET['키움트레이더'] and code in self.list_gsjm2:
+        if DICT_SET['주식트레이더'] and code in self.list_gsjm2:
             injango = code in self.list_jang
             self.sstgQ.put(data + [name, injango])
             if injango:
                 self.stockQ.put([code, name, c])
 
-        data[9] = strf_time('%Y%m%d%H%M%S', vitime)
-        if code in self.list_code1:
-            self.tick1Q.put(data)
-        elif code in self.list_code2:
-            self.tick2Q.put(data)
-        elif code in self.list_code3:
-            self.tick3Q.put(data)
-        elif code in self.list_code4:
-            self.tick4Q.put(data)
+        if DICT_SET['주식콜렉터']:
+            data[9] = strf_time('%Y%m%d%H%M%S', vitime)
+            if code in self.list_code1:
+                self.tick1Q.put(data)
+            elif code in self.list_code2:
+                self.tick2Q.put(data)
+            elif code in self.list_code3:
+                self.tick3Q.put(data)
+            elif code in self.list_code4:
+                self.tick4Q.put(data)
 
     def OnReceiveTrData(self, screen, rqname, trcode, record, nnext):
         if screen == '' and record == '':
