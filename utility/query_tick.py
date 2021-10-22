@@ -57,7 +57,7 @@ class QueryTick:
                                 # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
                                 # 트리거는 'temp' 테이블에 있는 데이터를 각 코인별 테이블로 나눠서 INSERT 시키고
                                 # 'temp' 테이블을 다시 초기화(delete from temp;)함.
-                                self.cur1.execute('insert into "dist" ("cnt") values (1);')
+                                self.cur1.execute('INSERT INTO "dist" ("cnt") values (1);')
                                 save_time = float2str1p6((now() - start).total_seconds())
                                 text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                                 self.windowQ.put([ui_num['S단순텍스트'], text])
@@ -92,8 +92,8 @@ class QueryTick:
                             for code in list(query[1].keys()):
                                 query[1][code]['종목코드'] = code
                                 df = df.append(query[1][code])
-                            df.to_sql("temp", self.con2, if_exists='append', method='multi')
-                            self.cur2.execute('insert into "dist" ("cnt") values (1);')
+                            df.to_sql("temp", self.con2, if_exists='append', chunksize=1000, method='multi')
+                            self.cur2.execute('INSERT INTO "dist" ("cnt") values (1);')
                         save_time = (now() - start).total_seconds()
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                         self.windowQ.put([ui_num['C단순텍스트'], text])
