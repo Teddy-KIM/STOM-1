@@ -146,7 +146,10 @@ class QueryTick:
         self.cur1.execute(query_create_trigger)
 
     def remove_trigger1(self):
-        self.cur1.execute('drop trigger dist_trigger;')
+        try:
+            self.cur1.execute('drop trigger dist_trigger;')
+        except sqlite3.OperationalError:
+            pass
 
     # DB 에 fake_table 'dist'를 생성하고 거기에 트리거를 붙임, 트리거는 dist에 INSERT 가 일어날때마다 한번씩 작동함
     # DB 에 있는 전체 코인의 TABLE 이 추가/삭제 등 변경되었을 경우에는 기존 트리거를 삭제하고 트리거 생성하여 다시 붙여줘야 함
@@ -200,4 +203,7 @@ class QueryTick:
 
     # 트리거 제거
     def remove_trigger2(self):
-        self.cur2.execute('drop trigger dist_trigger;')
+        try:
+            self.cur2.execute('drop trigger dist_trigger;')
+        except sqlite3.OperationalError:
+            pass
