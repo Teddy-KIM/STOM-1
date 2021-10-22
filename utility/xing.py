@@ -55,13 +55,10 @@ class XASession:
 
 
 class XAQuery:
-    def __init__(self):
+    def __init__(self, user_class):
         self.com_obj = win32com.client.Dispatch("XA_DataSet.XAQuery")
-        win32com.client.WithEvents(self.com_obj, XAQueryEvents).connect(self)
+        win32com.client.WithEvents(self.com_obj, XAQueryEvents).connect(self, user_class)
         self.received = False
-
-    def RemoveService(self):
-        self.com_obj.RemoveService('t1857', False)
 
     def BlockRequest(self, *args, **kwargs):
         self.received = False
@@ -75,10 +72,15 @@ class XAQuery:
         for k in kwargs:
             self.com_obj.SetFieldData(inblock_code, k, 0, kwargs[k])
         if res_name == 't1857':
-            self.com_obj.RequestService(res_name, False)
+            self.com_obj.RequestService(res_name, '')
         else:
             self.com_obj.Request(False)
-        sleeptime = timedelta_sec(0.25)
+        if res_name in ['t1857', 't1866']:
+            sleeptime = timedelta_sec(1)
+        elif res_name in ['t0424', 't8430']:
+            sleeptime = timedelta_sec(0.5)
+        else:
+            sleeptime = timedelta_sec(0.05)
         while not self.received or now() < sleeptime:
             pythoncom.PumpWaitingMessages()
         df = []
@@ -88,7 +90,7 @@ class XAQuery:
             data = []
             rows = self.com_obj.GetBlockCount(outblock_code)
             for i in range(rows):
-                elem = {k: self.com_obj.GetFieldData(outblock_code, k, i) for k in outblock_field}
+                elem = {k: self.GetFieldData(outblock_code, k, i) for k in outblock_field}
                 data.append(elem)
             df2 = pd.DataFrame(data=data)
             df.append(df2)
@@ -97,10 +99,16 @@ class XAQuery:
             df = df.set_index('query_index')
             df = df[['query_name']].copy()
             df = df.dropna()
-        elif res_name == 't1857':
-            df = list(df['shcode'].values)
-            del df[0]
         return df
+
+    def GetFieldData(self, outblock_code, k, i):
+        return self.com_obj.GetFieldData(outblock_code, k, i)
+
+    def RemoveService(self, alertnum):
+        self.com_obj.RemoveService('t1857', alertnum)
+
+    def GetFieldSearchRealData(self, field):
+        return self.com_obj.GetFieldSearchRealData('t1857OutBlock1', field)
 
 
 class XAReal:
@@ -128,8 +136,8 @@ class XAReal:
     def RemoveAllRealData(self):
         self.com_obj.UnadviseRealData()
 
-    def GetFielfData(self, field):
-        return self.com_obj.GetFieldData("OutBlock", field)
+    def GetFieldData(self, field):
+        return self.com_obj.GetFieldData('OutBlock', field)
 
 
 class XASessionEvents:
@@ -147,12 +155,19 @@ class XASessionEvents:
 class XAQueryEvents:
     def __init__(self):
         self.com_class = None
+        self.user_class = None
 
-    def connect(self, com_class):
+    def connect(self, com_class, user_class):
         self.com_class = com_class
+        self.user_class = user_class
 
     def OnReceiveData(self, trcode):
         self.com_class.received = True
+
+    def OnReceiveSearchRealData(self, trcode):
+        out_data = {'code': self.com_class.GetFieldSearchRealData('shcode'),
+                    'gubun': self.com_class.GetFieldSearchRealData('JobFlag')}
+        self.user_class.OnReceiveSearchRealData(out_data)
 
 
 class XARealEvents:
@@ -169,7 +184,7 @@ class XARealEvents:
         out_data = {}
         out_block = res_data['outblock'][0]
         for field in out_block['OutBlock']:
-            data = self.com_class.GetFielfData(field)
+            data = self.com_class.GetFieldData(field)
             out_data[field] = data
         if trcode == 'JIF':
             self.user_class.OnReceiveOperData(out_data)
@@ -181,6 +196,3 @@ class XARealEvents:
             self.user_class.OnReceiveHogaData(out_data)
         elif trcode == 'SC1_':
             self.user_class.OnReceiveChegeolData(out_data)
-
-    def OnReceiveSearchRealData(self, trcode):
-        self.user_class.OnReceiveSearchRealData(trcode)

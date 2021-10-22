@@ -77,7 +77,7 @@ class ReceiverXing:
         self.timer.timeout.connect(self.ConditionSearch)
 
         self.xas = XASession()
-        self.xaq = XAQuery()
+        self.xaq = XAQuery(self)
 
         self.xar_op = XAReal(self)
         self.xar_vi = XAReal(self)
@@ -92,8 +92,14 @@ class ReceiverXing:
         self.xar_cd.RegisterRes('K3_')
         self.xar_hp.RegisterRes('H1_')
         self.xar_hd.RegisterRes('HA_')
+        self.list_alertnum = []
 
         self.Start()
+
+    def __del__(self):
+        if len(self.list_alertnum) > 0:
+            for alertnum in self.list_alertnum:
+                self.xaq.RemoveService(alertnum)
 
     def Start(self):
         self.XingLogin()
@@ -221,7 +227,6 @@ class ReceiverXing:
                 self.list_gsjm2.remove(code)
 
     def OperationRealreg(self):
-        self.xaq.RemoveService()
         self.xar_op.RemoveAllRealData()
         self.xar_vi.RemoveAllRealData()
         self.xar_cp.RemoveAllRealData()
@@ -235,7 +240,9 @@ class ReceiverXing:
         self.xar_vi.AddRealData('000000')
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - VI발동/해제 등록 완료'])
 
-        codes = self.xaq.BlockRequest('t1857', sRealFlag='0', sSearchFlag='S', query_index=self.list_cond[1][0])
+        df = self.xaq.BlockRequest('t1857', sRealFlag='0', sSearchFlag='S', query_index=self.list_cond[1][0])
+        codes = list(df['shcode'].values)
+        del codes[0]
         self.list_code = codes
         self.list_code1 = [x for i, x in enumerate(self.list_code) if i % 4 == 0]
         self.list_code2 = [x for i, x in enumerate(self.list_code) if i % 4 == 1]
@@ -248,7 +255,10 @@ class ReceiverXing:
 
     def ConditionSearchStart(self):
         self.dict_bool['실시간조건검색시작'] = True
-        codes = self.xaq.BlockRequest('t1857', sRealFlag='1', sSearchFlag='S', query_index=self.list_cond[0][0])
+        df = self.xaq.BlockRequest('t1857', sRealFlag='1', sSearchFlag='S', query_index=self.list_cond[0][0])
+        self.list_alertnum.append(df['AlertNum'].iloc[0])
+        codes = list(df['shcode'].values)
+        del codes[0]
         if len(codes) > 0:
             for code in codes:
                 self.InsertGsjmlist(code)
@@ -256,7 +266,9 @@ class ReceiverXing:
 
     def ConditionSearchStop(self):
         self.dict_bool['실시간조건검색중단'] = True
-        self.xaq.RemoveService()
+        if len(self.list_alertnum) > 0:
+            for alertnum in self.list_alertnum:
+                self.xaq.RemoveService(alertnum)
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간조건검색 중단 완료'])
 
     def StartJangjungStrategy(self):
@@ -370,17 +382,21 @@ class ReceiverXing:
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveVIData VI발동/해제 {e}'])
         else:
-            print(code, name, gubun)
             if gubun == '1' and code in self.list_code and \
                     (code not in self.dict_vipr.keys() or
                      (self.dict_vipr[code][0] and now() > self.dict_vipr[code][1])):
                 self.UpdateViPrice(code, name)
 
-    def OnReceiveSearchRealData(self, field):
-        pass
-        """
-        TODO 실시간 조건검색식 진입 및 이탈 확인 후 처리
-        """
+    def OnReceiveSearchRealData(self, data):
+        if int(strf_time('%H%M%S')) > 100000:
+            return
+
+        code = data['code']
+        gubun = data['gubun']
+        if gubun in ['N', 'R']:
+            self.InsertGsjmlist(code)
+        elif gubun == 'O':
+            self.DeleteGsjmlist(code)
 
     def OnReceiveRealData(self, data):
         try:
