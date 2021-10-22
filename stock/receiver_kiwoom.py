@@ -26,6 +26,7 @@ class ReceiverKiwoom:
                    11       12      13     14      15     16     17
         """
         self.windowQ = qlist[0]
+        self.query1Q = qlist[2]
         self.query2Q = qlist[3]
         self.sreceivQ = qlist[5]
         self.stockQ = qlist[7]
@@ -131,7 +132,7 @@ class ReceiverKiwoom:
                 self.query2Q.put([1, query])
                 query = f'CREATE INDEX "ix_{code}_index" ON "{code}"("index");'
                 self.query2Q.put([1, query])
-        self.query2Q.put([1, df, 'codename', 'replace'])
+        self.query1Q.put([1, df, 'codename', 'replace'])
         self.query2Q.put('주식디비트리거시작')
 
         self.dict_bool['CD수신'] = False
