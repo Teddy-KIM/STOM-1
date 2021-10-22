@@ -373,120 +373,123 @@ class Window(QtWidgets.QMainWindow):
         self.DrawChart(name, int(tickcount), searchdate)
 
     def DrawChart(self, name, tickcount, searchdate):
-        coin = False
-        if name in self.dict_code.keys():
-            con = sqlite3.connect(DB_STOCK_TICK)
-            code = self.dict_code[name]
-        elif name in self.dict_code.values():
-            con = sqlite3.connect(DB_STOCK_TICK)
-            code = name
-            name = self.dict_name[code]
-        else:
-            con = sqlite3.connect(DB_COIN_TICK)
-            code = name
-            coin = True
-
         try:
-            df = pd.read_sql(f"SELECT * FROM '{code}' WHERE `index` LIKE '{searchdate}%'", con).set_index('index')
-            con.close()
-        except pd.io.sql.DatabaseError:
-            QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 종목의 테이블이 존재하지 않습니다.\n')
-            return
+            coin = False
+            if name in self.dict_code.keys():
+                con = sqlite3.connect(DB_STOCK_TICK)
+                code = self.dict_code[name]
+            elif name in self.dict_code.values():
+                con = sqlite3.connect(DB_STOCK_TICK)
+                code = name
+                name = self.dict_name[code]
+            else:
+                con = sqlite3.connect(DB_COIN_TICK)
+                code = name
+                coin = True
 
-        df['고저평균대비등락율'] = (df['현재가'] / ((df['고가'] + df['저가']) / 2) - 1) * 100
-        df['고저평균대비등락율'] = df['고저평균대비등락율'].round(2)
-        if coin:
-            df['체결강도'] = df['누적매수량'] / df['누적매도량'] * 100
-            df['체결강도'] = df['체결강도'].apply(lambda x: 500 if x > 500 else round(x, 2))
-        df['직전체결강도'] = df['체결강도'].shift(1)
-        df['직전당일거래대금'] = df['당일거래대금'].shift(1)
-        df = df.fillna(method='bfill')
-        df['초당거래대금'] = df['당일거래대금'] - df['직전당일거래대금']
-        df.at[df.index[0], '초당거래대금'] = 0
-        df['직전초당거래대금'] = df['초당거래대금'].shift(1)
-        df = df.fillna(method='bfill')
-        df['초당거래대금평균'] = df['직전초당거래대금'].rolling(window=tickcount).mean()
-        df['체결강도평균'] = df['직전체결강도'].rolling(window=tickcount).mean()
-        df['최고체결강도'] = df['직전체결강도'].rolling(window=tickcount).max()
-        df['체결시간'] = df.index
-        df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
-        df = df.set_index('체결시간')
+            try:
+                df = pd.read_sql(f"SELECT * FROM '{code}' WHERE `index` LIKE '{searchdate}%'", con).set_index('index')
+                con.close()
+            except pd.io.sql.DatabaseError:
+                QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 종목의 테이블이 존재하지 않습니다.\n')
+                return
 
-        if len(df) == 0:
-            QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
-            return
+            df['고저평균대비등락율'] = (df['현재가'] / ((df['고가'] + df['저가']) / 2) - 1) * 100
+            df['고저평균대비등락율'] = df['고저평균대비등락율'].round(2)
+            if coin:
+                df['체결강도'] = df['누적매수량'] / df['누적매도량'] * 100
+                df['체결강도'] = df['체결강도'].apply(lambda x: 500 if x > 500 else round(x, 2))
+            df['직전체결강도'] = df['체결강도'].shift(1)
+            df['직전당일거래대금'] = df['당일거래대금'].shift(1)
+            df = df.fillna(method='bfill')
+            df['초당거래대금'] = df['당일거래대금'] - df['직전당일거래대금']
+            df.at[df.index[0], '초당거래대금'] = 0
+            df['직전초당거래대금'] = df['초당거래대금'].shift(1)
+            df = df.fillna(method='bfill')
+            df['초당거래대금평균'] = df['직전초당거래대금'].rolling(window=tickcount).mean()
+            df['체결강도평균'] = df['직전체결강도'].rolling(window=tickcount).mean()
+            df['최고체결강도'] = df['직전체결강도'].rolling(window=tickcount).max()
+            df['체결시간'] = df.index
+            df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
+            df = df.set_index('체결시간')
 
-        if not self.ct_labellll_03.isVisible():
-            self.ct_labellll_03.setVisible(True)
-            self.ct_labellll_04.setVisible(True)
-            self.ct_labellll_05.setVisible(True)
+            if len(df) == 0:
+                QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
+                return
 
-        def crosshair(main_pg, sub_pg1, sub_pg2):
-            vLine1 = pyqtgraph.InfiniteLine()
-            vLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-            vLine2 = pyqtgraph.InfiniteLine()
-            vLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-            vLine3 = pyqtgraph.InfiniteLine()
-            vLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            if not self.ct_labellll_03.isVisible():
+                self.ct_labellll_03.setVisible(True)
+                self.ct_labellll_04.setVisible(True)
+                self.ct_labellll_05.setVisible(True)
 
-            hLine1 = pyqtgraph.InfiniteLine(angle=0)
-            hLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-            hLine2 = pyqtgraph.InfiniteLine(angle=0)
-            hLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-            hLine3 = pyqtgraph.InfiniteLine(angle=0)
-            hLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            def crosshair(main_pg, sub_pg1, sub_pg2):
+                vLine1 = pyqtgraph.InfiniteLine()
+                vLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+                vLine2 = pyqtgraph.InfiniteLine()
+                vLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+                vLine3 = pyqtgraph.InfiniteLine()
+                vLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
 
-            main_pg.addItem(vLine1, ignoreBounds=True)
-            main_pg.addItem(hLine1, ignoreBounds=True)
-            sub_pg1.addItem(vLine2, ignoreBounds=True)
-            sub_pg1.addItem(hLine2, ignoreBounds=True)
-            sub_pg2.addItem(vLine3, ignoreBounds=True)
-            sub_pg2.addItem(hLine3, ignoreBounds=True)
+                hLine1 = pyqtgraph.InfiniteLine(angle=0)
+                hLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+                hLine2 = pyqtgraph.InfiniteLine(angle=0)
+                hLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+                hLine3 = pyqtgraph.InfiniteLine(angle=0)
+                hLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
 
-            main_vb = main_pg.getViewBox()
-            sub_vb1 = sub_pg1.getViewBox()
-            sub_vb2 = sub_pg2.getViewBox()
+                main_pg.addItem(vLine1, ignoreBounds=True)
+                main_pg.addItem(hLine1, ignoreBounds=True)
+                sub_pg1.addItem(vLine2, ignoreBounds=True)
+                sub_pg1.addItem(hLine2, ignoreBounds=True)
+                sub_pg2.addItem(vLine3, ignoreBounds=True)
+                sub_pg2.addItem(hLine3, ignoreBounds=True)
 
-            def mouseMoved(evt):
-                pos = evt[0]
-                if main_pg.sceneBoundingRect().contains(pos):
-                    mousePoint = main_vb.mapSceneToView(pos)
-                    self.ct_labellll_03.setText(f"현재가 {format(round(mousePoint.y(), 2), ',')}")
-                    hLine1.setPos(mousePoint.y())
-                    vLine1.setPos(mousePoint.x())
-                    vLine2.setPos(mousePoint.x())
-                    vLine3.setPos(mousePoint.x())
-                if sub_pg1.sceneBoundingRect().contains(pos):
-                    mousePoint = sub_vb1.mapSceneToView(pos)
-                    self.ct_labellll_04.setText(f"체결강도 {format(round(mousePoint.y(), 2), ',')}")
-                    hLine2.setPos(mousePoint.y())
-                    vLine1.setPos(mousePoint.x())
-                    vLine2.setPos(mousePoint.x())
-                    vLine3.setPos(mousePoint.x())
-                if sub_pg2.sceneBoundingRect().contains(pos):
-                    mousePoint = sub_vb2.mapSceneToView(pos)
-                    self.ct_labellll_05.setText(f"초당거래대금 {format(round(mousePoint.y(), 2), ',')}")
-                    hLine3.setPos(mousePoint.y())
-                    vLine1.setPos(mousePoint.x())
-                    vLine3.setPos(mousePoint.x())
-                    vLine2.setPos(mousePoint.x())
+                main_vb = main_pg.getViewBox()
+                sub_vb1 = sub_pg1.getViewBox()
+                sub_vb2 = sub_pg2.getViewBox()
 
-            main_pg.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
-            sub_pg1.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
-            sub_pg2.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+                def mouseMoved(evt):
+                    pos = evt[0]
+                    if main_pg.sceneBoundingRect().contains(pos):
+                        mousePoint = main_vb.mapSceneToView(pos)
+                        self.ct_labellll_03.setText(f"현재가 {format(round(mousePoint.y(), 2), ',')}")
+                        hLine1.setPos(mousePoint.y())
+                        vLine1.setPos(mousePoint.x())
+                        vLine2.setPos(mousePoint.x())
+                        vLine3.setPos(mousePoint.x())
+                    if sub_pg1.sceneBoundingRect().contains(pos):
+                        mousePoint = sub_vb1.mapSceneToView(pos)
+                        self.ct_labellll_04.setText(f"체결강도 {format(round(mousePoint.y(), 2), ',')}")
+                        hLine2.setPos(mousePoint.y())
+                        vLine1.setPos(mousePoint.x())
+                        vLine2.setPos(mousePoint.x())
+                        vLine3.setPos(mousePoint.x())
+                    if sub_pg2.sceneBoundingRect().contains(pos):
+                        mousePoint = sub_vb2.mapSceneToView(pos)
+                        self.ct_labellll_05.setText(f"초당거래대금 {format(round(mousePoint.y(), 2), ',')}")
+                        hLine3.setPos(mousePoint.y())
+                        vLine1.setPos(mousePoint.x())
+                        vLine3.setPos(mousePoint.x())
+                        vLine2.setPos(mousePoint.x())
 
-        self.ctpg_01.clear()
-        self.ctpg_02.clear()
-        self.ctpg_03.clear()
-        unix_ts = [x.timestamp() - 32400 for x in df.index]
-        self.ctpg_01.plot(x=unix_ts, y=df['현재가'], pen=(255, 0, 0))
-        self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
-        self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
-        self.ctpg_02.plot(x=unix_ts, y=df['최고체결강도'], pen=(180, 0, 0))
-        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(0, 0, 255))
-        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(0, 180, 180))
-        self.ctpg_01.getAxis('bottom').setLabel(text=name)
-        crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
+                main_pg.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+                sub_pg1.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+                sub_pg2.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+
+            self.ctpg_01.clear()
+            self.ctpg_02.clear()
+            self.ctpg_03.clear()
+            unix_ts = [x.timestamp() - 32400 for x in df.index]
+            self.ctpg_01.plot(x=unix_ts, y=df['현재가'], pen=(255, 0, 0))
+            self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
+            self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
+            self.ctpg_02.plot(x=unix_ts, y=df['최고체결강도'], pen=(180, 0, 0))
+            self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(0, 0, 255))
+            self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(0, 180, 180))
+            self.ctpg_01.getAxis('bottom').setLabel(text=name)
+            crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
+        except:
+            print('차트 불러오기 실패, 잠시 후 다시 시도하십시오.')
 
     def ButtonClicked_01(self):
         if self.main_tabWidget.currentWidget() == self.st_tab:
