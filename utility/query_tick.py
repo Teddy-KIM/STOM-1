@@ -27,8 +27,6 @@ class QueryTick:
         self.Start()
 
     def __del__(self):
-        self.remove_trigger1()
-        self.remove_trigger2()
         self.con1.close()
         self.con2.close()
 
