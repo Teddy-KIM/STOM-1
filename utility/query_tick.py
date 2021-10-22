@@ -20,6 +20,7 @@ class QueryTick:
         self.cur2 = self.con2.cursor()
         self.list_table1 = []
         self.list_table2 = []
+        self.trigger = False
         self.remove_trigger1()
         self.remove_trigger2()
         self.create_trigger2()
@@ -38,6 +39,7 @@ class QueryTick:
             query = self.query2Q.get()
             if query == '주식디비트리거시작':
                 self.create_trigger1()
+                self.trigger = True
             elif query[0] == 1:
                 try:
                     if len(query) == 2:
@@ -49,7 +51,7 @@ class QueryTick:
                             for code in list(query[1].keys()):
                                 query[1][code]['종목코드'] = code
                                 df = df.append(query[1][code])
-                            if k % 4 == 0:
+                            if k % 4 == 0 and self.trigger:
                                 start = now()
                                 df.to_sql("temp", self.con1, if_exists='append', method='multi')
                                 # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
