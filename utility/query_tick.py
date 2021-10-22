@@ -53,7 +53,7 @@ class QueryTick:
                                 df = df.append(query[1][code])
                             if k % 4 == 0 and self.trigger:
                                 start = now()
-                                df.to_sql("temp", self.con1, if_exists='append', method='multi')
+                                df.to_sql("temp", self.con1, if_exists='append', chunksize=1000, method='multi')
                                 # 'dist' 테이블에 의미없는 한 건을 INSERT 함. dist 에 걸려있는 트리거를 작동하게 하기 위함
                                 # 트리거는 'temp' 테이블에 있는 데이터를 각 코인별 테이블로 나눠서 INSERT 시키고
                                 # 'temp' 테이블을 다시 초기화(delete from temp;)함.
