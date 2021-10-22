@@ -343,12 +343,12 @@ class ReceiverXing:
             41: '장마감'
         }
         try:
-            gubun = int(data['jangubun'])
+            gubun = data['jangubun']
             status = int(data['jstatus'])
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveOperData {e}'])
         else:
-            if gubun == 1:
+            if gubun == '1':
                 self.operation = status
                 self.windowQ.put([ui_num['S단순텍스트'], f'장운영 시간 수신 알림 - {dict_oper[status]}'])
 
