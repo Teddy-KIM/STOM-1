@@ -466,6 +466,8 @@ if __name__ == "__main__":
 
     table_list = list(df['name'].values)
     table_list.remove('moneytop')
+    if 'codename' in table_list:
+        table_list.remove('codename')
     if 'dist' in table_list:
         table_list.remove('dist')
     if 'dist_chk' in table_list:
