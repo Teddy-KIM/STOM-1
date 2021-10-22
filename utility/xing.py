@@ -125,9 +125,8 @@ class XAReal:
             res_data = parseRes(res_lines)
             self.res[res_name] = res_data
 
-    def AddRealData(self, code=None):
-        if code is not None:
-            self.com_obj.SetFieldData('InBlock', 'shcode', code)
+    def AddRealData(self, code):
+        self.com_obj.SetFieldData('InBlock', 'shcode', code)
         self.com_obj.AdviseRealData()
 
     def RemoveRealData(self, code):
