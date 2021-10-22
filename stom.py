@@ -1,4 +1,3 @@
-import os
 import sys
 import psutil
 import logging
@@ -388,7 +387,7 @@ class Window(QtWidgets.QMainWindow):
             coin = True
 
         try:
-            df = pd.read_sql(f"SELECT * FROM '{code}'", con).set_index('index')
+            df = pd.read_sql(f"SELECT * FROM '{code}' WHERE `index` LIKE '{searchdate}%'", con).set_index('index')
             con.close()
         except pd.io.sql.DatabaseError:
             QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 종목의 테이블이 존재하지 않습니다.\n')
@@ -409,9 +408,6 @@ class Window(QtWidgets.QMainWindow):
         df['초당거래대금평균'] = df['직전초당거래대금'].rolling(window=tickcount).mean()
         df['체결강도평균'] = df['직전체결강도'].rolling(window=tickcount).mean()
         df['최고체결강도'] = df['직전체결강도'].rolling(window=tickcount).max()
-        df['검색날짜'] = df.index
-        df['검색날짜'] = df['검색날짜'].apply(lambda x: x[:8])
-        df = df[(df['검색날짜'] == searchdate) & (df['초당거래대금'] > 0)]
         df['체결시간'] = df.index
         df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
         df = df.set_index('체결시간')
