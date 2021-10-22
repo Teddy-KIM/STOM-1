@@ -5,7 +5,7 @@ from PyQt5.QtGui import QFont, QColor
 
 K_OPENAPI_PATH = 'D:/OpenAPI'
 E_OPENAPI_PATH = 'D:/xingAPI/Res/'
-SYSTEM_PATH = '/'.join(os.getcwd().split('\\'))
+SYSTEM_PATH = os.getcwd()
 ICON_PATH = f'{SYSTEM_PATH}/utility/icon'
 LOGIN_PATH = f'{SYSTEM_PATH}/stock/login_kiwoom'
 GRAPH_PATH = f'{SYSTEM_PATH}/backtester/graph'
