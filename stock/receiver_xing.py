@@ -200,6 +200,8 @@ class ReceiverXing:
                 self.xar_cd.AddRealData(code)
                 self.xar_hd.AddRealData(code)
         elif gubun == 'RemoveAllReal':
+            self.xar_op.RemoveAllRealData()
+            self.xar_vi.RemoveAllRealData()
             self.xar_cp.RemoveAllRealData()
             self.xar_hp.RemoveAllRealData()
             self.xar_cd.RemoveAllRealData()
@@ -220,6 +222,13 @@ class ReceiverXing:
 
     def OperationRealreg(self):
         self.xaq.RemoveService()
+        self.xar_op.RemoveAllRealData()
+        self.xar_vi.RemoveAllRealData()
+        self.xar_cp.RemoveAllRealData()
+        self.xar_hp.RemoveAllRealData()
+        self.xar_cd.RemoveAllRealData()
+        self.xar_hd.RemoveAllRealData()
+
         self.xar_op.AddRealData()
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
 
