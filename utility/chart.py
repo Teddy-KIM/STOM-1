@@ -40,8 +40,6 @@ class Chart:
                     self.windowQ.put([ui_num['차트'], '차트오류', name, ''])
                 else:
                     try:
-                        df['고저평균대비등락율'] = (df['현재가'] / ((df['고가'] + df['저가']) / 2) - 1) * 100
-                        df['고저평균대비등락율'] = df['고저평균대비등락율'].round(2)
                         if coin:
                             df['체결강도'] = df['누적매수량'] / df['누적매도량'] * 100
                             df['체결강도'] = df['체결강도'].apply(lambda x: 500 if x > 500 else round(x, 2))
@@ -58,6 +56,7 @@ class Chart:
                         df['체결시간'] = df.index
                         df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
                         df = df.set_index('체결시간')
+                        df = df[['현재가', '체결강도', '체결강도평균', '최고체결강도', '초당거래대금', '초당거래대금평균']].copy()
                         unix_ts = [x.timestamp() - 32400 for x in df.index]
                         self.windowQ.put([ui_num['차트'], df, name, unix_ts])
                     except Exception as e:
