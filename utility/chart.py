@@ -34,10 +34,10 @@ class Chart:
                 df = pd.read_sql(f"SELECT * FROM '{code}' WHERE `index` LIKE '{searchdate}%'", con).set_index('index')
                 con.close()
             except pd.io.sql.DatabaseError:
-                self.windowQ.put([ui_num['차트'], '차트오류', name])
+                self.windowQ.put([ui_num['차트'], '차트오류', name, ''])
             else:
                 if len(df) == 0:
-                    self.windowQ.put([ui_num['차트'], '차트오류', name])
+                    self.windowQ.put([ui_num['차트'], '차트오류', name, ''])
                 else:
                     try:
                         df['고저평균대비등락율'] = (df['현재가'] / ((df['고가'] + df['저가']) / 2) - 1) * 100
