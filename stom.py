@@ -484,14 +484,14 @@ class Window(QtWidgets.QMainWindow):
                     vLine1.setPos(mousePoint.x())
                     vLine2.setPos(mousePoint.x())
                     vLine3.setPos(mousePoint.x())
-                if sub_pg1.sceneBoundingRect().contains(pos):
+                elif sub_pg1.sceneBoundingRect().contains(pos):
                     mousePoint = sub_vb1.mapSceneToView(pos)
                     self.ct_labellll_04.setText(f"체결강도 {format(round(mousePoint.y(), 2), ',')}")
                     hLine2.setPos(mousePoint.y())
                     vLine1.setPos(mousePoint.x())
                     vLine2.setPos(mousePoint.x())
                     vLine3.setPos(mousePoint.x())
-                if sub_pg2.sceneBoundingRect().contains(pos):
+                elif sub_pg2.sceneBoundingRect().contains(pos):
                     mousePoint = sub_vb2.mapSceneToView(pos)
                     self.ct_labellll_05.setText(f"초당거래대금 {format(round(mousePoint.y(), 2), ',')}")
                     hLine3.setPos(mousePoint.y())
