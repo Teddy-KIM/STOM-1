@@ -581,7 +581,7 @@ class Window(QtWidgets.QMainWindow):
         name = item.text()
         linetext = self.ct_lineEdit_01.text()
         tickcount = int(linetext) if linetext != '' else 60
-        self.PurChart(name, tickcount, strf_time('%Y%m%d'))
+        self.PutChart(name, tickcount, strf_time('%Y%m%d'))
 
     @QtCore.pyqtSlot(int)
     def CellClicked_02(self, row):
@@ -632,7 +632,7 @@ class Window(QtWidgets.QMainWindow):
         name = item.text()
         linetext = self.ct_lineEdit_01.text()
         tickcount = int(linetext) if linetext != '' else 60
-        self.PurChart(name, tickcount, searchdate)
+        self.PutChart(name, tickcount, searchdate)
 
     def ShowDialog(self):
         if not self.dialog.isVisible():
@@ -640,15 +640,14 @@ class Window(QtWidgets.QMainWindow):
 
     def ReturnPress_01(self):
         searchdate = self.ct_dateEdit.date().toString('yyyyMMdd')
-        tickcount = self.ct_lineEdit_01.text()
-        if tickcount == '':
-            return
+        linetext = self.ct_lineEdit_01.text()
+        tickcount = int(linetext) if linetext != '' else 60
         name = self.ct_lineEdit_02.text()
         if name == '':
             return
-        self.PurChart(name, int(tickcount), searchdate)
+        self.PutChart(name, int(tickcount), searchdate)
 
-    def PurChart(self, name, tickcount, searchdate):
+    def PutChart(self, name, tickcount, searchdate):
         coin = False
         if name in self.dict_code.keys():
             code = self.dict_code[name]
