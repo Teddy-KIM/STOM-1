@@ -1,6 +1,5 @@
 import pyqtgraph
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog
 from PyQt5 import QtCore, QtGui, QtWidgets
 from utility import syntax
 from utility.static import CustomViewBox
@@ -542,7 +541,7 @@ def SetUI(self):
     self.sj_save_pushButton_05 = setPushbutton('저장하기', box=self.sj_groupBox_05, click=self.ButtonClicked_81)
     self.sj_save_pushButton_06 = setPushbutton('저장하기', box=self.sj_groupBox_06, click=self.ButtonClicked_82)
 
-    self.dialog = QDialog()
+    self.dialog = QtWidgets.QDialog()
     self.dialog.setWindowTitle('STOM CHART')
     self.dialog.setWindowModality(Qt.NonModal)
     self.dialog.setWindowIcon(QtGui.QIcon(f'{ICON_PATH}/python.png'))

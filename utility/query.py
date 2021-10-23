@@ -7,8 +7,8 @@ class Query:
         """
                     0        1       2        3       4       5          6        7      8      9     10
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q]
-                   11       12      13     14      15     16     17
+                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
+                   11       12      13     14      15     16     17      18
         """
         self.windowQ = qlist[0]
         self.query1Q = qlist[2]
