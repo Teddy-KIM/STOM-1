@@ -217,10 +217,8 @@ class Window(QtWidgets.QMainWindow):
             queryQ_size = query1Q.qsize() + query2Q.qsize()
             stickQ_size = tick1Q.qsize() + tick2Q.qsize() + tick3Q.qsize() + tick4Q.qsize()
             text = f'STOM - Qsize : ' \
-                   f'windowQ[{windowQ.qsize()}] | queryQ[{queryQ_size}] | ' \
-                   f'stockQ[{stockQ.qsize()}] | coinQ[{coinQ.qsize()}] | ' \
-                   f'sstgQ[{sstgQ.qsize()}] | cstgQ[{cstgQ.qsize()}] | ' \
-                   f'stickQ[{stickQ_size}] | ctickQ[{tick5Q.qsize()}]'
+                   f'queryQ[{queryQ_size}] | stockQ[{stockQ.qsize()}] | coinQ[{coinQ.qsize()}] | ' \
+                   f'sstgQ[{sstgQ.qsize()}] | cstgQ[{cstgQ.qsize()}] | stickQ[{stickQ_size}] | ctickQ[{tick5Q.qsize()}]'
             self.setWindowTitle(text)
         elif self.windowTitle() != 'STOM':
             self.setWindowTitle('STOM')
