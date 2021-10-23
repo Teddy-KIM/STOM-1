@@ -140,12 +140,12 @@ class ReceiverXing:
                          '"매도호가5" REAL, "매도호가4" REAL, "매도호가3" REAL, "매도호가2" REAL, "매도호가1" REAL,' \
                          '"매수호가1" REAL, "매수호가2" REAL, "매수호가3" REAL, "매수호가4" REAL, "매수호가5" REAL,' \
                          '"매도잔량5" REAL, "매도잔량4" REAL, "매도잔량3" REAL, "매도잔량2" REAL, "매도잔량1" REAL,' \
-                         '"매수잔량1" REAL, "매수잔량2" REAL, "매수잔량3" REAL, "매수잔량4" REAL, "매수잔량5" REAL);'
+                         '"매수잔량1" REAL, "매수잔량2" REAL, "매수잔량3" REAL, "매수잔량4" REAL, "매수잔량5" REAL)'
                 self.query2Q.put([1, query])
-                query = f'CREATE INDEX "ix_{code}_index" ON "{code}"("index");'
+                query = f'CREATE INDEX "ix_{code}_index" ON "{code}"("index")'
                 self.query2Q.put([1, query])
-        self.query1Q.put([1, df, 'codename', 'replace'])
         self.query2Q.put('주식디비트리거시작')
+        self.query1Q.put([1, df, 'codename', 'replace'])
 
         df = self.xaq.BlockRequest('t1866', user_id=DICT_SET['아이디2'], gb='2', group_name='STOM')
         try:
