@@ -510,8 +510,8 @@ class Window(QtWidgets.QMainWindow):
         self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
         self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
         self.ctpg_02.plot(x=unix_ts, y=df['최고체결강도'], pen=(180, 0, 0))
-        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(0, 0, 255))
-        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(0, 180, 180))
+        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(255, 0, 0))
+        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(0, 0, 255))
         self.ctpg_01.getAxis('bottom').setLabel(text=name)
         crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
 
