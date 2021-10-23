@@ -17,6 +17,7 @@ from stock.trader_xing import TraderXing
 from utility.setui import *
 from utility.sound import Sound
 from utility.query import Query
+from utility.chart import Chart
 from utility.query_tick import QueryTick
 from utility.telegram_msg import TelegramMsg
 from utility.static import *
@@ -62,11 +63,10 @@ class Window(QtWidgets.QMainWindow):
         codenamelist = list(self.dict_code.keys()) + list(self.dict_name.keys()) + list(df['name'].values)
         self.ct_lineEdit_02.setCompleter(QtWidgets.QCompleter(codenamelist))
 
-        self.writer = Writer()
-        self.writer.data1.connect(self.UpdateTexedit)
-        self.writer.data2.connect(self.UpdateTablewidget)
-        self.writer.data3.connect(self.UpdateGaonsimJongmok)
-        self.writer.start()
+        self.showQsize = False
+        self.startCoinTrader = False
+        self.startCoinReceiver = False
+        self.backtester_proc = None
 
         self.qtimer1 = QtCore.QTimer()
         self.qtimer1.setInterval(1000)
@@ -83,10 +83,12 @@ class Window(QtWidgets.QMainWindow):
         self.qtimer3.timeout.connect(self.UpdateCpuper)
         self.qtimer3.start()
 
-        self.showQsize = False
-        self.startCoinTrader = False
-        self.startCoinReceiver = False
-        self.backtester_proc = None
+        self.writer = Writer()
+        self.writer.data1.connect(self.UpdateTexedit)
+        self.writer.data2.connect(self.UpdateTablewidget)
+        self.writer.data3.connect(self.UpdateGaonsimJongmok)
+        self.writer.data4.connect(self.DrawChart)
+        self.writer.start()
 
         self.receiver_coin_proc1 = Process(target=WebsTicker, args=(qlist,))
         self.receiver_coin_proc2 = Process(target=WebsOrderbook, args=(qlist,))
@@ -213,12 +215,12 @@ class Window(QtWidgets.QMainWindow):
     def UpdateWindowTitle(self):
         if self.showQsize:
             queryQ_size = query1Q.qsize() + query2Q.qsize()
-            stocktickQ_size = tick1Q.qsize() + tick2Q.qsize() + tick3Q.qsize() + tick4Q.qsize()
-            text = f'STOM                                                                       ' \
-                   f'windowQ[{windowQ.qsize()}] | soundQ[{soundQ.qsize()}] | ' \
-                   f'queryQ[{queryQ_size}] | teleQ[{teleQ.qsize()}] | receivQ[{sreceivQ.qsize()}] | ' \
-                   f'stockQ[{stockQ.qsize()}] | coinQ[{coinQ.qsize()}] | sstgQ[{sstgQ.qsize()}] | ' \
-                   f'cstgQ[{cstgQ.qsize()}] | stocktickQ[{stocktickQ_size}] | cointickQ[{tick5Q.qsize()}]'
+            stickQ_size = tick1Q.qsize() + tick2Q.qsize() + tick3Q.qsize() + tick4Q.qsize()
+            text = f'STOM - Qsize : ' \
+                   f'windowQ[{windowQ.qsize()}] | queryQ[{queryQ_size}] | ' \
+                   f'stockQ[{stockQ.qsize()}] | coinQ[{coinQ.qsize()}] | ' \
+                   f'sstgQ[{sstgQ.qsize()}] | cstgQ[{cstgQ.qsize()}] | ' \
+                   f'stickQ[{stickQ_size}] | ctickQ[{tick5Q.qsize()}]'
             self.setWindowTitle(text)
         elif self.windowTitle() != 'STOM':
             self.setWindowTitle('STOM')
@@ -251,6 +253,269 @@ class Window(QtWidgets.QMainWindow):
 
     def ShowQsize(self):
         self.showQsize = True if not self.showQsize else False
+
+    def UpdateTexedit(self, data):
+        text = f'[{now()}] {data[1]}'
+        if data[0] == ui_num['설정텍스트']:
+            self.sj_textEdit.append(text)
+        elif data[0] == ui_num['S로그텍스트']:
+            self.st_textEdit.append(text)
+            self.log1.info(text)
+        elif data[0] == ui_num['S단순텍스트']:
+            self.sc_textEdit.append(text)
+        elif data[0] == ui_num['C로그텍스트']:
+            self.ct_textEdit.append(text)
+            self.log2.info(text)
+        elif data[0] == ui_num['C단순텍스트']:
+            self.cc_textEdit.append(text)
+        elif data[0] == ui_num['S전략텍스트']:
+            self.ss_textEdit_03.append(text)
+        elif data[0] == ui_num['C전략텍스트']:
+            self.cs_textEdit_03.append(text)
+
+    def UpdateTablewidget(self, data):
+        gubun = data[0]
+        df = data[1]
+
+        tableWidget = None
+        if gubun == ui_num['S실현손익']:
+            tableWidget = self.stt_tableWidget
+        elif gubun == ui_num['S거래목록']:
+            tableWidget = self.std_tableWidget
+        elif gubun == ui_num['S잔고평가']:
+            tableWidget = self.stj_tableWidget
+        elif gubun == ui_num['S잔고목록']:
+            tableWidget = self.sjg_tableWidget
+        elif gubun == ui_num['S체결목록']:
+            tableWidget = self.scj_tableWidget
+        elif gubun == ui_num['S당일합계']:
+            tableWidget = self.sdt_tableWidget
+        elif gubun == ui_num['S당일상세']:
+            tableWidget = self.sds_tableWidget
+        elif gubun == ui_num['S누적합계']:
+            tableWidget = self.snt_tableWidget
+        elif gubun == ui_num['S누적상세']:
+            tableWidget = self.sns_tableWidget
+        elif gubun == ui_num['C실현손익']:
+            tableWidget = self.ctt_tableWidget
+        elif gubun == ui_num['C거래목록']:
+            tableWidget = self.ctd_tableWidget
+        elif gubun == ui_num['C잔고평가']:
+            tableWidget = self.ctj_tableWidget
+        elif gubun == ui_num['C잔고목록']:
+            tableWidget = self.cjg_tableWidget
+        elif gubun == ui_num['C체결목록']:
+            tableWidget = self.ccj_tableWidget
+        elif gubun == ui_num['C당일합계']:
+            tableWidget = self.cdt_tableWidget
+        elif gubun == ui_num['C당일상세']:
+            tableWidget = self.cds_tableWidget
+        elif gubun == ui_num['C누적합계']:
+            tableWidget = self.cnt_tableWidget
+        elif gubun == ui_num['C누적상세']:
+            tableWidget = self.cns_tableWidget
+        if tableWidget is None:
+            return
+
+        if len(df) == 0:
+            tableWidget.clearContents()
+            return
+
+        tableWidget.setRowCount(len(df))
+        for j, index in enumerate(df.index):
+            for i, column in enumerate(df.columns):
+                if column == '체결시간':
+                    cgtime = str(df[column][index])
+                    cgtime = f'{cgtime[8:10]}:{cgtime[10:12]}:{cgtime[12:14]}'
+                    item = QtWidgets.QTableWidgetItem(cgtime)
+                elif column in ['거래일자', '일자']:
+                    day = df[column][index]
+                    if '.' not in day:
+                        day = day[:4] + '.' + day[4:6] + '.' + day[6:]
+                    item = QtWidgets.QTableWidgetItem(day)
+                elif column in ['종목명', '주문구분', '기간']:
+                    item = QtWidgets.QTableWidgetItem(str(df[column][index]))
+                elif (gubun == ui_num['C잔고목록'] and column == '보유수량') or \
+                        (gubun == ui_num['C체결목록'] and column == '주문수량') or \
+                        (gubun == ui_num['C거래목록'] and column == '주문수량'):
+                    item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index], dotdown8=True))
+                elif (gubun == ui_num['C잔고목록'] and column in ['매입가', '현재가']) or \
+                        (gubun == ui_num['C체결목록'] and column in ['체결가', '주문가격']):
+                    item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index]))
+                elif column not in ['수익률', '등락율', '고저평균대비등락율', '체결강도', '최고체결강도']:
+                    item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index], dotdowndel=True))
+                else:
+                    item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index]))
+
+                if column == '종목명':
+                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+                elif column in ['거래횟수', '추정예탁자산', '추정예수금', '보유종목수',
+                                '주문구분', '체결시간', '거래일자', '기간', '일자']:
+                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignCenter)
+                else:
+                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
+
+                if '수익률' in df.columns:
+                    if df['수익률'][index] >= 0:
+                        item.setForeground(color_fg_bt)
+                    else:
+                        item.setForeground(color_fg_dk)
+                elif gubun in [ui_num['S체결목록'], ui_num['C체결목록']]:
+                    if df['주문구분'][index] == '매수':
+                        item.setForeground(color_fg_bt)
+                    elif df['주문구분'][index] == '매도':
+                        item.setForeground(color_fg_dk)
+                    elif df['주문구분'][index] in ['매도취소', '매수취소']:
+                        item.setForeground(color_fg_bc)
+                tableWidget.setItem(j, i, item)
+
+        if len(df) < 13 and gubun in [ui_num['S거래목록'], ui_num['S잔고목록'], ui_num['C거래목록'], ui_num['C잔고목록']]:
+            tableWidget.setRowCount(13)
+        elif len(df) < 15 and gubun in [ui_num['S체결목록'], ui_num['C체결목록']]:
+            tableWidget.setRowCount(15)
+        elif len(df) < 19 and gubun in [ui_num['S당일상세'], ui_num['C당일상세']]:
+            tableWidget.setRowCount(19)
+        elif len(df) < 28 and gubun in [ui_num['S누적상세'], ui_num['C누적상세']]:
+            tableWidget.setRowCount(28)
+
+    def UpdateGaonsimJongmok(self, data):
+        gubun = data[0]
+        dict_df = data[1]
+
+        if gubun == ui_num['S관심종목']:
+            gj_tableWidget = self.sgj_tableWidget
+            if int(strf_time('%H%M%S')) < 100000:
+                avgindex = DICT_SET['주식장초평균값계산틱수'] + 1
+            else:
+                avgindex = DICT_SET['주식장중평균값계산틱수'] + 1
+        else:
+            gj_tableWidget = self.cgj_tableWidget
+            if 90000 < int(strf_time('%H%M%S')) < 100000:
+                avgindex = DICT_SET['코인장초평균값계산틱수'] + 1
+            else:
+                avgindex = DICT_SET['코인장중평균값계산틱수'] + 1
+
+        if len(dict_df) == 0:
+            gj_tableWidget.clearContents()
+            return
+
+        try:
+            gj_tableWidget.setRowCount(len(dict_df))
+            for j, code in enumerate(list(dict_df.keys())):
+                try:
+                    item = QtWidgets.QTableWidgetItem(self.dict_name[code])
+                except KeyError:
+                    item = QtWidgets.QTableWidgetItem(code)
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+                gj_tableWidget.setItem(j, 0, item)
+
+                smavg = dict_df[code]['초당거래대금'][avgindex]
+                item = QtWidgets.QTableWidgetItem(changeFormat(smavg).split('.')[0])
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
+                gj_tableWidget.setItem(j, columns_gj_.index('sm_avg'), item)
+
+                chavg = dict_df[code]['체결강도'][avgindex]
+                item = QtWidgets.QTableWidgetItem(changeFormat(chavg))
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
+                gj_tableWidget.setItem(j, columns_gj_.index('ch_avg'), item)
+
+                chhigh = dict_df[code]['최고체결강도'][avgindex]
+                item = QtWidgets.QTableWidgetItem(changeFormat(chhigh))
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
+                gj_tableWidget.setItem(j, columns_gj_.index('ch_high'), item)
+
+                for i, column in enumerate(columns_gj[:-1]):
+                    if column in ['초당거래대금', '당일거래대금']:
+                        item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0], dotdowndel=True))
+                    else:
+                        item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0]))
+                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
+                    gj_tableWidget.setItem(j, i + 1, item)
+
+            if len(dict_df) < 15:
+                gj_tableWidget.setRowCount(15)
+        except KeyError:
+            pass
+
+    def DrawChart(self, data):
+        df = data[1]
+        name = data[2]
+        unix_ts = data[3]
+
+        if type(df) == str:
+            QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
+            return
+
+        if not self.ct_labellll_03.isVisible():
+            self.ct_labellll_03.setVisible(True)
+            self.ct_labellll_04.setVisible(True)
+            self.ct_labellll_05.setVisible(True)
+
+        def crosshair(main_pg, sub_pg1, sub_pg2):
+            vLine1 = pyqtgraph.InfiniteLine()
+            vLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine2 = pyqtgraph.InfiniteLine()
+            vLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine3 = pyqtgraph.InfiniteLine()
+            vLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+
+            hLine1 = pyqtgraph.InfiniteLine(angle=0)
+            hLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine2 = pyqtgraph.InfiniteLine(angle=0)
+            hLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine3 = pyqtgraph.InfiniteLine(angle=0)
+            hLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+
+            main_pg.addItem(vLine1, ignoreBounds=True)
+            main_pg.addItem(hLine1, ignoreBounds=True)
+            sub_pg1.addItem(vLine2, ignoreBounds=True)
+            sub_pg1.addItem(hLine2, ignoreBounds=True)
+            sub_pg2.addItem(vLine3, ignoreBounds=True)
+            sub_pg2.addItem(hLine3, ignoreBounds=True)
+
+            main_vb = main_pg.getViewBox()
+            sub_vb1 = sub_pg1.getViewBox()
+            sub_vb2 = sub_pg2.getViewBox()
+
+            def mouseMoved(evt):
+                pos = evt[0]
+                if main_pg.sceneBoundingRect().contains(pos):
+                    mousePoint = main_vb.mapSceneToView(pos)
+                    self.ct_labellll_03.setText(f"현재가 {format(round(mousePoint.y(), 2), ',')}")
+                    hLine1.setPos(mousePoint.y())
+                    vLine1.setPos(mousePoint.x())
+                    vLine2.setPos(mousePoint.x())
+                    vLine3.setPos(mousePoint.x())
+                if sub_pg1.sceneBoundingRect().contains(pos):
+                    mousePoint = sub_vb1.mapSceneToView(pos)
+                    self.ct_labellll_04.setText(f"체결강도 {format(round(mousePoint.y(), 2), ',')}")
+                    hLine2.setPos(mousePoint.y())
+                    vLine1.setPos(mousePoint.x())
+                    vLine2.setPos(mousePoint.x())
+                    vLine3.setPos(mousePoint.x())
+                if sub_pg2.sceneBoundingRect().contains(pos):
+                    mousePoint = sub_vb2.mapSceneToView(pos)
+                    self.ct_labellll_05.setText(f"초당거래대금 {format(round(mousePoint.y(), 2), ',')}")
+                    hLine3.setPos(mousePoint.y())
+                    vLine1.setPos(mousePoint.x())
+                    vLine3.setPos(mousePoint.x())
+                    vLine2.setPos(mousePoint.x())
+
+            main_pg.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+            sub_pg1.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+            sub_pg2.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+
+        self.ctpg_01.clear()
+        self.ctpg_02.clear()
+        self.ctpg_03.clear()
+        self.ctpg_01.plot(x=unix_ts, y=df['현재가'], pen=(255, 0, 0))
+        self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
+        self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
+        self.ctpg_02.plot(x=unix_ts, y=df['최고체결강도'], pen=(180, 0, 0))
+        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(0, 0, 255))
+        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(0, 180, 180))
+        self.ctpg_01.getAxis('bottom').setLabel(text=name)
+        crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
 
     def CheckboxChanged_01(self, state):
         if state == Qt.Checked:
@@ -316,7 +581,7 @@ class Window(QtWidgets.QMainWindow):
         name = item.text()
         linetext = self.ct_lineEdit_01.text()
         tickcount = int(linetext) if linetext != '' else 60
-        self.DrawChart(name, tickcount, strf_time('%Y%m%d'))
+        self.PurChart(name, tickcount, strf_time('%Y%m%d'))
 
     @QtCore.pyqtSlot(int)
     def CellClicked_02(self, row):
@@ -367,7 +632,7 @@ class Window(QtWidgets.QMainWindow):
         name = item.text()
         linetext = self.ct_lineEdit_01.text()
         tickcount = int(linetext) if linetext != '' else 60
-        self.DrawChart(name, tickcount, searchdate)
+        self.PurChart(name, tickcount, searchdate)
 
     def ShowDialog(self):
         if not self.dialog.isVisible():
@@ -381,126 +646,19 @@ class Window(QtWidgets.QMainWindow):
         name = self.ct_lineEdit_02.text()
         if name == '':
             return
-        self.DrawChart(name, int(tickcount), searchdate)
+        self.PurChart(name, int(tickcount), searchdate)
 
-    def DrawChart(self, name, tickcount, searchdate):
-        try:
-            coin = False
-            if name in self.dict_code.keys():
-                con = sqlite3.connect(DB_STOCK_TICK)
-                code = self.dict_code[name]
-            elif name in self.dict_code.values():
-                con = sqlite3.connect(DB_STOCK_TICK)
-                code = name
-                name = self.dict_name[code]
-            else:
-                con = sqlite3.connect(DB_COIN_TICK)
-                code = name
-                coin = True
-
-            try:
-                df = pd.read_sql(f"SELECT * FROM '{code}' WHERE `index` LIKE '{searchdate}%'", con).set_index('index')
-                con.close()
-            except pd.io.sql.DatabaseError:
-                QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 종목의 테이블이 존재하지 않습니다.\n')
-                return
-
-            df['고저평균대비등락율'] = (df['현재가'] / ((df['고가'] + df['저가']) / 2) - 1) * 100
-            df['고저평균대비등락율'] = df['고저평균대비등락율'].round(2)
-            if coin:
-                df['체결강도'] = df['누적매수량'] / df['누적매도량'] * 100
-                df['체결강도'] = df['체결강도'].apply(lambda x: 500 if x > 500 else round(x, 2))
-            df['직전체결강도'] = df['체결강도'].shift(1)
-            df['직전당일거래대금'] = df['당일거래대금'].shift(1)
-            df = df.fillna(method='bfill')
-            df['초당거래대금'] = df['당일거래대금'] - df['직전당일거래대금']
-            df.at[df.index[0], '초당거래대금'] = 0
-            df['직전초당거래대금'] = df['초당거래대금'].shift(1)
-            df = df.fillna(method='bfill')
-            df['초당거래대금평균'] = df['직전초당거래대금'].rolling(window=tickcount).mean()
-            df['체결강도평균'] = df['직전체결강도'].rolling(window=tickcount).mean()
-            df['최고체결강도'] = df['직전체결강도'].rolling(window=tickcount).max()
-            df['체결시간'] = df.index
-            df['체결시간'] = df['체결시간'].apply(lambda x: strp_time('%Y%m%d%H%M%S', x))
-            df = df.set_index('체결시간')
-
-            if len(df) == 0:
-                QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
-                return
-
-            if not self.ct_labellll_03.isVisible():
-                self.ct_labellll_03.setVisible(True)
-                self.ct_labellll_04.setVisible(True)
-                self.ct_labellll_05.setVisible(True)
-
-            def crosshair(main_pg, sub_pg1, sub_pg2):
-                vLine1 = pyqtgraph.InfiniteLine()
-                vLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-                vLine2 = pyqtgraph.InfiniteLine()
-                vLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-                vLine3 = pyqtgraph.InfiniteLine()
-                vLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-
-                hLine1 = pyqtgraph.InfiniteLine(angle=0)
-                hLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-                hLine2 = pyqtgraph.InfiniteLine(angle=0)
-                hLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-                hLine3 = pyqtgraph.InfiniteLine(angle=0)
-                hLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
-
-                main_pg.addItem(vLine1, ignoreBounds=True)
-                main_pg.addItem(hLine1, ignoreBounds=True)
-                sub_pg1.addItem(vLine2, ignoreBounds=True)
-                sub_pg1.addItem(hLine2, ignoreBounds=True)
-                sub_pg2.addItem(vLine3, ignoreBounds=True)
-                sub_pg2.addItem(hLine3, ignoreBounds=True)
-
-                main_vb = main_pg.getViewBox()
-                sub_vb1 = sub_pg1.getViewBox()
-                sub_vb2 = sub_pg2.getViewBox()
-
-                def mouseMoved(evt):
-                    pos = evt[0]
-                    if main_pg.sceneBoundingRect().contains(pos):
-                        mousePoint = main_vb.mapSceneToView(pos)
-                        self.ct_labellll_03.setText(f"현재가 {format(round(mousePoint.y(), 2), ',')}")
-                        hLine1.setPos(mousePoint.y())
-                        vLine1.setPos(mousePoint.x())
-                        vLine2.setPos(mousePoint.x())
-                        vLine3.setPos(mousePoint.x())
-                    if sub_pg1.sceneBoundingRect().contains(pos):
-                        mousePoint = sub_vb1.mapSceneToView(pos)
-                        self.ct_labellll_04.setText(f"체결강도 {format(round(mousePoint.y(), 2), ',')}")
-                        hLine2.setPos(mousePoint.y())
-                        vLine1.setPos(mousePoint.x())
-                        vLine2.setPos(mousePoint.x())
-                        vLine3.setPos(mousePoint.x())
-                    if sub_pg2.sceneBoundingRect().contains(pos):
-                        mousePoint = sub_vb2.mapSceneToView(pos)
-                        self.ct_labellll_05.setText(f"초당거래대금 {format(round(mousePoint.y(), 2), ',')}")
-                        hLine3.setPos(mousePoint.y())
-                        vLine1.setPos(mousePoint.x())
-                        vLine3.setPos(mousePoint.x())
-                        vLine2.setPos(mousePoint.x())
-
-                main_pg.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
-                sub_pg1.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
-                sub_pg2.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
-
-            self.ctpg_01.clear()
-            self.ctpg_02.clear()
-            self.ctpg_03.clear()
-            unix_ts = [x.timestamp() - 32400 for x in df.index]
-            self.ctpg_01.plot(x=unix_ts, y=df['현재가'], pen=(255, 0, 0))
-            self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
-            self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
-            self.ctpg_02.plot(x=unix_ts, y=df['최고체결강도'], pen=(180, 0, 0))
-            self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(0, 0, 255))
-            self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(0, 180, 180))
-            self.ctpg_01.getAxis('bottom').setLabel(text=name)
-            crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
-        except:
-            print('차트 불러오기 실패, 잠시 후 다시 시도하십시오.')
+    def PurChart(self, name, tickcount, searchdate):
+        coin = False
+        if name in self.dict_code.keys():
+            code = self.dict_code[name]
+        elif name in self.dict_code.values():
+            code = name
+            name = self.dict_name[code]
+        else:
+            code = name
+            coin = True
+        chartQ.put([coin, code, name, tickcount, searchdate])
 
     def ButtonClicked_01(self):
         if self.main_tabWidget.currentWidget() == self.st_tab:
@@ -1408,189 +1566,6 @@ class Window(QtWidgets.QMainWindow):
             DICT_SET['코인장중평균값계산틱수'] = at2
             DICT_SET['코인장중최대매수종목수'] = bc2
 
-    def UpdateTexedit(self, data):
-        text = f'[{now()}] {data[1]}'
-        if data[0] == ui_num['설정텍스트']:
-            self.sj_textEdit.append(text)
-        elif data[0] == ui_num['S로그텍스트']:
-            self.st_textEdit.append(text)
-            self.log1.info(text)
-        elif data[0] == ui_num['S단순텍스트']:
-            self.sc_textEdit.append(text)
-        elif data[0] == ui_num['C로그텍스트']:
-            self.ct_textEdit.append(text)
-            self.log2.info(text)
-        elif data[0] == ui_num['C단순텍스트']:
-            self.cc_textEdit.append(text)
-        elif data[0] == ui_num['S전략텍스트']:
-            self.ss_textEdit_03.append(text)
-        elif data[0] == ui_num['C전략텍스트']:
-            self.cs_textEdit_03.append(text)
-
-    def UpdateTablewidget(self, data):
-        gubun = data[0]
-        df = data[1]
-
-        tableWidget = None
-        if gubun == ui_num['S실현손익']:
-            tableWidget = self.stt_tableWidget
-        elif gubun == ui_num['S거래목록']:
-            tableWidget = self.std_tableWidget
-        elif gubun == ui_num['S잔고평가']:
-            tableWidget = self.stj_tableWidget
-        elif gubun == ui_num['S잔고목록']:
-            tableWidget = self.sjg_tableWidget
-        elif gubun == ui_num['S체결목록']:
-            tableWidget = self.scj_tableWidget
-        elif gubun == ui_num['S당일합계']:
-            tableWidget = self.sdt_tableWidget
-        elif gubun == ui_num['S당일상세']:
-            tableWidget = self.sds_tableWidget
-        elif gubun == ui_num['S누적합계']:
-            tableWidget = self.snt_tableWidget
-        elif gubun == ui_num['S누적상세']:
-            tableWidget = self.sns_tableWidget
-        elif gubun == ui_num['C실현손익']:
-            tableWidget = self.ctt_tableWidget
-        elif gubun == ui_num['C거래목록']:
-            tableWidget = self.ctd_tableWidget
-        elif gubun == ui_num['C잔고평가']:
-            tableWidget = self.ctj_tableWidget
-        elif gubun == ui_num['C잔고목록']:
-            tableWidget = self.cjg_tableWidget
-        elif gubun == ui_num['C체결목록']:
-            tableWidget = self.ccj_tableWidget
-        elif gubun == ui_num['C당일합계']:
-            tableWidget = self.cdt_tableWidget
-        elif gubun == ui_num['C당일상세']:
-            tableWidget = self.cds_tableWidget
-        elif gubun == ui_num['C누적합계']:
-            tableWidget = self.cnt_tableWidget
-        elif gubun == ui_num['C누적상세']:
-            tableWidget = self.cns_tableWidget
-        if tableWidget is None:
-            return
-
-        if len(df) == 0:
-            tableWidget.clearContents()
-            return
-
-        tableWidget.setRowCount(len(df))
-        for j, index in enumerate(df.index):
-            for i, column in enumerate(df.columns):
-                if column == '체결시간':
-                    cgtime = str(df[column][index])
-                    cgtime = f'{cgtime[8:10]}:{cgtime[10:12]}:{cgtime[12:14]}'
-                    item = QtWidgets.QTableWidgetItem(cgtime)
-                elif column in ['거래일자', '일자']:
-                    day = df[column][index]
-                    if '.' not in day:
-                        day = day[:4] + '.' + day[4:6] + '.' + day[6:]
-                    item = QtWidgets.QTableWidgetItem(day)
-                elif column in ['종목명', '주문구분', '기간']:
-                    item = QtWidgets.QTableWidgetItem(str(df[column][index]))
-                elif (gubun == ui_num['C잔고목록'] and column == '보유수량') or \
-                        (gubun == ui_num['C체결목록'] and column == '주문수량') or \
-                        (gubun == ui_num['C거래목록'] and column == '주문수량'):
-                    item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index], dotdown8=True))
-                elif (gubun == ui_num['C잔고목록'] and column in ['매입가', '현재가']) or \
-                        (gubun == ui_num['C체결목록'] and column in ['체결가', '주문가격']):
-                    item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index]))
-                elif column not in ['수익률', '등락율', '고저평균대비등락율', '체결강도', '최고체결강도']:
-                    item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index], dotdowndel=True))
-                else:
-                    item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index]))
-
-                if column == '종목명':
-                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft)
-                elif column in ['거래횟수', '추정예탁자산', '추정예수금', '보유종목수',
-                                '주문구분', '체결시간', '거래일자', '기간', '일자']:
-                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignCenter)
-                else:
-                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-
-                if '수익률' in df.columns:
-                    if df['수익률'][index] >= 0:
-                        item.setForeground(color_fg_bt)
-                    else:
-                        item.setForeground(color_fg_dk)
-                elif gubun in [ui_num['S체결목록'], ui_num['C체결목록']]:
-                    if df['주문구분'][index] == '매수':
-                        item.setForeground(color_fg_bt)
-                    elif df['주문구분'][index] == '매도':
-                        item.setForeground(color_fg_dk)
-                    elif df['주문구분'][index] in ['매도취소', '매수취소']:
-                        item.setForeground(color_fg_bc)
-                tableWidget.setItem(j, i, item)
-
-        if len(df) < 13 and gubun in [ui_num['S거래목록'], ui_num['S잔고목록'], ui_num['C거래목록'], ui_num['C잔고목록']]:
-            tableWidget.setRowCount(13)
-        elif len(df) < 15 and gubun in [ui_num['S체결목록'], ui_num['C체결목록']]:
-            tableWidget.setRowCount(15)
-        elif len(df) < 19 and gubun in [ui_num['S당일상세'], ui_num['C당일상세']]:
-            tableWidget.setRowCount(19)
-        elif len(df) < 28 and gubun in [ui_num['S누적상세'], ui_num['C누적상세']]:
-            tableWidget.setRowCount(28)
-
-    def UpdateGaonsimJongmok(self, data):
-        gubun = data[0]
-        dict_df = data[1]
-
-        if gubun == ui_num['S관심종목']:
-            gj_tableWidget = self.sgj_tableWidget
-            if int(strf_time('%H%M%S')) < 100000:
-                avgindex = DICT_SET['주식장초평균값계산틱수'] + 1
-            else:
-                avgindex = DICT_SET['주식장중평균값계산틱수'] + 1
-        else:
-            gj_tableWidget = self.cgj_tableWidget
-            if 90000 < int(strf_time('%H%M%S')) < 100000:
-                avgindex = DICT_SET['코인장초평균값계산틱수'] + 1
-            else:
-                avgindex = DICT_SET['코인장중평균값계산틱수'] + 1
-
-        if len(dict_df) == 0:
-            gj_tableWidget.clearContents()
-            return
-
-        try:
-            gj_tableWidget.setRowCount(len(dict_df))
-            for j, code in enumerate(list(dict_df.keys())):
-                try:
-                    item = QtWidgets.QTableWidgetItem(self.dict_name[code])
-                except KeyError:
-                    item = QtWidgets.QTableWidgetItem(code)
-                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft)
-                gj_tableWidget.setItem(j, 0, item)
-
-                smavg = dict_df[code]['초당거래대금'][avgindex]
-                item = QtWidgets.QTableWidgetItem(changeFormat(smavg).split('.')[0])
-                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-                gj_tableWidget.setItem(j, columns_gj_.index('sm_avg'), item)
-
-                chavg = dict_df[code]['체결강도'][avgindex]
-                item = QtWidgets.QTableWidgetItem(changeFormat(chavg))
-                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-                gj_tableWidget.setItem(j, columns_gj_.index('ch_avg'), item)
-
-                chhigh = dict_df[code]['최고체결강도'][avgindex]
-                item = QtWidgets.QTableWidgetItem(changeFormat(chhigh))
-                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-                gj_tableWidget.setItem(j, columns_gj_.index('ch_high'), item)
-
-                for i, column in enumerate(columns_gj[:-1]):
-                    if column in ['초당거래대금', '당일거래대금']:
-                        item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0], dotdowndel=True))
-                    else:
-                        item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0]))
-                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignRight)
-                    gj_tableWidget.setItem(j, i + 1, item)
-
-            if len(dict_df) < 15:
-                gj_tableWidget.setRowCount(15)
-        except KeyError:
-            pass
-
     def CalendarClicked(self, gubun):
         if gubun == 'S':
             table = 's_tradelist'
@@ -1636,6 +1611,14 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
         )
         if buttonReply == QtWidgets.QMessageBox.Yes:
+            wsk1Q.put('terminate')
+            wsk2Q.put('terminate')
+            QTest.qWait(2000)
+            sound_proc.kill()
+            query_proc1.kill()
+            query_proc2.kill()
+            chart_proc.kill()
+            tele_proc.kill()
             if self.dialog.isVisible():
                 self.dialog.close()
             if self.qtimer1.isActive():
@@ -1644,13 +1627,6 @@ class Window(QtWidgets.QMainWindow):
                 self.qtimer2.stop()
             if self.qtimer3.isActive():
                 self.qtimer3.stop()
-            sound_proc.kill()
-            query_proc1.kill()
-            query_proc2.kill()
-            tele_proc.kill()
-            wsk1Q.put('terminate')
-            wsk2Q.put('terminate')
-            QTest.qWait(2000)
             if self.writer.isRunning():
                 self.writer.terminate()
             if self.trader_coin_proc.is_alive():
@@ -1690,6 +1666,7 @@ class Writer(QtCore.QThread):
     data1 = QtCore.pyqtSignal(list)
     data2 = QtCore.pyqtSignal(list)
     data3 = QtCore.pyqtSignal(list)
+    data4 = QtCore.pyqtSignal(list)
 
     def __init__(self):
         super().__init__()
@@ -1707,22 +1684,26 @@ class Writer(QtCore.QThread):
                 self.data2.emit(data)
             elif data[0] == 30:
                 self.data3.emit(data)
+            elif data[0] == 40:
+                self.data4.emit(data)
 
 
 if __name__ == '__main__':
     windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, \
-        tick4Q, tick5Q, wsk1Q, wsk2Q = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
-        Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue()
+        tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
+        Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue()
     qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-             tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q]
+             tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
 
     sound_proc = Process(target=Sound, args=(qlist,), daemon=True)
     query_proc1 = Process(target=Query, args=(qlist,), daemon=True)
     query_proc2 = Process(target=QueryTick, args=(qlist,), daemon=True)
+    chart_proc = Process(target=Chart, args=(qlist,), daemon=True)
     tele_proc = Process(target=TelegramMsg, args=(qlist,), daemon=True)
     sound_proc.start()
     query_proc1.start()
     query_proc2.start()
+    chart_proc.start()
     tele_proc.start()
 
     app = QtWidgets.QApplication(sys.argv)
