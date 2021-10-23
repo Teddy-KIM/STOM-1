@@ -824,7 +824,7 @@ class Window(QtWidgets.QMainWindow):
     def Activated_01(self):
         strategy_name = self.ssb_comboBox.currentText()
         if strategy_name != '':
-            con = sqlite3.connect(DB_STOCK_STRETEGY)
+            con = sqlite3.connect(DB_STOCK_STRATEGY)
             df = pd.read_sql(f"SELECT * FROM buy WHERE `index` = '{strategy_name}'", con).set_index('index')
             con.close()
             self.ss_textEdit_01.clear()
@@ -833,7 +833,7 @@ class Window(QtWidgets.QMainWindow):
     def Activated_02(self):
         strategy_name = self.sss_comboBox.currentText()
         if strategy_name != '':
-            con = sqlite3.connect(DB_STOCK_STRETEGY)
+            con = sqlite3.connect(DB_STOCK_STRATEGY)
             df = pd.read_sql(f"SELECT * FROM sell WHERE `index` = '{strategy_name}'", con).set_index('index')
             con.close()
             self.ss_textEdit_02.clear()
@@ -842,7 +842,7 @@ class Window(QtWidgets.QMainWindow):
     def Activated_03(self):
         strategy_name = self.csb_comboBox.currentText()
         if strategy_name != '':
-            con = sqlite3.connect(DB_COIN_STRETEGY)
+            con = sqlite3.connect(DB_COIN_STRATEGY)
             df = pd.read_sql(f"SELECT * FROM buy WHERE `index` = '{strategy_name}'", con).set_index('index')
             con.close()
             self.cs_textEdit_01.clear()
@@ -851,14 +851,14 @@ class Window(QtWidgets.QMainWindow):
     def Activated_04(self):
         strategy_name = self.css_comboBox.currentText()
         if strategy_name != '':
-            con = sqlite3.connect(DB_COIN_STRETEGY)
+            con = sqlite3.connect(DB_COIN_STRATEGY)
             df = pd.read_sql(f"SELECT * FROM sell WHERE `index` = '{strategy_name}'", con).set_index('index')
             con.close()
             self.cs_textEdit_02.clear()
             self.cs_textEdit_02.append(df['전략코드'][strategy_name])
 
     def ButtonClicked_07(self):
-        con = sqlite3.connect(DB_STOCK_STRETEGY)
+        con = sqlite3.connect(DB_STOCK_STRATEGY)
         df = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         con.close()
         if len(df) > 0:
@@ -984,7 +984,7 @@ class Window(QtWidgets.QMainWindow):
                 self.backtester_proc = subprocess.Popen(f'python {SYSTEM_PATH}/backtester/backtester_stock_vc.py')
 
     def ButtonClicked_25(self):
-        con = sqlite3.connect(DB_STOCK_STRETEGY)
+        con = sqlite3.connect(DB_STOCK_STRATEGY)
         df = pd.read_sql('SELECT * FROM sell', con).set_index('index')
         con.close()
         if len(df) > 0:
@@ -1069,7 +1069,7 @@ class Window(QtWidgets.QMainWindow):
         self.sss_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_39(self):
-        con = sqlite3.connect(DB_COIN_STRETEGY)
+        con = sqlite3.connect(DB_COIN_STRATEGY)
         df = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         con.close()
         if len(df) > 0:
@@ -1195,7 +1195,7 @@ class Window(QtWidgets.QMainWindow):
                 self.backtester_proc = subprocess.Popen(f'python {SYSTEM_PATH}/backtester/backtester_coin_vc.py')
 
     def ButtonClicked_57(self):
-        con = sqlite3.connect(DB_COIN_STRETEGY)
+        con = sqlite3.connect(DB_COIN_STRATEGY)
         df = pd.read_sql('SELECT * FROM sell', con).set_index('index')
         con.close()
         if len(df) > 0:
@@ -1338,7 +1338,7 @@ class Window(QtWidgets.QMainWindow):
         con = sqlite3.connect(DB_SETTING)
         df = pd.read_sql('SELECT * FROM stock', con).set_index('index')
         con.close()
-        con = sqlite3.connect(DB_STOCK_STRETEGY)
+        con = sqlite3.connect(DB_STOCK_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')
         con.close()
@@ -1377,7 +1377,7 @@ class Window(QtWidgets.QMainWindow):
         con = sqlite3.connect(DB_SETTING)
         df = pd.read_sql('SELECT * FROM coin', con).set_index('index')
         con.close()
-        con = sqlite3.connect(DB_COIN_STRETEGY)
+        con = sqlite3.connect(DB_COIN_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')
         con.close()

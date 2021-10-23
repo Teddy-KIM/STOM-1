@@ -14,8 +14,8 @@ DB_BACKTEST = f'{SYSTEM_PATH}/database/backtest.db'
 DB_TRADELIST = f'{SYSTEM_PATH}/database/tradelist.db'
 DB_STOCK_TICK = f'{SYSTEM_PATH}/database/stock_tick.db'
 DB_COIN_TICK = f'{SYSTEM_PATH}/database/coin_tick.db'
-DB_STOCK_STRETEGY = f'{SYSTEM_PATH}/database/stock_strategy.db'
-DB_COIN_STRETEGY = f'{SYSTEM_PATH}/database/coin_strategy.db'
+DB_STOCK_STRATEGY = f'{SYSTEM_PATH}/database/stock_strategy.db'
+DB_COIN_STRATEGY = f'{SYSTEM_PATH}/database/coin_strategy.db'
 
 connn = sqlite3.connect(DB_SETTING)
 df_m = pd.read_sql('SELECT * FROM main', connn).set_index('index')

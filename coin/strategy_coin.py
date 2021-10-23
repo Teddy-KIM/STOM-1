@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import now, strf_time, timedelta_sec, float2str1p6
-from utility.setting import DB_COIN_STRETEGY, DICT_SET, ui_num, columns_gj
+from utility.setting import DB_COIN_STRATEGY, DICT_SET, ui_num, columns_gj
 
 
 class StrategyCoin:
@@ -21,7 +21,7 @@ class StrategyCoin:
         self.coinQ = qlist[8]
         self.cstgQ = qlist[10]
 
-        con = sqlite3.connect(DB_COIN_STRETEGY)
+        con = sqlite3.connect(DB_COIN_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')
         con.close()

@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.setting import DB_STOCK_STRETEGY, DB_STOCK_TICK, DB_BACKTEST, DB_SETTING
+from utility.setting import DB_STOCK_STRATEGY, DB_STOCK_TICK, DB_BACKTEST, DB_SETTING
 from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
 BETTING = 10000000     # 종목당 배팅금액
@@ -25,7 +25,7 @@ class BackTesterStockStg:
         self.starttime = var_[3]
         self.endtime = var_[4]
 
-        conn = sqlite3.connect(DB_STOCK_STRETEGY)
+        conn = sqlite3.connect(DB_STOCK_STRATEGY)
         dfs = pd.read_sql('SELECT * FROM buy', conn).set_index('index')
         buystrategy = dfs['전략코드'][buystg_].split('if 매수:')[0] + 'if 매수:\n    self.Buy()'
         self.buystrategy = compile(buystrategy, '<string>', 'exec')
