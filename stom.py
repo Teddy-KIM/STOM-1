@@ -1563,6 +1563,38 @@ class Window(QtWidgets.QMainWindow):
             DICT_SET['코인장중평균값계산틱수'] = at2
             DICT_SET['코인장중최대매수종목수'] = bc2
 
+    def ButtonClicked_83(self):
+        if self.sj_load_pushButton_00.text() == '계정 텍스트 보기':
+            self.sj_sacc_lineEdit_01.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_sacc_lineEdit_02.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_sacc_lineEdit_03.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_sacc_lineEdit_04.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_sacc_lineEdit_05.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_sacc_lineEdit_06.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_sacc_lineEdit_07.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_sacc_lineEdit_08.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_cacc_lineEdit_01.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_cacc_lineEdit_02.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_tele_lineEdit_01.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_tele_lineEdit_02.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.sj_load_pushButton_00.setText('계정 텍스트 가리기')
+            self.sj_load_pushButton_00.setStyleSheet(style_bc_dk)
+        else:
+            self.sj_sacc_lineEdit_01.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_sacc_lineEdit_02.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_sacc_lineEdit_03.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_sacc_lineEdit_04.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_sacc_lineEdit_05.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_sacc_lineEdit_06.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_sacc_lineEdit_07.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_sacc_lineEdit_08.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_cacc_lineEdit_01.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_cacc_lineEdit_02.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_tele_lineEdit_01.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_tele_lineEdit_02.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.sj_load_pushButton_00.setText('계정 텍스트 보기')
+            self.sj_load_pushButton_00.setStyleSheet(style_bc_bt)
+
     def CalendarClicked(self, gubun):
         if gubun == 'S':
             table = 's_tradelist'

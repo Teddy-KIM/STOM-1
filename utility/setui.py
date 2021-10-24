@@ -104,13 +104,15 @@ def SetUI(self):
             combobox.currentTextChanged.connect(Activated)
         return combobox
 
-    def setLineedit(groupbox, enter=None):
+    def setLineedit(groupbox, enter=None, passhide=False):
         lineedit = QtWidgets.QLineEdit(groupbox)
         lineedit.setAlignment(Qt.AlignRight)
         lineedit.setStyleSheet(style_fc_bt)
         lineedit.setFont(qfont12)
         if enter:
             lineedit.returnPressed.connect(enter)
+        if passhide:
+            lineedit.setEchoMode(QtWidgets.QLineEdit.Password)
         return lineedit
 
     def setLineedit2(tab):
@@ -467,31 +469,31 @@ def SetUI(self):
     self.sj_main_checkBox_06.stateChanged.connect(self.CheckboxChanged_04)
 
     self.sj_sacc_labellll_01 = QtWidgets.QLabel('첫번째 계정 아이디', self.sj_groupBox_02)
-    self.sj_sacc_lineEdit_01 = setLineedit(self.sj_groupBox_02)
+    self.sj_sacc_lineEdit_01 = setLineedit(self.sj_groupBox_02, passhide=True)
     self.sj_sacc_labellll_02 = QtWidgets.QLabel('비밀번호', self.sj_groupBox_02)
-    self.sj_sacc_lineEdit_02 = setLineedit(self.sj_groupBox_02)
+    self.sj_sacc_lineEdit_02 = setLineedit(self.sj_groupBox_02, passhide=True)
     self.sj_sacc_labellll_03 = QtWidgets.QLabel('인증서비밀번호', self.sj_groupBox_02)
-    self.sj_sacc_lineEdit_03 = setLineedit(self.sj_groupBox_02)
+    self.sj_sacc_lineEdit_03 = setLineedit(self.sj_groupBox_02, passhide=True)
     self.sj_sacc_labellll_04 = QtWidgets.QLabel('계좌비밀번호', self.sj_groupBox_02)
-    self.sj_sacc_lineEdit_04 = setLineedit(self.sj_groupBox_02)
+    self.sj_sacc_lineEdit_04 = setLineedit(self.sj_groupBox_02, passhide=True)
     self.sj_sacc_labellll_05 = QtWidgets.QLabel('두번째 계정 아이디', self.sj_groupBox_02)
-    self.sj_sacc_lineEdit_05 = setLineedit(self.sj_groupBox_02)
+    self.sj_sacc_lineEdit_05 = setLineedit(self.sj_groupBox_02, passhide=True)
     self.sj_sacc_labellll_06 = QtWidgets.QLabel('비밀번호', self.sj_groupBox_02)
-    self.sj_sacc_lineEdit_06 = setLineedit(self.sj_groupBox_02)
+    self.sj_sacc_lineEdit_06 = setLineedit(self.sj_groupBox_02, passhide=True)
     self.sj_sacc_labellll_07 = QtWidgets.QLabel('인증서비밀번호', self.sj_groupBox_02)
-    self.sj_sacc_lineEdit_07 = setLineedit(self.sj_groupBox_02)
+    self.sj_sacc_lineEdit_07 = setLineedit(self.sj_groupBox_02, passhide=True)
     self.sj_sacc_labellll_08 = QtWidgets.QLabel('계좌비밀번호', self.sj_groupBox_02)
-    self.sj_sacc_lineEdit_08 = setLineedit(self.sj_groupBox_02)
+    self.sj_sacc_lineEdit_08 = setLineedit(self.sj_groupBox_02, passhide=True)
 
     self.sj_cacc_labellll_01 = QtWidgets.QLabel('Access Key', self.sj_groupBox_03)
-    self.sj_cacc_lineEdit_01 = setLineedit(self.sj_groupBox_03)
+    self.sj_cacc_lineEdit_01 = setLineedit(self.sj_groupBox_03, passhide=True)
     self.sj_cacc_labellll_02 = QtWidgets.QLabel('Secret Key', self.sj_groupBox_03)
-    self.sj_cacc_lineEdit_02 = setLineedit(self.sj_groupBox_03)
+    self.sj_cacc_lineEdit_02 = setLineedit(self.sj_groupBox_03, passhide=True)
 
     self.sj_tele_labellll_01 = QtWidgets.QLabel('Bot Token', self.sj_groupBox_04)
-    self.sj_tele_lineEdit_01 = setLineedit(self.sj_groupBox_04)
+    self.sj_tele_lineEdit_01 = setLineedit(self.sj_groupBox_04, passhide=True)
     self.sj_tele_labellll_02 = QtWidgets.QLabel('Chat Id', self.sj_groupBox_04)
-    self.sj_tele_lineEdit_02 = setLineedit(self.sj_groupBox_04)
+    self.sj_tele_lineEdit_02 = setLineedit(self.sj_groupBox_04, passhide=True)
 
     self.sj_stock_checkBox_01 = QtWidgets.QCheckBox('모의투자', self.sj_groupBox_05)
     self.sj_stock_checkBox_02 = QtWidgets.QCheckBox('알림소리', self.sj_groupBox_05)
@@ -533,6 +535,8 @@ def SetUI(self):
     self.sj_load_pushButton_04 = setPushbutton('불러오기', box=self.sj_groupBox_04, click=self.ButtonClicked_74)
     self.sj_load_pushButton_05 = setPushbutton('불러오기', box=self.sj_groupBox_05, click=self.ButtonClicked_75)
     self.sj_load_pushButton_06 = setPushbutton('불러오기', box=self.sj_groupBox_06, click=self.ButtonClicked_76)
+
+    self.sj_load_pushButton_00 = setPushbutton('계정 텍스트 보기', box=self.sj_groupBox_02, click=self.ButtonClicked_83)
 
     self.sj_save_pushButton_01 = setPushbutton('저장하기', box=self.sj_groupBox_01, click=self.ButtonClicked_77)
     self.sj_save_pushButton_02 = setPushbutton('저장하기', box=self.sj_groupBox_02, click=self.ButtonClicked_78)
@@ -839,6 +843,7 @@ def SetUI(self):
     self.sj_coin_lineEdit_03.setGeometry(455, 90, 50, 20)
     self.sj_coin_lineEdit_04.setGeometry(600, 90, 50, 20)
 
+    self.sj_load_pushButton_00.setGeometry(1180, 60, 150, 22)
     self.sj_load_pushButton_01.setGeometry(1180, 30, 70, 22)
     self.sj_load_pushButton_02.setGeometry(1180, 30, 70, 22)
     self.sj_load_pushButton_03.setGeometry(1180, 30, 70, 22)
