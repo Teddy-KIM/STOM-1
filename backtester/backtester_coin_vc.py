@@ -431,7 +431,7 @@ class Total:
                     '평균수익률', '수익률합계', '수익금합계', '체결강도차이', '평균시간', '거래대금차이',
                     '체결강도하한', '누적거래대금하한', '등락율하한', '등락율상한', '청산수익률']
         df_back = pd.DataFrame(columns=columns1)
-        df_tsg = pd.DataFrame(columns=['종목명', 'per', 'ttsg'])
+        df_tsg = pd.DataFrame(columns=['종목명', '매수시간', '매도시간', '매수가', '매도가', '수익률', 'sgm'])
         k = 0
         while True:
             data = self.q.get()
