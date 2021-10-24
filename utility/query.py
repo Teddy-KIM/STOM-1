@@ -1,5 +1,5 @@
 import sqlite3
-from utility.setting import ui_num, DB_TRADELIST, DB_SETTING, DB_STOCK_STRETEGY, DB_COIN_STRETEGY
+from utility.setting import ui_num, DB_TRADELIST, DB_SETTING, DB_STOCK_STRATEGY, DB_COIN_STRATEGY
 
 
 class Query:
@@ -16,9 +16,9 @@ class Query:
         self.cur1 = self.con1.cursor()
         self.con2 = sqlite3.connect(DB_TRADELIST)
         self.cur2 = self.con2.cursor()
-        self.con3 = sqlite3.connect(DB_STOCK_STRETEGY)
+        self.con3 = sqlite3.connect(DB_STOCK_STRATEGY)
         self.cur3 = self.con3.cursor()
-        self.con4 = sqlite3.connect(DB_COIN_STRETEGY)
+        self.con4 = sqlite3.connect(DB_COIN_STRATEGY)
         self.cur4 = self.con4.cursor()
         self.Start()
 
