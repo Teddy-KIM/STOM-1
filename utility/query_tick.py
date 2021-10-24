@@ -98,7 +98,7 @@ class QueryTick:
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                         self.windowQ.put([ui_num['C단순텍스트'], text])
                     elif len(query) == 4:
-                        query[1].to_sql(query[2], self.con2, if_exists=query[3], chunksize=1000)
+                        query[1].to_sql(query[2], self.con2, if_exists=query[3], chunksize=1000, method='multi')
                 except Exception as e:
                     self.windowQ.put([ui_num['C단순텍스트'], f'시스템 명령 오류 알림 - to_sql {e}'])
 

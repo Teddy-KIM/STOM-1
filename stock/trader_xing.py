@@ -250,7 +250,7 @@ class TraderXing:
             df = pd.read_sql('SELECT * FROM s_tradelist', con)
             con.close()
             self.dict_intg['예수금'] = 100000000 - self.df_jg['매입금액'].sum() + df['수익금'].sum()
-        elif len(df) > 0 and df['추정D2예수금'].iloc[0] != '':
+        elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
             self.dict_intg['예수금'] = int(df['추정D2예수금'].iloc[0])
         self.dict_intg['추정예수금'] = self.dict_intg['예수금']
 
@@ -260,7 +260,7 @@ class TraderXing:
             maxbuycount = DICT_SET['주식장중최대매수종목수']
         if DICT_SET['주식모의투자']:
             self.dict_intg['추정예탁자산'] = self.dict_intg['예수금'] + self.df_jg['평가금액'].sum()
-        elif len(df) > 0 and df['추정D2예수금'].iloc[0] != '':
+        elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
             self.dict_intg['추정예탁자산'] = int(df['추정순자산'].iloc[0])
 
         self.dict_intg['종목당투자금'] = int(self.dict_intg['추정예탁자산'] * 0.99 / maxbuycount)
@@ -269,10 +269,10 @@ class TraderXing:
         if DICT_SET['주식모의투자']:
             self.df_tj.at[self.dict_strg['당일날짜']] = \
                 self.dict_intg['추정예탁자산'], self.dict_intg['예수금'], 0, 0, 0, 0, 0
-        elif len(df) > 0 and df['추정D2예수금'].iloc[0] != '':
-            tsg = int(df['평가손익'].iloc[0])
-            tbg = int(df['매입금액'].iloc[0])
-            tpg = int(df['평가금액'].iloc[0])
+        elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
+            tsg = int(df['tdtsunik'].iloc[0])
+            tbg = int(df['mamt'].iloc[0])
+            tpg = int(df['tappamt'].iloc[0])
             tsp = float(tsg / tbg * 100)
             self.df_tj.at[self.dict_strg['당일날짜']] = \
                 self.dict_intg['추정예탁자산'], self.dict_intg['예수금'], 0, tsp, tsg, tbg, tpg
