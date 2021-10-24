@@ -829,6 +829,7 @@ class Window(QtWidgets.QMainWindow):
             con.close()
             self.ss_textEdit_01.clear()
             self.ss_textEdit_01.append(df['전략코드'][strategy_name])
+            self.ssb_lineEdit.setText(strategy_name)
 
     def Activated_02(self):
         strategy_name = self.sss_comboBox.currentText()
@@ -838,6 +839,7 @@ class Window(QtWidgets.QMainWindow):
             con.close()
             self.ss_textEdit_02.clear()
             self.ss_textEdit_02.append(df['전략코드'][strategy_name])
+            self.sss_lineEdit.setText(strategy_name)
 
     def Activated_03(self):
         strategy_name = self.csb_comboBox.currentText()
@@ -847,6 +849,7 @@ class Window(QtWidgets.QMainWindow):
             con.close()
             self.cs_textEdit_01.clear()
             self.cs_textEdit_01.append(df['전략코드'][strategy_name])
+            self.csb_lineEdit.setText(strategy_name)
 
     def Activated_04(self):
         strategy_name = self.css_comboBox.currentText()
@@ -856,6 +859,7 @@ class Window(QtWidgets.QMainWindow):
             con.close()
             self.cs_textEdit_02.clear()
             self.cs_textEdit_02.append(df['전략코드'][strategy_name])
+            self.css_lineEdit.setText(strategy_name)
 
     def ButtonClicked_07(self):
         con = sqlite3.connect(DB_STOCK_STRATEGY)
@@ -863,8 +867,11 @@ class Window(QtWidgets.QMainWindow):
         con.close()
         if len(df) > 0:
             self.ssb_comboBox.clear()
-            for index in df.index:
+            last = len(df.index) - 1
+            for i, index in enumerate(df.index):
                 self.ssb_comboBox.addItem(index)
+                if i == last:
+                    self.ssb_lineEdit.setText(index)
             windowQ.put([ui_num['S전략텍스트'], '매수전략 불러오기 완료'])
             self.ssb_pushButton_04.setStyleSheet(style_bc_st)
         else:
@@ -895,10 +902,16 @@ class Window(QtWidgets.QMainWindow):
         if strategy == '':
             QtWidgets.QMessageBox.critical(self, '오류 알림', '매수전략의 코드가 공백 상태입니다.\n')
         else:
-            sstgQ.put(['매수전략', strategy])
-            windowQ.put([ui_num['S전략텍스트'], '매수전략 시작하기 완료'])
-            self.ssb_pushButton_04.setStyleSheet(style_bc_dk)
-            self.ssb_pushButton_16.setStyleSheet(style_bc_st)
+            buttonReply = QtWidgets.QMessageBox.question(
+                self, '전략시작',
+                '10시전에는 장초전략, 이후는 장중전략으로 설정되어\n매수전략의 연산을 시작합니다. 계속하시겠습니까?\n',
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
+            )
+            if buttonReply == QtWidgets.QMessageBox.Yes:
+                sstgQ.put(['매수전략', strategy])
+                windowQ.put([ui_num['S전략텍스트'], '매수전략 시작하기 완료'])
+                self.ssb_pushButton_04.setStyleSheet(style_bc_dk)
+                self.ssb_pushButton_16.setStyleSheet(style_bc_st)
 
     def ButtonClicked_11(self):
         self.ss_textEdit_01.append(stock_buy1)
@@ -989,8 +1002,11 @@ class Window(QtWidgets.QMainWindow):
         con.close()
         if len(df) > 0:
             self.sss_comboBox.clear()
-            for index in df.index:
+            last = len(df.index) - 1
+            for i, index in enumerate(df.index):
                 self.sss_comboBox.addItem(index)
+                if i == last:
+                    self.sss_lineEdit.setText(index)
             windowQ.put([ui_num['S전략텍스트'], '매도전략 불러오기 완료'])
             self.sss_pushButton_04.setStyleSheet(style_bc_st)
         else:
@@ -1021,10 +1037,16 @@ class Window(QtWidgets.QMainWindow):
         if strategy == '':
             QtWidgets.QMessageBox.critical(self, '오류 알림', '매도전략의 코드가 공백 상태입니다.\n')
         else:
-            sstgQ.put(['매도전략', strategy])
-            windowQ.put([ui_num['S전략텍스트'], '매도전략 시작하기 완료'])
-            self.sss_pushButton_04.setStyleSheet(style_bc_dk)
-            self.sss_pushButton_14.setStyleSheet(style_bc_st)
+            buttonReply = QtWidgets.QMessageBox.question(
+                self, '전략시작',
+                '10시전에는 장초전략, 이후는 장중전략으로 설정되어\n매도전략의 연산을 시작합니다. 계속하시겠습니까?\n',
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
+            )
+            if buttonReply == QtWidgets.QMessageBox.Yes:
+                sstgQ.put(['매도전략', strategy])
+                windowQ.put([ui_num['S전략텍스트'], '매도전략 시작하기 완료'])
+                self.sss_pushButton_04.setStyleSheet(style_bc_dk)
+                self.sss_pushButton_14.setStyleSheet(style_bc_st)
 
     def ButtonClicked_29(self):
         self.ss_textEdit_02.append(stock_sell1)
@@ -1074,8 +1096,11 @@ class Window(QtWidgets.QMainWindow):
         con.close()
         if len(df) > 0:
             self.csb_comboBox.clear()
-            for index in df.index:
+            last = len(df.index) - 1
+            for i, index in enumerate(df.index):
                 self.csb_comboBox.addItem(index)
+                if i == last:
+                    self.csb_lineEdit.setText(index)
             windowQ.put([ui_num['C전략텍스트'], '매수전략 불러오기 완료'])
             self.csb_pushButton_04.setStyleSheet(style_bc_st)
         else:
@@ -1106,10 +1131,16 @@ class Window(QtWidgets.QMainWindow):
         if strategy == '':
             QtWidgets.QMessageBox.critical(self, '오류 알림', '매수전략의 코드가 공백 상태입니다.\n')
         else:
-            cstgQ.put(['매수전략', strategy])
-            windowQ.put([ui_num['C전략텍스트'], '매수전략 시작하기 완료'])
-            self.csb_pushButton_04.setStyleSheet(style_bc_dk)
-            self.csb_pushButton_16.setStyleSheet(style_bc_st)
+            buttonReply = QtWidgets.QMessageBox.question(
+                self, '전략시작',
+                '10시전에는 장초전략, 이후는 장중전략으로 설정되어\n매수전략의 연산을 시작합니다. 계속하시겠습니까?\n',
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
+            )
+            if buttonReply == QtWidgets.QMessageBox.Yes:
+                cstgQ.put(['매수전략', strategy])
+                windowQ.put([ui_num['C전략텍스트'], '매수전략 시작하기 완료'])
+                self.csb_pushButton_04.setStyleSheet(style_bc_dk)
+                self.csb_pushButton_16.setStyleSheet(style_bc_st)
 
     def ButtonClicked_43(self):
         self.cs_textEdit_01.append(coin_buy1)
@@ -1200,8 +1231,11 @@ class Window(QtWidgets.QMainWindow):
         con.close()
         if len(df) > 0:
             self.css_comboBox.clear()
-            for index in df.index:
+            last = len(df.index) - 1
+            for i, index in enumerate(df.index):
                 self.css_comboBox.addItem(index)
+                if i == last:
+                    self.css_lineEdit.setText(index)
             windowQ.put([ui_num['C전략텍스트'], '매도전략 불러오기 완료'])
             self.css_pushButton_04.setStyleSheet(style_bc_st)
         else:
@@ -1232,10 +1266,16 @@ class Window(QtWidgets.QMainWindow):
         if strategy == '':
             QtWidgets.QMessageBox.critical(self, '오류 알림', '매도전략의 코드가 공백 상태입니다.\n')
         else:
-            cstgQ.put(['매도전략', strategy])
-            windowQ.put([ui_num['C전략텍스트'], '매도전략 시작하기 완료'])
-            self.css_pushButton_04.setStyleSheet(style_bc_dk)
-            self.css_pushButton_14.setStyleSheet(style_bc_st)
+            buttonReply = QtWidgets.QMessageBox.question(
+                self, '전략시작',
+                '10시전에는 장초전략, 이후는 장중전략으로 설정되어\n매도전략의 연산을 시작합니다. 계속하시겠습니까?\n',
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
+            )
+            if buttonReply == QtWidgets.QMessageBox.Yes:
+                cstgQ.put(['매도전략', strategy])
+                windowQ.put([ui_num['C전략텍스트'], '매도전략 시작하기 완료'])
+                self.css_pushButton_04.setStyleSheet(style_bc_dk)
+                self.css_pushButton_14.setStyleSheet(style_bc_st)
 
     def ButtonClicked_61(self):
         self.cs_textEdit_02.append(coin_sell1)
