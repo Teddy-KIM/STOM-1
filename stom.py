@@ -1133,23 +1133,23 @@ class Window(QtWidgets.QMainWindow):
 
     def ButtonClicked_48(self):
         self.cs_textEdit_01.append(coin_buy6)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
+        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_49(self):
         self.cs_textEdit_01.append(coin_buy7)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
+        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_50(self):
         self.cs_textEdit_01.append(coin_buy8)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
+        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_51(self):
         self.cs_textEdit_01.append(coin_buy9)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
+        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_52(self):
         self.cs_textEdit_01.append(coin_buy10)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
+        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_53(self):
         self.cs_textEdit_01.append(coin_buy_signal)
