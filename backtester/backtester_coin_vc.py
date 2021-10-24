@@ -327,7 +327,7 @@ class BackTesterCoinVc:
         else:
             self.totalcount_m += 1
         if self.high:
-            self.q.put([self.index, self.code, per, eyun])
+            self.q.put([self.code, self.df.index[self.indexb], self.index, self.buyprice, self.sellprice, per, eyun])
 
     # noinspection PyMethodMayBeStatic
     def GetEyunPer(self, bg, cg):
@@ -435,13 +435,17 @@ class Total:
         k = 0
         while True:
             data = self.q.get()
-            if len(data) == 4:
-                if data[0] in df_tsg.index:
-                    df_tsg.at[data[0]] = df_tsg['종목명'][data[0]] + ';' + data[1], \
-                                         df_tsg['per'][data[0]] + data[2], \
-                                         df_tsg['ttsg'][data[0]] + data[3]
+            if len(data) == 7:
+                if data[2] in df_tsg.index:
+                    df_tsg.at[data[2]] = df_tsg['종목명'][data[2]] + ';' + data[0], \
+                                         df_tsg['매수시간'][data[2]] + ';' + data[1], \
+                                         df_tsg['매도시간'][data[2]] + ';' + data[2], \
+                                         df_tsg['매수가'][data[2]] + ';' + str(data[3]), \
+                                         df_tsg['매도가'][data[2]] + ';' + str(data[4]), \
+                                         df_tsg['수익률'][data[2]] + ';' + str(data[5]), \
+                                         df_tsg['sgm'][data[2]] + data[6]
                 else:
-                    df_tsg.at[data[0]] = data[1], data[2], data[3]
+                    df_tsg.at[data[2]] = data[0], data[1], data[2], str(data[3]), str(data[4]), str(data[5]), data[6]
             else:
                 df_back.at[data[0]] = data[1], data[2], data[3], data[4], data[5], data[6], data[7]
                 k += 1
@@ -450,10 +454,11 @@ class Total:
 
         tsp = 0
         if len(df_back) > 0:
-            tc = df_back['거래횟수'].sum()
             text = [self.gap_ch, self.avg_time, self.gap_sm, self.ch_low, self.dm_low,
                     self.per_low, self.per_high, self.sell_ratio]
             print(f' {text}')
+            df_back = df_back[df_back['거래횟수'] > 0]
+            tc = df_back['거래횟수'].sum()
             if tc != 0:
                 pc = df_back['익절'].sum()
                 mc = df_back['손절'].sum()
@@ -480,10 +485,9 @@ class Total:
                 conn.close()
 
         if len(df_tsg) > 0:
-            df_tsg['체결시간'] = df_tsg.index
-            df_tsg.sort_values(by=['체결시간'], inplace=True)
-            df_tsg['ttsg_cumsum'] = df_tsg['ttsg'].cumsum()
-            df_tsg[['ttsg', 'ttsg_cumsum']] = df_tsg[['ttsg', 'ttsg_cumsum']].astype(int)
+            df_tsg.sort_values(by=['매도시간'], inplace=True)
+            df_tsg['sgm_cumsum'] = df_tsg['sgm'].cumsum()
+            df_tsg[['sgm', 'sgm_cumsum']] = df_tsg[['sgm', 'sgm_cumsum']].astype(int)
             conn = sqlite3.connect(DB_BACKTEST)
             df_tsg.to_sql(f"coin_vc_time_{strf_time('%Y%m%d')}", conn, if_exists='append', chunksize=1000)
             conn.close()
