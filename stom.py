@@ -484,14 +484,14 @@ class Window(QtWidgets.QMainWindow):
                     vLine1.setPos(mousePoint.x())
                     vLine2.setPos(mousePoint.x())
                     vLine3.setPos(mousePoint.x())
-                if sub_pg1.sceneBoundingRect().contains(pos):
+                elif sub_pg1.sceneBoundingRect().contains(pos):
                     mousePoint = sub_vb1.mapSceneToView(pos)
                     self.ct_labellll_04.setText(f"체결강도 {format(round(mousePoint.y(), 2), ',')}")
                     hLine2.setPos(mousePoint.y())
                     vLine1.setPos(mousePoint.x())
                     vLine2.setPos(mousePoint.x())
                     vLine3.setPos(mousePoint.x())
-                if sub_pg2.sceneBoundingRect().contains(pos):
+                elif sub_pg2.sceneBoundingRect().contains(pos):
                     mousePoint = sub_vb2.mapSceneToView(pos)
                     self.ct_labellll_05.setText(f"초당거래대금 {format(round(mousePoint.y(), 2), ',')}")
                     hLine3.setPos(mousePoint.y())
@@ -510,8 +510,8 @@ class Window(QtWidgets.QMainWindow):
         self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(0, 255, 0))
         self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(0, 180, 180))
         self.ctpg_02.plot(x=unix_ts, y=df['최고체결강도'], pen=(180, 0, 0))
-        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(0, 0, 255))
-        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(0, 180, 180))
+        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(255, 0, 0))
+        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(0, 0, 255))
         self.ctpg_01.getAxis('bottom').setLabel(text=name)
         crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
 
