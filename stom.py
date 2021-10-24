@@ -717,13 +717,13 @@ class Window(QtWidgets.QMainWindow):
             if DICT_SET['아이디2'] is None:
                 QtWidgets.QMessageBox.critical(
                     self, '오류 알림', '두번째 계정이 설정되지 않아\n리시버를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
-            else:
+            elif DICT_SET['주식리시버']:
                 self.StockReceiverStart()
                 QTest.qWait(20000)
             if DICT_SET['아이디1'] is None:
                 QtWidgets.QMessageBox.critical(
                     self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
-            else:
+            elif DICT_SET['주식트레이더']:
                 self.StockTraderStart()
 
     def ButtonClicked_03(self):
