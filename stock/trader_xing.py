@@ -406,27 +406,24 @@ class TraderXing:
                 self.OperationAlert(status)
 
     def OperationAlert(self, status):
+        dict_oper = {
+            25: '장시작 10분전전입니다.',
+            24: '장시작 5분전전입니다.',
+            23: '장시작 1분전전입니다.',
+            22: '장시작 10초전입니다.',
+            44: '장마감 5분전전입니다.',
+            43: '장마감 1분전전입니다.',
+            42: '장마감 10초전전입니다.'
+        }
         if self.dict_set['주식알림소리']:
-            if status == 25:
-                self.soundQ.put('장시작 10분 전입니다.')
-            elif status == 24:
-                self.soundQ.put('장시작 5분 전입니다.')
-            elif status == 23:
-                self.soundQ.put('장시작 1분 전입니다.')
-            elif status == 22:
-                self.soundQ.put('장시작 10초 전입니다.')
-            elif status == 21:
+            if status == 21:
                 self.soundQ.put(f"{self.dict_strg['당일날짜'][:4]}년 {self.dict_strg['당일날짜'][4:6]}월 "
                                 f"{self.dict_strg['당일날짜'][6:]}일 장이 시작되었습니다.")
-            elif status == 44:
-                self.soundQ.put('장마감 5분 전입니다.')
-            elif status == 43:
-                self.soundQ.put('장마감 1분 전입니다.')
-            elif status == 42:
-                self.soundQ.put('장마감 10초 전입니다.')
             elif status == 41:
                 self.soundQ.put(f"{self.dict_strg['당일날짜'][:4]}년 {self.dict_strg['당일날짜'][4:6]}월 "
                                 f"{self.dict_strg['당일날짜'][6:]}일 장이 종료되었습니다.")
+            else:
+                self.soundQ.put(dict_oper[status])
 
     def OnReceiveChegeolData(self, data):
         if self.dict_set['주식모의투자']:

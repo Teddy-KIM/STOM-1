@@ -95,6 +95,12 @@ class ReceiverXing:
         self.Start()
 
     def __del__(self):
+        self.xar_op.RemoveAllRealData()
+        self.xar_vi.RemoveAllRealData()
+        self.xar_cp.RemoveAllRealData()
+        self.xar_hp.RemoveAllRealData()
+        self.xar_cd.RemoveAllRealData()
+        self.xar_hd.RemoveAllRealData()
         if len(self.list_alertnum) > 0:
             for alertnum in self.list_alertnum:
                 self.xaq.RemoveService(alertnum)
@@ -161,10 +167,7 @@ class ReceiverXing:
         while True:
             if not self.sreceivQ.empty():
                 data = self.sreceivQ.get()
-                if type(data) == list:
-                    self.UpdateRealreg(data)
-                    continue
-                elif type(data) == str:
+                if type(data) == str:
                     self.UpdateJangolist(data)
                     continue
                 elif type(data) == dict:
@@ -199,24 +202,6 @@ class ReceiverXing:
 
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
 
-    def UpdateRealreg(self, rreg):
-        gubun = rreg[0]
-        code = rreg[1]
-        if gubun == 'AddReal':
-            if code not in self.list_kosd:
-                self.xar_cp.AddRealData(code)
-                self.xar_hp.AddRealData(code)
-            else:
-                self.xar_cd.AddRealData(code)
-                self.xar_hd.AddRealData(code)
-        elif gubun == 'RemoveAllReal':
-            self.xar_op.RemoveAllRealData()
-            self.xar_vi.RemoveAllRealData()
-            self.xar_cp.RemoveAllRealData()
-            self.xar_hp.RemoveAllRealData()
-            self.xar_cd.RemoveAllRealData()
-            self.xar_hd.RemoveAllRealData()
-
     def UpdateJangolist(self, data):
         code = data.split(' ')[1]
         if '잔고편입' in data and code not in self.list_jang:
@@ -231,13 +216,6 @@ class ReceiverXing:
                 self.list_gsjm2.remove(code)
 
     def OperationRealreg(self):
-        self.xar_op.RemoveAllRealData()
-        self.xar_vi.RemoveAllRealData()
-        self.xar_cp.RemoveAllRealData()
-        self.xar_hp.RemoveAllRealData()
-        self.xar_cd.RemoveAllRealData()
-        self.xar_hd.RemoveAllRealData()
-
         self.xar_op.AddRealData('0')
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
 
@@ -253,7 +231,12 @@ class ReceiverXing:
         self.list_code3 = [x for i, x in enumerate(self.list_code) if i % 4 == 2]
         self.list_code4 = [x for i, x in enumerate(self.list_code) if i % 4 == 3]
         for code in self.list_code:
-            self.sreceivQ.put(['AddReal', code])
+            if code not in self.list_kosd:
+                self.xar_cp.AddRealData(code)
+                self.xar_hp.AddRealData(code)
+            else:
+                self.xar_cd.AddRealData(code)
+                self.xar_hd.AddRealData(code)
         self.windowQ.put([ui_num['S단순텍스트'], f'시스템 명령 실행 알림 - 실시간 등록 완료 종목개수[{len(self.list_code)}]'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 시작'])
 
@@ -320,7 +303,12 @@ class ReceiverXing:
             self.list_gsjm2.remove(code)
 
     def RemoveAllRealreg(self):
-        self.sreceivQ.put(['RemoveAllReal'])
+        self.xar_op.RemoveAllRealData()
+        self.xar_vi.RemoveAllRealData()
+        self.xar_cp.RemoveAllRealData()
+        self.xar_hp.RemoveAllRealData()
+        self.xar_cd.RemoveAllRealData()
+        self.xar_hd.RemoveAllRealData()
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간 데이터 중단 완료'])
 
     def SaveTickData(self):
