@@ -146,7 +146,8 @@ class TraderUpbit:
                         self.Buy(data[1], data[2], data[3])
                     elif data[0] == '매도':
                         self.Sell(data[1], data[2], data[3])
-                    elif data[0] in self.df_jg.index:
+                elif type(data[0]) == list:
+                    if data[0] in self.df_jg.index:
                         self.UpdateJango(data[0], data[1])
                 elif type(data) == dict:
                     self.dict_set = data
