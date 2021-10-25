@@ -70,7 +70,7 @@ class Window(QtWidgets.QMainWindow):
         self.qtimer1 = QtCore.QTimer()
         self.qtimer1.setInterval(1000)
         self.qtimer1.timeout.connect(self.ProcessStarter)
-        #self.qtimer1.start()
+        self.qtimer1.start()
 
         self.qtimer2 = QtCore.QTimer()
         self.qtimer2.setInterval(500)
@@ -80,14 +80,14 @@ class Window(QtWidgets.QMainWindow):
         self.qtimer3 = QtCore.QTimer()
         self.qtimer3.setInterval(500)
         self.qtimer3.timeout.connect(self.UpdateCpuper)
-        #self.qtimer3.start()
+        self.qtimer3.start()
 
         self.writer = Writer()
         self.writer.data1.connect(self.UpdateTexedit)
         self.writer.data2.connect(self.UpdateTablewidget)
         self.writer.data3.connect(self.UpdateGaonsimJongmok)
         self.writer.data4.connect(self.DrawChart)
-        #self.writer.start()
+        self.writer.start()
 
         self.receiver_coin_proc1 = Process(target=WebsTicker, args=(qlist,))
         self.receiver_coin_proc2 = Process(target=WebsOrderbook, args=(qlist,))
@@ -1862,13 +1862,11 @@ if __name__ == '__main__':
     query_proc2 = Process(target=QueryTick, args=(qlist,), daemon=True)
     chart_proc = Process(target=Chart, args=(qlist,), daemon=True)
     tele_proc = Process(target=TelegramMsg, args=(qlist,), daemon=True)
-    """
     sound_proc.start()
     query_proc1.start()
     query_proc2.start()
     chart_proc.start()
     tele_proc.start()
-    """
 
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle(ProxyStyle())
