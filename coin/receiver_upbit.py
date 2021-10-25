@@ -59,12 +59,11 @@ class WebsTicker:
         while True:
             if not self.creceiv1Q.empty():
                 data = self.creceiv1Q.get()
-                if type(data) == str:
-                    if data == 'terminate':
-                        self.websQ_ticker.terminate()
-                        break
-                    else:
-                        self.UpdateJangolist(data)
+                if type(data) == str and data == 'terminate':
+                    self.websQ_ticker.terminate()
+                    break
+                elif type(data) == list:
+                    self.UpdateJangolist(data)
                 elif type(data) == dict:
                     self.dict_set = data
 
