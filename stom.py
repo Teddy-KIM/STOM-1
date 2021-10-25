@@ -525,6 +525,11 @@ class Window(QtWidgets.QMainWindow):
                 self.sj_main_checkBox_01.nextCheckState()
                 QtWidgets.QMessageBox.critical(
                     self, '오류 알림', '두번째 계정이 설정되지 않아\n리시버를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+        else:
+            if self.sj_main_checkBox_02.isChecked():
+                self.sj_main_checkBox_02.nextCheckState()
+            if self.sj_main_checkBox_03.isChecked():
+                self.sj_main_checkBox_03.nextCheckState()
 
     def CheckboxChanged_02(self, state):
         if state == Qt.Checked:
@@ -535,6 +540,8 @@ class Window(QtWidgets.QMainWindow):
                 self.sj_main_checkBox_02.nextCheckState()
                 QtWidgets.QMessageBox.critical(
                     self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+            elif not self.sj_main_checkBox_01.isChecked():
+                self.sj_main_checkBox_01.nextCheckState()
 
     def CheckboxChanged_03(self, state):
         if state == Qt.Checked:
@@ -545,8 +552,22 @@ class Window(QtWidgets.QMainWindow):
                 self.sj_main_checkBox_03.nextCheckState()
                 QtWidgets.QMessageBox.critical(
                     self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+            elif not self.sj_main_checkBox_01.isChecked():
+                self.sj_main_checkBox_01.nextCheckState()
 
     def CheckboxChanged_04(self, state):
+        if state != Qt.Checked:
+            if self.sj_main_checkBox_05.isChecked():
+                self.sj_main_checkBox_05.nextCheckState()
+            if self.sj_main_checkBox_06.isChecked():
+                self.sj_main_checkBox_06.nextCheckState()
+
+    def CheckboxChanged_05(self, state):
+        if state == Qt.Checked:
+            if not self.sj_main_checkBox_04.isChecked():
+                self.sj_main_checkBox_04.nextCheckState()
+
+    def CheckboxChanged_06(self, state):
         if state == Qt.Checked:
             con = sqlite3.connect(DB_SETTING)
             df = pd.read_sql('SELECT * FROM cacc', con).set_index('index')
@@ -555,8 +576,10 @@ class Window(QtWidgets.QMainWindow):
                 self.sj_main_checkBox_06.nextCheckState()
                 QtWidgets.QMessageBox.critical(
                     self, '오류 알림', '업비트 계정이 설정되지 않아\n트레이더를 선택할 수 없습니다.\n계정 설정 후 다시 선택하십시오.\n')
+            elif not self.sj_main_checkBox_04.isChecked():
+                self.sj_main_checkBox_04.nextCheckState()
 
-    def CheckboxChanged_05(self, state):
+    def CheckboxChanged_07(self, state):
         if state != Qt.Checked:
             buttonReply = QtWidgets.QMessageBox.question(
                 self, '장마감 후 저장',
@@ -568,7 +591,7 @@ class Window(QtWidgets.QMainWindow):
         elif not self.sj_main_checkBox_08.isChecked():
             self.sj_main_checkBox_08.setChecked(True)
 
-    def CheckboxChanged_06(self, state):
+    def CheckboxChanged_08(self, state):
         if state != Qt.Checked:
             if self.sj_main_checkBox_07.isChecked():
                 self.sj_main_checkBox_08.nextCheckState()
@@ -582,12 +605,12 @@ class Window(QtWidgets.QMainWindow):
                 if buttonReply == QtWidgets.QMessageBox.No:
                     self.sj_main_checkBox_08.nextCheckState()
 
-    def CheckboxChanged_07(self, state):
+    def CheckboxChanged_09(self, state):
         if state != Qt.Checked:
             self.sj_main_checkBox_09.nextCheckState()
             QtWidgets.QMessageBox.critical(self, '오류 알림', '코인 틱데이터는 실시간 저장만 가능합니다.\n')
 
-    def CheckboxChanged_08(self, state):
+    def CheckboxChanged_10(self, state):
         if state != Qt.Checked:
             self.sj_main_checkBox_10.nextCheckState()
             QtWidgets.QMessageBox.critical(self, '오류 알림', '코인 틱데이터는 전체 종목 저장만 가능합니다.\n')

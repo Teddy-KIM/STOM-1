@@ -464,9 +464,11 @@ def SetUI(self):
     self.sj_main_comboBox_02 = setCombobox(self.sj_groupBox_01)
     self.sj_main_comboBox_02.addItem('업비트')
     self.sj_main_checkBox_04 = QtWidgets.QCheckBox('코인 리시버', self.sj_groupBox_01)
+    self.sj_main_checkBox_04.stateChanged.connect(self.CheckboxChanged_04)
     self.sj_main_checkBox_05 = QtWidgets.QCheckBox('코인 콜렉터', self.sj_groupBox_01)
+    self.sj_main_checkBox_05.stateChanged.connect(self.CheckboxChanged_05)
     self.sj_main_checkBox_06 = QtWidgets.QCheckBox('코인 트레이더', self.sj_groupBox_01)
-    self.sj_main_checkBox_06.stateChanged.connect(self.CheckboxChanged_04)
+    self.sj_main_checkBox_06.stateChanged.connect(self.CheckboxChanged_06)
 
     text = '주식 최근거래대금순위 집계시간(분)                         ' \
            '최근거래대금순위 선정등수                                 ' \
@@ -479,16 +481,16 @@ def SetUI(self):
     self.sj_main_lineEdit_04 = setLineedit(self.sj_groupBox_01)
 
     self.sj_main_checkBox_07 = QtWidgets.QCheckBox('주식 틱데이터 실시간 저장', self.sj_groupBox_01)
-    self.sj_main_checkBox_07.stateChanged.connect(self.CheckboxChanged_05)
+    self.sj_main_checkBox_07.stateChanged.connect(self.CheckboxChanged_07)
     self.sj_main_checkBox_08 = QtWidgets.QCheckBox('전체 종목 저장    |', self.sj_groupBox_01)
-    self.sj_main_checkBox_08.stateChanged.connect(self.CheckboxChanged_06)
+    self.sj_main_checkBox_08.stateChanged.connect(self.CheckboxChanged_08)
     self.sj_main_labellll_03 = QtWidgets.QLabel('실시간 저장 주기(초)', self.sj_groupBox_01)
     self.sj_main_lineEdit_05 = setLineedit(self.sj_groupBox_01)
 
     self.sj_main_checkBox_09 = QtWidgets.QCheckBox('코인 틱데이터 실시간 저장', self.sj_groupBox_01)
-    self.sj_main_checkBox_09.stateChanged.connect(self.CheckboxChanged_07)
+    self.sj_main_checkBox_09.stateChanged.connect(self.CheckboxChanged_09)
     self.sj_main_checkBox_10 = QtWidgets.QCheckBox('전체 종목 저장    |', self.sj_groupBox_01)
-    self.sj_main_checkBox_10.stateChanged.connect(self.CheckboxChanged_08)
+    self.sj_main_checkBox_10.stateChanged.connect(self.CheckboxChanged_10)
     self.sj_main_labellll_04 = QtWidgets.QLabel('실시간 저장 주기(초)', self.sj_groupBox_01)
     self.sj_main_lineEdit_06 = setLineedit(self.sj_groupBox_01)
 
