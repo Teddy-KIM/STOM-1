@@ -141,16 +141,16 @@ class TraderUpbit:
             """ 주문 및 잔고갱신용 큐를 감시한다. """
             if not self.coinQ.empty():
                 data = self.coinQ.get()
-                if type(data[0]) == str:
-                    if data[0] == '매수':
+                if type(data) == dict:
+                    self.dict_set = data
+                elif type(data) == list:
+                    if data[0] in self.df_jg.index:
+                        self.UpdateJango(data[0], data[1])
+                        continue
+                    elif data[0] == '매수':
                         self.Buy(data[1], data[2], data[3])
                     elif data[0] == '매도':
                         self.Sell(data[1], data[2], data[3])
-                elif type(data[0]) == list:
-                    if data[0] in self.df_jg.index:
-                        self.UpdateJango(data[0], data[1])
-                elif type(data) == dict:
-                    self.dict_set = data
 
             """ 주문의 체결확인은 0.5초마다 반복한다. """
             if len(self.buy_uuid) > 0 and now() > self.dict_time['매수체결확인']:
