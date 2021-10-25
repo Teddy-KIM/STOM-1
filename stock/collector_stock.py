@@ -87,11 +87,11 @@ class CollectorStock:
             self.dict_time['저장시간'] = timedelta_sec(DICT_SET['주식저장주기'])
 
     # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, rs, ts, st):
+    def UpdateVars(self, sts, stt, std):
         global DICT_SET
-        DICT_SET['주식실시간저장'] = rs
-        DICT_SET['주식전체종목저장'] = ts
-        DICT_SET['주식저장주기'] = st
+        DICT_SET['주식실시간저장'] = sts
+        DICT_SET['주식전체종목저장'] = stt
+        DICT_SET['주식저장주기'] = std
 
     def SaveTickData(self, codes):
         if not DICT_SET['주식전체종목저장']:

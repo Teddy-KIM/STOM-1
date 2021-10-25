@@ -1517,12 +1517,12 @@ class Window(QtWidgets.QMainWindow):
         sts = 1 if self.sj_main_checkBox_07.isChecked() else 0
         stt = 1 if self.sj_main_checkBox_08.isChecked() else 0
         std = self.sj_main_lineEdit_05.text()
-        cts = self.sj_main_lineEdit_06.text()
-        if smt == '' or smd == '' or cmt == '' or cmd == '' or std == '' or cts == '':
+        ctd = self.sj_main_lineEdit_06.text()
+        if smt == '' or smd == '' or cmt == '' or cmd == '' or std == '' or ctd == '':
             QtWidgets.QMessageBox.critical(self, '오류 알림', '일부 설정값이 입력되지 않았습니다.\n')
         else:
             data = [sg, sr, sc, st, cg, cr, cc, ct, int(smt), int(smd), int(cmt), int(cmd),
-                    sts, stt, int(std), int(cts)]
+                    sts, stt, int(std), int(ctd)]
             df = pd.DataFrame([data], columns=columns_sm, index=[0])
             query1Q.put([1, df, 'main', 'replace'])
             self.UpdateTexedit([ui_num['설정텍스트'], '시스템 기본 설정값 저장하기 완료'])
@@ -1544,7 +1544,7 @@ class Window(QtWidgets.QMainWindow):
             tick2Q.put([sts, stt, int(std)])
             tick3Q.put([sts, stt, int(std)])
             tick4Q.put([sts, stt, int(std)])
-            tick5Q.put([int(cts)])
+            tick5Q.put([int(ctd)])
 
     def ButtonClicked_78(self):
         id1 = self.sj_sacc_lineEdit_01.text()
