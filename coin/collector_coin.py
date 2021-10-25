@@ -61,6 +61,6 @@ class CollectorCoin:
                 self.windowQ.put([ui_num['C단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
                 self.query2Q.put([2, self.dict_df])
                 self.dict_df = {}
-                self.time_save = timedelta_sec(self.dict_set['코인저장주기'])
+                self.time_save = timedelta_sec(int(self.dict_set['코인저장주기']))
         elif len(data) == 23:
             self.dict_ob[data[0]] = data[1:]

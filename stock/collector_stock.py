@@ -83,7 +83,7 @@ class CollectorStock:
         if self.dict_set['주식실시간저장'] and now() > self.dict_time['저장시간']:
             self.query2Q.put([1, self.dict_df])
             self.dict_df = {}
-            self.dict_time['저장시간'] = timedelta_sec(self.dict_set['주식저장주기'])
+            self.dict_time['저장시간'] = timedelta_sec(int(self.dict_set['주식저장주기']))
 
     def SaveTickData(self, codes):
         if not self.dict_set['주식전체종목저장']:
