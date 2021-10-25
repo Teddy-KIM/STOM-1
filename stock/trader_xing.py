@@ -155,11 +155,12 @@ class TraderXing:
 
             if self.dict_intg['장운영상태'] == 1 and now() > self.dict_time['휴무종료']:
                 break
-            if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
-                self.JangoChungsan1()
-            if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
-                self.JangoChungsan2()
-            if self.dict_intg['장운영상태'] == 8:
+            if self.dict_intg['장운영상태'] == 21:
+                if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
+                    self.JangoChungsan1()
+                if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
+                    self.JangoChungsan2()
+            if self.dict_intg['장운영상태'] == 41:
                 self.AllRemoveRealreg()
                 self.SaveDayData()
                 break
@@ -402,12 +403,12 @@ class TraderXing:
 
     def OnReceiveOperData(self, data):
         try:
-            gubun = int(data['jangubun'])
+            gubun = data['jangubun']
             status = int(data['jstatus'])
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveOperData {e}'])
         else:
-            if gubun == 1:
+            if gubun == '1':
                 self.dict_intg['장운영상태'] = status
                 self.OperationAlert(status)
 
