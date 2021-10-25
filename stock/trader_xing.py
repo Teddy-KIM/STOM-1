@@ -257,7 +257,7 @@ class TraderXing:
             con.close()
             self.dict_intg['예수금'] = 100000000 - self.df_jg['매입금액'].sum() + df['수익금'].sum()
         elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
-            self.dict_intg['예수금'] = int(df['추정D2예수금'].iloc[0])
+            self.dict_intg['예수금'] = int(df['sunamt1'].iloc[0])
         self.dict_intg['추정예수금'] = self.dict_intg['예수금']
 
         if int(strf_time('%H%M%S')) < 100000:
@@ -267,7 +267,7 @@ class TraderXing:
         if self.dict_set['주식모의투자']:
             self.dict_intg['추정예탁자산'] = self.dict_intg['예수금'] + self.df_jg['평가금액'].sum()
         elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
-            self.dict_intg['추정예탁자산'] = int(df['추정순자산'].iloc[0])
+            self.dict_intg['추정예탁자산'] = int(df['sunamt'].iloc[0])
 
         self.dict_intg['종목당투자금'] = int(self.dict_intg['추정예탁자산'] * 0.99 / maxbuycount)
         self.sstgQ.put(self.dict_intg['종목당투자금'])
