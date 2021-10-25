@@ -494,43 +494,50 @@ def SetUI(self):
     self.sj_main_labellll_04 = QtWidgets.QLabel('실시간 저장 주기(초)', self.sj_groupBox_01)
     self.sj_main_lineEdit_06 = setLineedit(self.sj_groupBox_01)
 
-    self.sj_sacc_labellll_01 = QtWidgets.QLabel('첫번째 계정 아이디', self.sj_groupBox_02)
+    text = '첫번째 계정 아이디                                                         ' \
+           '비밀번호                                                           ' \
+           '인증서비밀번호                                                       ' \
+           '계좌비밀번호'
+    self.sj_sacc_labellll_01 = QtWidgets.QLabel(text, self.sj_groupBox_02)
     self.sj_sacc_lineEdit_01 = setLineedit(self.sj_groupBox_02, passhide=True)
-    self.sj_sacc_labellll_02 = QtWidgets.QLabel('비밀번호', self.sj_groupBox_02)
     self.sj_sacc_lineEdit_02 = setLineedit(self.sj_groupBox_02, passhide=True)
-    self.sj_sacc_labellll_03 = QtWidgets.QLabel('인증서비밀번호', self.sj_groupBox_02)
     self.sj_sacc_lineEdit_03 = setLineedit(self.sj_groupBox_02, passhide=True)
-    self.sj_sacc_labellll_04 = QtWidgets.QLabel('계좌비밀번호', self.sj_groupBox_02)
     self.sj_sacc_lineEdit_04 = setLineedit(self.sj_groupBox_02, passhide=True)
-    self.sj_sacc_labellll_05 = QtWidgets.QLabel('두번째 계정 아이디', self.sj_groupBox_02)
+
+    text = '두번째 계정 아이디                                                         ' \
+           '비밀번호                                                           ' \
+           '인증서비밀번호                                                       ' \
+           '계좌비밀번호'
+    self.sj_sacc_labellll_02 = QtWidgets.QLabel(text, self.sj_groupBox_02)
     self.sj_sacc_lineEdit_05 = setLineedit(self.sj_groupBox_02, passhide=True)
-    self.sj_sacc_labellll_06 = QtWidgets.QLabel('비밀번호', self.sj_groupBox_02)
     self.sj_sacc_lineEdit_06 = setLineedit(self.sj_groupBox_02, passhide=True)
-    self.sj_sacc_labellll_07 = QtWidgets.QLabel('인증서비밀번호', self.sj_groupBox_02)
     self.sj_sacc_lineEdit_07 = setLineedit(self.sj_groupBox_02, passhide=True)
-    self.sj_sacc_labellll_08 = QtWidgets.QLabel('계좌비밀번호', self.sj_groupBox_02)
     self.sj_sacc_lineEdit_08 = setLineedit(self.sj_groupBox_02, passhide=True)
 
-    self.sj_cacc_labellll_01 = QtWidgets.QLabel('Access Key', self.sj_groupBox_03)
+    text = 'Access Key                                                                                              ' \
+           '                                                Secret Key'
+    self.sj_cacc_labellll_01 = QtWidgets.QLabel(text, self.sj_groupBox_03)
     self.sj_cacc_lineEdit_01 = setLineedit(self.sj_groupBox_03, passhide=True)
-    self.sj_cacc_labellll_02 = QtWidgets.QLabel('Secret Key', self.sj_groupBox_03)
     self.sj_cacc_lineEdit_02 = setLineedit(self.sj_groupBox_03, passhide=True)
 
-    self.sj_tele_labellll_01 = QtWidgets.QLabel('Bot Token', self.sj_groupBox_04)
+    text = 'Bot Token                                                                                              ' \
+           '                                                  Chat Id'
+    self.sj_tele_labellll_01 = QtWidgets.QLabel(text, self.sj_groupBox_04)
     self.sj_tele_lineEdit_01 = setLineedit(self.sj_groupBox_04, passhide=True)
-    self.sj_tele_labellll_02 = QtWidgets.QLabel('Chat Id', self.sj_groupBox_04)
     self.sj_tele_lineEdit_02 = setLineedit(self.sj_groupBox_04, passhide=True)
 
-    self.sj_stock_checkBox_01 = QtWidgets.QCheckBox('모의투자', self.sj_groupBox_05)
-    self.sj_stock_checkBox_02 = QtWidgets.QCheckBox('알림소리', self.sj_groupBox_05)
-    text = '장초전략 매수                                            매도                                              '\
+    self.sj_stock_checkBox_01 = QtWidgets.QCheckBox('모의투자    |', self.sj_groupBox_05)
+    self.sj_stock_checkBox_02 = QtWidgets.QCheckBox('알림소리    |', self.sj_groupBox_05)
+    text = '장초전략 매수                                              '\
+           '매도                                                       '\
            '평균값계산틱수                       최대매수종목수'
     self.sj_stock_labellll_01 = QtWidgets.QLabel(text, self.sj_groupBox_05)
     self.sj_stock_comboBox_01 = setCombobox(self.sj_groupBox_05)
     self.sj_stock_comboBox_02 = setCombobox(self.sj_groupBox_05)
     self.sj_stock_lineEdit_01 = setLineedit(self.sj_groupBox_05)
     self.sj_stock_lineEdit_02 = setLineedit(self.sj_groupBox_05)
-    text = '장중전략 매수                                            매도                                              '\
+    text = '장중전략 매수                                              '\
+           '매도                                                       '\
            '평균값계산틱수                       최대매수종목수'
     self.sj_stock_labellll_02 = QtWidgets.QLabel(text, self.sj_groupBox_05)
     self.sj_stock_comboBox_03 = setCombobox(self.sj_groupBox_05)
@@ -538,16 +545,18 @@ def SetUI(self):
     self.sj_stock_lineEdit_03 = setLineedit(self.sj_groupBox_05)
     self.sj_stock_lineEdit_04 = setLineedit(self.sj_groupBox_05)
 
-    self.sj_coin_checkBox_01 = QtWidgets.QCheckBox('모의투자', self.sj_groupBox_06)
-    self.sj_coin_checkBox_02 = QtWidgets.QCheckBox('알림소리', self.sj_groupBox_06)
-    text = '장초전략 매수                                            매도                                              '\
+    self.sj_coin_checkBox_01 = QtWidgets.QCheckBox('모의투자    |', self.sj_groupBox_06)
+    self.sj_coin_checkBox_02 = QtWidgets.QCheckBox('알림소리    |', self.sj_groupBox_06)
+    text = '장초전략 매수                                              '\
+           '매도                                                       '\
            '평균값계산틱수                       최대매수종목수'
     self.sj_coin_labellll_01 = QtWidgets.QLabel(text, self.sj_groupBox_06)
     self.sj_coin_comboBox_01 = setCombobox(self.sj_groupBox_06)
     self.sj_coin_comboBox_02 = setCombobox(self.sj_groupBox_06)
     self.sj_coin_lineEdit_01 = setLineedit(self.sj_groupBox_06)
     self.sj_coin_lineEdit_02 = setLineedit(self.sj_groupBox_06)
-    text = '장중전략 매수                                            매도                                              '\
+    text = '장중전략 매수                                              '\
+           '매도                                                       '\
            '평균값계산틱수                       최대매수종목수'
     self.sj_coin_labellll_02 = QtWidgets.QLabel(text, self.sj_groupBox_06)
     self.sj_coin_comboBox_03 = setCombobox(self.sj_groupBox_06)
@@ -693,9 +702,9 @@ def SetUI(self):
     self.sj_groupBox_02.setGeometry(5, 150, 1341, 90)
     self.sj_groupBox_03.setGeometry(5, 260, 1341, 65)
     self.sj_groupBox_04.setGeometry(5, 345, 1341, 65)
-    self.sj_groupBox_05.setGeometry(5, 430, 1341, 120)
-    self.sj_groupBox_06.setGeometry(5, 570, 1341, 120)
-    self.sj_textEdit.setGeometry(5, 700, 1341, 43)
+    self.sj_groupBox_05.setGeometry(5, 430, 1341, 90)
+    self.sj_groupBox_06.setGeometry(5, 540, 1341, 90)
+    self.sj_textEdit.setGeometry(5, 640, 1341, 103)
 
     self.ss_textEdit_01.setGeometry(5, 5, 1000, 463)
     self.ss_textEdit_02.setGeometry(5, 473, 1000, 270)
@@ -830,60 +839,52 @@ def SetUI(self):
     self.sj_main_labellll_04.setGeometry(785, 90, 105, 20)
     self.sj_main_lineEdit_06.setGeometry(900, 90, 50, 20)
 
-    self.sj_sacc_labellll_01.setGeometry(10, 30, 100, 20)
-    self.sj_sacc_lineEdit_01.setGeometry(115, 30, 100, 20)
-    self.sj_sacc_labellll_02.setGeometry(225, 30, 50, 20)
-    self.sj_sacc_lineEdit_02.setGeometry(285, 30, 100, 20)
-    self.sj_sacc_labellll_03.setGeometry(395, 30, 80, 20)
-    self.sj_sacc_lineEdit_03.setGeometry(485, 30, 100, 20)
-    self.sj_sacc_labellll_04.setGeometry(595, 30, 70, 20)
-    self.sj_sacc_lineEdit_04.setGeometry(675, 30, 100, 20)
-    self.sj_sacc_labellll_05.setGeometry(10, 60, 100, 20)
-    self.sj_sacc_lineEdit_05.setGeometry(115, 60, 100, 20)
-    self.sj_sacc_labellll_06.setGeometry(225, 60, 50, 20)
-    self.sj_sacc_lineEdit_06.setGeometry(285, 60, 100, 20)
-    self.sj_sacc_labellll_07.setGeometry(395, 60, 80, 20)
-    self.sj_sacc_lineEdit_07.setGeometry(485, 60, 100, 20)
-    self.sj_sacc_labellll_08.setGeometry(595, 60, 70, 20)
-    self.sj_sacc_lineEdit_08.setGeometry(675, 60, 100, 20)
+    self.sj_sacc_labellll_01.setGeometry(10, 30, 1000, 20)
+    self.sj_sacc_lineEdit_01.setGeometry(115, 30, 130, 20)
+    self.sj_sacc_lineEdit_02.setGeometry(330, 30, 130, 20)
+    self.sj_sacc_lineEdit_03.setGeometry(585, 30, 130, 20)
+    self.sj_sacc_lineEdit_04.setGeometry(820, 30, 130, 20)
+    self.sj_sacc_labellll_02.setGeometry(10, 60, 1000, 20)
+    self.sj_sacc_lineEdit_05.setGeometry(115, 60, 130, 20)
+    self.sj_sacc_lineEdit_06.setGeometry(330, 60, 130, 20)
+    self.sj_sacc_lineEdit_07.setGeometry(585, 60, 130, 20)
+    self.sj_sacc_lineEdit_08.setGeometry(820, 60, 130, 20)
 
-    self.sj_cacc_labellll_01.setGeometry(10, 30, 65, 20)
-    self.sj_cacc_lineEdit_01.setGeometry(85, 30, 390, 20)
-    self.sj_cacc_labellll_02.setGeometry(485, 30, 65, 20)
-    self.sj_cacc_lineEdit_02.setGeometry(560, 30, 390, 20)
+    self.sj_cacc_labellll_01.setGeometry(10, 30, 1000, 20)
+    self.sj_cacc_lineEdit_01.setGeometry(85, 30, 375, 20)
+    self.sj_cacc_lineEdit_02.setGeometry(575, 30, 375, 20)
 
-    self.sj_tele_labellll_01.setGeometry(10, 30, 65, 20)
-    self.sj_tele_lineEdit_01.setGeometry(85, 30, 390, 20)
-    self.sj_tele_labellll_02.setGeometry(485, 30, 65, 20)
-    self.sj_tele_lineEdit_02.setGeometry(560, 30, 390, 20)
+    self.sj_tele_labellll_01.setGeometry(10, 30, 1000, 20)
+    self.sj_tele_lineEdit_01.setGeometry(85, 30, 375, 20)
+    self.sj_tele_lineEdit_02.setGeometry(575, 30, 375, 20)
 
-    self.sj_stock_checkBox_01.setGeometry(10, 30, 70, 20)
-    self.sj_stock_checkBox_02.setGeometry(90, 30, 70, 20)
+    self.sj_stock_checkBox_01.setGeometry(10, 30, 90, 20)
+    self.sj_stock_checkBox_02.setGeometry(10, 60, 90, 20)
 
-    self.sj_stock_labellll_01.setGeometry(10, 60, 910, 20)
-    self.sj_stock_comboBox_01.setGeometry(85, 60, 120, 22)
-    self.sj_stock_comboBox_02.setGeometry(240, 60, 120, 22)
-    self.sj_stock_lineEdit_01.setGeometry(455, 60, 50, 20)
-    self.sj_stock_lineEdit_02.setGeometry(600, 60, 50, 20)
-    self.sj_stock_labellll_02.setGeometry(10, 90, 910, 20)
-    self.sj_stock_comboBox_03.setGeometry(85, 90, 120, 22)
-    self.sj_stock_comboBox_04.setGeometry(240, 90, 120, 22)
-    self.sj_stock_lineEdit_03.setGeometry(455, 90, 50, 20)
-    self.sj_stock_lineEdit_04.setGeometry(600, 90, 50, 20)
+    self.sj_stock_labellll_01.setGeometry(100, 30, 910, 20)
+    self.sj_stock_comboBox_01.setGeometry(175, 30, 125, 22)
+    self.sj_stock_comboBox_02.setGeometry(335, 30, 125, 22)
+    self.sj_stock_lineEdit_01.setGeometry(580, 30, 50, 20)
+    self.sj_stock_lineEdit_02.setGeometry(725, 30, 50, 20)
+    self.sj_stock_labellll_02.setGeometry(100, 60, 910, 20)
+    self.sj_stock_comboBox_03.setGeometry(175, 60, 125, 22)
+    self.sj_stock_comboBox_04.setGeometry(335, 60, 125, 22)
+    self.sj_stock_lineEdit_03.setGeometry(580, 60, 50, 20)
+    self.sj_stock_lineEdit_04.setGeometry(725, 60, 50, 20)
 
-    self.sj_coin_checkBox_01.setGeometry(10, 30, 70, 20)
-    self.sj_coin_checkBox_02.setGeometry(90, 30, 70, 20)
+    self.sj_coin_checkBox_01.setGeometry(10, 30, 90, 20)
+    self.sj_coin_checkBox_02.setGeometry(10, 60, 90, 20)
 
-    self.sj_coin_labellll_01.setGeometry(10, 60, 910, 20)
-    self.sj_coin_comboBox_01.setGeometry(85, 60, 120, 22)
-    self.sj_coin_comboBox_02.setGeometry(240, 60, 120, 22)
-    self.sj_coin_lineEdit_01.setGeometry(455, 60, 50, 20)
-    self.sj_coin_lineEdit_02.setGeometry(600, 60, 50, 20)
-    self.sj_coin_labellll_02.setGeometry(10, 90, 910, 20)
-    self.sj_coin_comboBox_03.setGeometry(85, 90, 120, 22)
-    self.sj_coin_comboBox_04.setGeometry(240, 90, 120, 22)
-    self.sj_coin_lineEdit_03.setGeometry(455, 90, 50, 20)
-    self.sj_coin_lineEdit_04.setGeometry(600, 90, 50, 20)
+    self.sj_coin_labellll_01.setGeometry(100, 30, 910, 20)
+    self.sj_coin_comboBox_01.setGeometry(175, 30, 125, 22)
+    self.sj_coin_comboBox_02.setGeometry(335, 30, 125, 22)
+    self.sj_coin_lineEdit_01.setGeometry(580, 30, 50, 20)
+    self.sj_coin_lineEdit_02.setGeometry(725, 30, 50, 20)
+    self.sj_coin_labellll_02.setGeometry(100, 60, 910, 20)
+    self.sj_coin_comboBox_03.setGeometry(175, 60, 125, 22)
+    self.sj_coin_comboBox_04.setGeometry(335, 60, 125, 22)
+    self.sj_coin_lineEdit_03.setGeometry(580, 60, 50, 20)
+    self.sj_coin_lineEdit_04.setGeometry(725, 60, 50, 20)
 
     self.sj_load_pushButton_00.setGeometry(1180, 60, 150, 22)
     self.sj_load_pushButton_01.setGeometry(1180, 30, 70, 22)
