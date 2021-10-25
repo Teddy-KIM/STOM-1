@@ -2,21 +2,23 @@ import os
 import sys
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.setting import ui_num
+from utility.setting import ui_num, DICT_SET
 from utility.static import timedelta_sec, now, float2str1p6
+
+DICT_SET = DICT_SET
 
 
 class CollectorCoin:
     def __init__(self, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
-        self.tick5Q = qlist[15]
+        self.tick5Q = qlist[16]
         self.dict_df = {}                   # 틱데이터 저장용 딕셔너리 key: code, value: datafame
         self.dict_ob = {}                   # 오더북 저장용 딕셔너리
         self.time_save = timedelta_sec(60)  # 틱데이터 저장주기 확인용
@@ -26,7 +28,10 @@ class CollectorCoin:
         self.windowQ.put([ui_num['C단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작'])
         while True:
             data = self.tick5Q.get()
-            self.UpdateTickData(data)
+            if len(data) != 1:
+                self.UpdateTickData(data)
+            else:
+                self.UpdateVars(data[0])
 
     def UpdateTickData(self, data):
         if len(data) == 13:
@@ -57,8 +62,11 @@ class CollectorCoin:
                 self.windowQ.put([ui_num['C단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
                 self.query2Q.put([2, self.dict_df])
                 self.dict_df = {}
-                self.time_save = timedelta_sec(60)
+                self.time_save = timedelta_sec(DICT_SET['코인저장주기'])
         elif len(data) == 23:
-            code = data[0]
-            del data[0]
-            self.dict_ob[code] = data
+            self.dict_ob[data[0]] = data[1:]
+
+    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
+    def UpdateVars(self, cts):
+        global DICT_SET
+        DICT_SET['코인저장주기'] = cts

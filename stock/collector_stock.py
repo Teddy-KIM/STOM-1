@@ -2,33 +2,32 @@ import os
 import sys
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.setting import ui_num
+from utility.setting import ui_num, DICT_SET
 from utility.static import now, strf_time, timedelta_sec, float2str1p6
 
-DIVIDE_SAVE = True     # 틱데이터 저장방식 선택 - True: 10초에 한번 저장(전체종목저장), False: 장마감 후 저장(저장종목선택)
-DTRADE_SAVE = False     # 장마감 후 저장일 경우 - True: 당일거래목록만 저장, False: 전체종목 저장
+DICT_SET = DICT_SET
 
 
 class CollectorStock:
     def __init__(self, gubun, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.gubun = gubun
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
         self.teleQ = qlist[4]
         if self.gubun == 1:
-            self.tickQ = qlist[11]
-        elif self.gubun == 2:
             self.tickQ = qlist[12]
-        elif self.gubun == 3:
+        elif self.gubun == 2:
             self.tickQ = qlist[13]
-        elif self.gubun == 4:
+        elif self.gubun == 3:
             self.tickQ = qlist[14]
+        elif self.gubun == 4:
+            self.tickQ = qlist[15]
 
         self.dict_df = {}
         self.dict_dm = {}
@@ -45,10 +44,13 @@ class CollectorStock:
             self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작'])
         while True:
             data = self.tickQ.get()
-            if len(data) != 2:
-                self.UpdateTickData(data)
+            if type(data) == list:
+                if len(data) != 3:
+                    self.UpdateTickData(data)
+                else:
+                    self.UpdateVars(data[0], data[1], data[2])
             elif data[0] == '콜렉터종료':
-                if not DIVIDE_SAVE:
+                if not DICT_SET['주식실시간저장']:
                     self.SaveTickData(data[1])
                 break
 
@@ -79,13 +81,20 @@ class CollectorStock:
             self.windowQ.put([ui_num['S단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
             self.dict_time['기록시간'] = timedelta_sec(60)
 
-        if DIVIDE_SAVE and now() > self.dict_time['저장시간']:
+        if DICT_SET['주식실시간저장'] and now() > self.dict_time['저장시간']:
             self.query2Q.put([1, self.dict_df])
             self.dict_df = {}
-            self.dict_time['저장시간'] = timedelta_sec(10)
+            self.dict_time['저장시간'] = timedelta_sec(DICT_SET['주식저장주기'])
+
+    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
+    def UpdateVars(self, rs, ts, st):
+        global DICT_SET
+        DICT_SET['주식실시간저장'] = rs
+        DICT_SET['주식전체종목저장'] = ts
+        DICT_SET['주식저장주기'] = st
 
     def SaveTickData(self, codes):
-        if DTRADE_SAVE:
+        if not DICT_SET['주식전체종목저장']:
             for code in list(self.dict_df.keys()):
                 if code not in codes:
                     del self.dict_df[code]
