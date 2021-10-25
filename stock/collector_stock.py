@@ -5,8 +5,6 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.setting import ui_num, DICT_SET
 from utility.static import now, strf_time, timedelta_sec, float2str1p6
 
-DICT_SET = DICT_SET
-
 
 class CollectorStock:
     def __init__(self, gubun, qlist):
@@ -28,6 +26,7 @@ class CollectorStock:
             self.tickQ = qlist[14]
         elif self.gubun == 4:
             self.tickQ = qlist[15]
+        self.dict_set = DICT_SET
 
         self.dict_df = {}
         self.dict_dm = {}
@@ -44,15 +43,15 @@ class CollectorStock:
             self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작'])
         while True:
             data = self.tickQ.get()
-            if type(data) == list:
-                if len(data) != 3:
+            if len(data) == list:
+                if len(data) != 2:
                     self.UpdateTickData(data)
-                else:
-                    self.UpdateVars(data[0], data[1], data[2])
-            elif data[0] == '콜렉터종료':
-                if not DICT_SET['주식실시간저장']:
-                    self.SaveTickData(data[1])
-                break
+                elif data[0] == '콜렉터종료':
+                    if not self.dict_set['주식실시간저장']:
+                        self.SaveTickData(data[1])
+                    break
+            elif type(data) == dict:
+                self.dict_set = data
 
         if self.gubun == 4:
             self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 종료'])
@@ -81,20 +80,13 @@ class CollectorStock:
             self.windowQ.put([ui_num['S단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
             self.dict_time['기록시간'] = timedelta_sec(60)
 
-        if DICT_SET['주식실시간저장'] and now() > self.dict_time['저장시간']:
+        if self.dict_set['주식실시간저장'] and now() > self.dict_time['저장시간']:
             self.query2Q.put([1, self.dict_df])
             self.dict_df = {}
-            self.dict_time['저장시간'] = timedelta_sec(DICT_SET['주식저장주기'])
-
-    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, sts, stt, std):
-        global DICT_SET
-        DICT_SET['주식실시간저장'] = sts
-        DICT_SET['주식전체종목저장'] = stt
-        DICT_SET['주식저장주기'] = std
+            self.dict_time['저장시간'] = timedelta_sec(self.dict_set['주식저장주기'])
 
     def SaveTickData(self, codes):
-        if not DICT_SET['주식전체종목저장']:
+        if not self.dict_set['주식전체종목저장']:
             for code in list(self.dict_df.keys()):
                 if code not in codes:
                     del self.dict_df[code]

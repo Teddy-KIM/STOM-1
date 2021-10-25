@@ -5,8 +5,6 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.setting import ui_num, DICT_SET
 from utility.static import timedelta_sec, now, float2str1p6
 
-DICT_SET = DICT_SET
-
 
 class CollectorCoin:
     def __init__(self, qlist):
@@ -19,6 +17,7 @@ class CollectorCoin:
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
         self.tick5Q = qlist[16]
+        self.dict_set = DICT_SET
         self.dict_df = {}                   # 틱데이터 저장용 딕셔너리 key: code, value: datafame
         self.dict_ob = {}                   # 오더북 저장용 딕셔너리
         self.time_save = timedelta_sec(60)  # 틱데이터 저장주기 확인용
@@ -28,10 +27,10 @@ class CollectorCoin:
         self.windowQ.put([ui_num['C단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작'])
         while True:
             data = self.tick5Q.get()
-            if len(data) != 1:
+            if type(data) == list:
                 self.UpdateTickData(data)
-            else:
-                self.UpdateVars(data[0])
+            elif type(data) == dict:
+                self.dict_set = data
 
     def UpdateTickData(self, data):
         if len(data) == 13:
@@ -62,11 +61,6 @@ class CollectorCoin:
                 self.windowQ.put([ui_num['C단순텍스트'], f'콜렉터 수신 기록 알림 - 수신시간과 기록시간의 차이는 [{gap}]초입니다.'])
                 self.query2Q.put([2, self.dict_df])
                 self.dict_df = {}
-                self.time_save = timedelta_sec(DICT_SET['코인저장주기'])
+                self.time_save = timedelta_sec(self.dict_set['코인저장주기'])
         elif len(data) == 23:
             self.dict_ob[data[0]] = data[1:]
-
-    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, cts):
-        global DICT_SET
-        DICT_SET['코인저장주기'] = cts

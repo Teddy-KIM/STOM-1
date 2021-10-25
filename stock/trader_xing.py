@@ -8,8 +8,6 @@ from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, DB_TRADELIST, DICT_SET
 
-DICT_SET = DICT_SET
-
 
 class TraderXing:
     app = QtWidgets.QApplication(sys.argv)
@@ -28,6 +26,7 @@ class TraderXing:
         self.sreceivQ = qlist[5]
         self.stockQ = qlist[8]
         self.sstgQ = qlist[10]
+        self.dict_set = DICT_SET
 
         self.df_cj = pd.DataFrame(columns=columns_cj)   # 체결목록
         self.df_jg = pd.DataFrame(columns=columns_jg)   # 잔고목록
@@ -98,7 +97,7 @@ class TraderXing:
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 데이터베이스 정보 불러오기 완료'])
 
     def XingLogin(self):
-        self.xas.Login(DICT_SET['아이디1'], DICT_SET['비밀번호1'], DICT_SET['인증서비밀번호1'])
+        self.xas.Login(self.dict_set['아이디1'], self.dict_set['비밀번호1'], self.dict_set['인증서비밀번호1'])
         self.dict_strg['계좌번호'] = self.xas.GetAccountList(0)
 
         df = []
@@ -120,7 +119,7 @@ class TraderXing:
             self.dict_name[code] = name
 
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
-        if DICT_SET['주식알림소리']:
+        if self.dict_set['주식알림소리']:
             self.soundQ.put('이베스트투자증권 오픈에이피아이에 로그인하였습니다.')
 
         if len(self.df_jg) > 0:
@@ -148,8 +147,8 @@ class TraderXing:
                     elif len(data) == 3:
                         self.UpdateJango(data[0], data[1], data[2])
                         continue
-                    elif len(data) == 2:
-                        self.UpdateVars(data[0], data[1])
+                elif type(data) == dict:
+                    self.dict_set = data
                 elif type(data) == str:
                     self.TelegramCmd(data)
 
@@ -176,7 +175,7 @@ class TraderXing:
 
         self.sstgQ.put('전략프로세스종료')
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
-        if DICT_SET['주식알림소리']:
+        if self.dict_set['주식알림소리']:
             self.soundQ.put('주식 트레이더를 종료합니다.')
         self.teleQ.put('주식 트레이더를 종료하였습니다.')
 
@@ -216,20 +215,14 @@ class TraderXing:
             self.list_sell.append(code)
             on = '1'
 
-        if DICT_SET['주식모의투자'] or gubun == '시드부족':
+        if self.dict_set['주식모의투자'] or gubun == '시드부족':
             self.UpdateChejanData(code, name, '체결', gubun, c, c, oc, 0, strf_time('%Y%m%d%H%M%S%f'))
         else:
             self.xaq.BlockRequest(
-                'CSPAT00600', AcntNo=self.dict_strg['계좌번호'], InptPwd=DICT_SET['계좌비밀번호1'],
+                'CSPAT00600', AcntNo=self.dict_strg['계좌번호'], InptPwd=self.dict_set['계좌비밀번호1'],
                 IsuNo=code, OrdQty=oc, OrdPrc=0, BnsTpCode=on, OrdprcPtnCode='03',
                 MgntrnCode='000', LoanDt='', OrdCndiTpCode='0'
             )
-
-    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, bc1, bc2):
-        global DICT_SET
-        DICT_SET['주식장초최대매수종목수'] = bc1
-        DICT_SET['주식장중최대매수종목수'] = bc2
 
     def TelegramCmd(self, work):
         if work == '/당일체결목록':
@@ -255,10 +248,10 @@ class TraderXing:
 
     def GetAccountjanGo(self):
         df = self.xaq.BlockRequest(
-            't0424', accno=self.dict_strg['계좌번호'], passwd=DICT_SET['계좌비밀번호1'],
+            't0424', accno=self.dict_strg['계좌번호'], passwd=self.dict_set['계좌비밀번호1'],
             prcgb='1', chegb='2', dangb='0', charge='1', cts_expcode=''
         )
-        if DICT_SET['주식모의투자']:
+        if self.dict_set['주식모의투자']:
             con = sqlite3.connect(DB_TRADELIST)
             df = pd.read_sql('SELECT * FROM s_tradelist', con)
             con.close()
@@ -268,10 +261,10 @@ class TraderXing:
         self.dict_intg['추정예수금'] = self.dict_intg['예수금']
 
         if int(strf_time('%H%M%S')) < 100000:
-            maxbuycount = DICT_SET['주식장초최대매수종목수']
+            maxbuycount = self.dict_set['주식장초최대매수종목수']
         else:
-            maxbuycount = DICT_SET['주식장중최대매수종목수']
-        if DICT_SET['주식모의투자']:
+            maxbuycount = self.dict_set['주식장중최대매수종목수']
+        if self.dict_set['주식모의투자']:
             self.dict_intg['추정예탁자산'] = self.dict_intg['예수금'] + self.df_jg['평가금액'].sum()
         elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
             self.dict_intg['추정예탁자산'] = int(df['추정순자산'].iloc[0])
@@ -279,7 +272,7 @@ class TraderXing:
         self.dict_intg['종목당투자금'] = int(self.dict_intg['추정예탁자산'] * 0.99 / maxbuycount)
         self.sstgQ.put(self.dict_intg['종목당투자금'])
 
-        if DICT_SET['주식모의투자']:
+        if self.dict_set['주식모의투자']:
             self.df_tj.at[self.dict_strg['당일날짜']] = \
                 self.dict_intg['추정예탁자산'], self.dict_intg['예수금'], 0, 0, 0, 0, 0
         elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
@@ -315,12 +308,12 @@ class TraderXing:
                 c = self.df_jg['현재가'][code]
                 oc = self.df_jg['보유수량'][code]
                 name = self.dict_name[code]
-                if DICT_SET['주식모의투자']:
+                if self.dict_set['주식모의투자']:
                     self.list_sell.append(code)
                     self.UpdateChejanData(code, name, '체결', '매도', c, c, oc, 0, strf_time('%Y%m%d%H%M%S%f'))
                 else:
                     self.Order('매도', code, name, c, oc)
-        if DICT_SET['주식알림소리']:
+        if self.dict_set['주식알림소리']:
             self.soundQ.put('장초전략 잔고청산 주문을 전송하였습니다.')
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장초전략 잔고청산 주문 완료'])
 
@@ -333,19 +326,19 @@ class TraderXing:
                 c = self.df_jg['현재가'][code]
                 oc = self.df_jg['보유수량'][code]
                 name = self.dict_name[code]
-                if DICT_SET['주식모의투자']:
+                if self.dict_set['주식모의투자']:
                     self.list_sell.append(code)
                     self.UpdateChejanData(code, name, '체결', '매도', c, c, oc, 0, strf_time('%Y%m%d%H%M%S%f'))
                 else:
                     self.Order('매도', code, name, c, oc)
-        if DICT_SET['주식알림소리']:
+        if self.dict_set['주식알림소리']:
             self.soundQ.put('장중전략 잔고청산 주문을 전송하였습니다.')
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장중전략 잔고청산 주문 완료'])
 
     def AllRemoveRealreg(self):
         self.xar_op.RemoveAllRealData()
         self.xar_cg.RemoveAllRealData()
-        if DICT_SET['주식알림소리']:
+        if self.dict_set['주식알림소리']:
             self.soundQ.put('실시간 데이터의 수신을 중단하였습니다.')
         self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 실행 알림 - 실시간 데이터 중단 완료'])
 
@@ -353,7 +346,7 @@ class TraderXing:
         if len(self.df_td) > 0:
             df = self.df_tt[['총매수금액', '총매도금액', '총수익금액', '총손실금액', '수익률', '수익금합계']].copy()
             self.query1Q.put([2, df, 's_totaltradelist', 'append'])
-        if DICT_SET['주식알림소리']:
+        if self.dict_set['주식알림소리']:
             self.soundQ.put('일별실현손익를 저장하였습니다.')
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 일별실현손익 저장 완료'])
 
@@ -413,7 +406,7 @@ class TraderXing:
                 self.OperationAlert(status)
 
     def OperationAlert(self, status):
-        if DICT_SET['주식알림소리']:
+        if self.dict_set['주식알림소리']:
             if status == 25:
                 self.soundQ.put('장시작 10분 전입니다.')
             elif status == 24:
@@ -436,7 +429,7 @@ class TraderXing:
                                 f"{self.dict_strg['당일날짜'][6:]}일 장이 종료되었습니다.")
 
     def OnReceiveChegeolData(self, data):
-        if DICT_SET['주식모의투자']:
+        if self.dict_set['주식모의투자']:
             return
 
         try:
@@ -475,10 +468,10 @@ class TraderXing:
                 self.sreceivQ.put(f'잔고청산 {code}')
                 if int(strf_time('%H%M%S')) < 100000:
                     self.dict_intg['종목당투자금'] = \
-                        int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
+                        int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / self.dict_set['주식장중최대매수종목수'])
                 else:
                     self.dict_intg['종목당투자금'] = \
-                        int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / DICT_SET['주식장중최대매수종목수'])
+                        int(self.df_tj['추정예탁자산'][self.dict_strg['당일날짜']] * 0.99 / self.dict_set['주식장중최대매수종목수'])
                 self.sstgQ.put(self.dict_intg['종목당투자금'])
                 self.sstgQ.put(['매도완료', code])
                 self.dict_intg['예수금'] += pg
@@ -516,12 +509,12 @@ class TraderXing:
         self.df_jg[columns] = self.df_jg[columns].astype(int)
         self.df_jg.sort_values(by=['매입금액'], inplace=True)
         self.query1Q.put([2, self.df_jg, 's_jangolist', 'replace'])
-        if DICT_SET['주식알림소리']:
+        if self.dict_set['주식알림소리']:
             self.soundQ.put(f'{name} {oc}주를 {og}하였습니다')
 
     def UpdateTradelist(self, name, oc, sp, sg, bg, pg, on):
         dt = strf_time('%Y%m%d%H%M%S%f')
-        if DICT_SET['주식모의투자'] and len(self.df_td) > 0:
+        if self.dict_set['주식모의투자'] and len(self.df_td) > 0:
             if dt in self.df_td['체결시간'].values:
                 while dt in self.df_td['체결시간'].values:
                     dt = str(int(dt) + 1)
@@ -556,7 +549,7 @@ class TraderXing:
 
     def UpdateChegeollist(self, name, og, oc, omc, op, cp, on):
         dt = strf_time('%Y%m%d%H%M%S%f')
-        if DICT_SET['주식모의투자'] and len(self.df_cj) > 0:
+        if self.dict_set['주식모의투자'] and len(self.df_cj) > 0:
             if dt in self.df_cj['체결시간'].values:
                 while dt in self.df_cj['체결시간'].values:
                     dt = str(int(dt) + 1)

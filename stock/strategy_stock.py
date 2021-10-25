@@ -7,8 +7,6 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import now, strf_time, timedelta_sec, float2str1p6
 from utility.setting import DB_STOCK_STRATEGY, DICT_SET, ui_num, columns_gj
 
-DICT_SET = DICT_SET
-
 
 class StrategyStock:
     def __init__(self, qlist):
@@ -22,6 +20,7 @@ class StrategyStock:
         self.teleQ = qlist[4]
         self.stockQ = qlist[8]
         self.sstgQ = qlist[10]
+        self.dict_set = DICT_SET
 
         con = sqlite3.connect(DB_STOCK_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
@@ -29,18 +28,18 @@ class StrategyStock:
         con.close()
 
         self.buystrategy1 = None
-        if DICT_SET['주식장초매수전략'] != '':
-            self.buystrategy1 = compile(dfb['전략코드'][DICT_SET['주식장초매수전략']], '<string>', 'exec')
+        if self.dict_set['주식장초매수전략'] != '':
+            self.buystrategy1 = compile(dfb['전략코드'][self.dict_set['주식장초매수전략']], '<string>', 'exec')
         self.sellstrategy1 = None
-        if DICT_SET['주식장초매도전략'] != '':
-            self.sellstrategy1 = compile(dfs['전략코드'][DICT_SET['주식장초매도전략']], '<string>', 'exec')
+        if self.dict_set['주식장초매도전략'] != '':
+            self.sellstrategy1 = compile(dfs['전략코드'][self.dict_set['주식장초매도전략']], '<string>', 'exec')
 
         self.buystrategy2 = None
-        if DICT_SET['주식장중매수전략'] != '':
-            self.buystrategy2 = compile(dfb['전략코드'][DICT_SET['주식장중매수전략']], '<string>', 'exec')
+        if self.dict_set['주식장중매수전략'] != '':
+            self.buystrategy2 = compile(dfb['전략코드'][self.dict_set['주식장중매수전략']], '<string>', 'exec')
         self.sellstrategy2 = None
-        if DICT_SET['주식장중매도전략'] != '':
-            self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['주식장중매도전략']], '<string>', 'exec')
+        if self.dict_set['주식장중매도전략'] != '':
+            self.sellstrategy2 = compile(dfs['전략코드'][self.dict_set['주식장중매도전략']], '<string>', 'exec')
 
         self.list_buy = []          # 매수주문리스트
         self.list_sell = []         # 매도주문리스트
@@ -73,10 +72,10 @@ class StrategyStock:
                                      data[25], data[26], data[27], data[28], data[29], data[30], data[31], data[32],
                                      data[33], data[34], data[35], data[36], data[37])
                 elif len(data) == 6:
-                    if type(data[0]) == str:
-                        self.SellStrategy(data[0], data[1], data[2], data[3], data[4], data[5])
-                    elif type(data[0]) == int:
-                        self.UpdateVars(data[0], data[1], data[2], data[3], data[4], data[5])
+                    self.SellStrategy(data[0], data[1], data[2], data[3], data[4], data[5])
+            elif type(data) == dict:
+                self.dict_set = data
+                self.UpdateStrategy()
             elif data == '전략프로세스종료':
                 break
 
@@ -90,9 +89,9 @@ class StrategyStock:
         if '조건진입' in gubun:
             if code not in self.dict_gsjm.keys():
                 if int(strf_time('%H%M%S')) < 100000:
-                    data = np.zeros((DICT_SET['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                    data = np.zeros((self.dict_set['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
                 else:
-                    data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                    data = np.zeros((self.dict_set['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
                 df = pd.DataFrame(data, columns=columns_gj)
                 self.dict_gsjm[code] = df.copy()
         elif gubun == '조건이탈':
@@ -143,9 +142,9 @@ class StrategyStock:
         초당거래대금 = 0 if 직전당일거래대금 == 0 else int(당일거래대금 - 직전당일거래대금)
 
         if int(strf_time('%H%M%S')) < 100000:
-            평균값계산틱수 = DICT_SET['주식장초평균값계산틱수']
+            평균값계산틱수 = self.dict_set['주식장초평균값계산틱수']
         else:
-            평균값계산틱수 = DICT_SET['주식장중평균값계산틱수']
+            평균값계산틱수 = self.dict_set['주식장중평균값계산틱수']
         평균값인덱스 = 평균값계산틱수 + 1
 
         self.dict_gsjm[종목코드] = self.dict_gsjm[종목코드].shift(1)
@@ -228,28 +227,19 @@ class StrategyStock:
     def UpdateGoansimJongmok(self):
         for code in list(self.dict_gsjm.keys()):
             if int(strf_time('%H%M%S')) >= 100000:
-                data = np.zeros((DICT_SET['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                data = np.zeros((self.dict_set['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
             else:
-                data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                data = np.zeros((self.dict_set['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
             df = pd.DataFrame(data, columns=columns_gj)
             self.dict_gsjm[code] = df.copy()
 
-    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, jcb, jcs, at1, jjb, jjs, at2):
-        global DICT_SET
-        DICT_SET['주식장초매수전략'] = jcb
-        DICT_SET['주식장초매도전략'] = jcs
-        DICT_SET['주식장초평균값계산틱수'] = at1
-        DICT_SET['주식장중매수전략'] = jjb
-        DICT_SET['주식장중매도전략'] = jjs
-        DICT_SET['주식장중평균값계산틱수'] = at2
+    def UpdateStrategy(self):
         self.UpdateGoansimJongmok()
-
         con = sqlite3.connect(DB_STOCK_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')
         con.close()
-        self.buystrategy1 = compile(dfb['전략코드'][DICT_SET['주식장초매수전략']], '<string>', 'exec')
-        self.sellstrategy1 = compile(dfs['전략코드'][DICT_SET['주식장초매도전략']], '<string>', 'exec')
-        self.buystrategy2 = compile(dfb['전략코드'][DICT_SET['주식장중매수전략']], '<string>', 'exec')
-        self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['주식장중매도전략']], '<string>', 'exec')
+        self.buystrategy1 = compile(dfb['전략코드'][self.dict_set['주식장초매수전략']], '<string>', 'exec')
+        self.sellstrategy1 = compile(dfs['전략코드'][self.dict_set['주식장초매도전략']], '<string>', 'exec')
+        self.buystrategy2 = compile(dfb['전략코드'][self.dict_set['주식장중매수전략']], '<string>', 'exec')
+        self.sellstrategy2 = compile(dfs['전략코드'][self.dict_set['주식장중매도전략']], '<string>', 'exec')

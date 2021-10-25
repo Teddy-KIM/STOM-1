@@ -9,8 +9,6 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.setting import ui_num, DICT_SET
 from utility.static import now, strf_time, strp_time, timedelta_hour, timedelta_sec
 
-DICT_SET = DICT_SET
-
 
 class WebsTicker:
     def __init__(self, qlist):
@@ -26,6 +24,7 @@ class WebsTicker:
         self.coinQ = qlist[9]
         self.cstgQ = qlist[11]
         self.tick5Q = qlist[16]
+        self.dict_set = DICT_SET
 
         self.dict_cdjm = {}
         self.dict_time = {
@@ -66,8 +65,8 @@ class WebsTicker:
                         break
                     else:
                         self.UpdateJangolist(data)
-                elif type(data) == list:
-                    self.UpdateVars(data[0], data[1], data[2], data[3])
+                elif type(data) == dict:
+                    self.dict_set = data
 
             data = self.websQ_ticker.get()
             if data == 'ConnectionClosedError':
@@ -143,7 +142,7 @@ class WebsTicker:
                     df_mc.at[code] = df['close'][0] * df['volume'][0]
             time.sleep(0.05)
         df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
-        list_top = list(df_mc.index[:DICT_SET['코인순위선정']])
+        list_top = list(df_mc.index[:self.dict_set['코인순위선정']])
         for code in list_top:
             self.InsertGsjmlist(code)
 
@@ -160,18 +159,10 @@ class WebsTicker:
                 self.cstgQ.put(['조건이탈', code])
                 self.list_gsjm2.remove(code)
 
-    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, cc, ct, cmt, cmd):
-        global DICT_SET
-        DICT_SET['코인콜렉터'] = cc
-        DICT_SET['코인트레이더'] = ct
-        DICT_SET['코인순위시간'] = cmt
-        DICT_SET['코인순위선정'] = cmd
-
     def ConditionSearch(self):
         if len(self.df_mc) > 0:
             self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
-            list_top = list(self.df_mc.index[:DICT_SET['코인순위선정']])
+            list_top = list(self.df_mc.index[:self.dict_set['코인순위선정']])
             insert_list = set(list_top) - set(self.pre_top)
             if len(insert_list) > 0:
                 for code in list(insert_list):
@@ -187,7 +178,7 @@ class WebsTicker:
         if code not in self.list_gsjm1:
             self.list_gsjm1.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
-            if DICT_SET['코인트레이더']:
+            if self.dict_set['코인트레이더']:
                 self.cstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
@@ -195,7 +186,7 @@ class WebsTicker:
         if code in self.list_gsjm1:
             self.list_gsjm1.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
-            if DICT_SET['코인트레이더']:
+            if self.dict_set['코인트레이더']:
                 self.cstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
@@ -227,7 +218,7 @@ class WebsTicker:
         elif dt_ != self.dict_cdjm[code].index[-1]:
             predm = self.dict_cdjm[code]['10초전당일거래대금'][-1]
             self.dict_cdjm[code].at[dt_] = dm - predm, dm
-            if len(self.dict_cdjm[code]) == DICT_SET['코인순위시간'] * 6:
+            if len(self.dict_cdjm[code]) == self.dict_set['코인순위시간'] * 6:
                 if per > 0:
                     self.df_mc.at[code] = self.dict_cdjm[code]['10초누적거래대금'].sum()
                 elif code in self.df_mc.index:
@@ -235,13 +226,13 @@ class WebsTicker:
                 self.dict_cdjm[code].drop(index=self.dict_cdjm[code].index[0], inplace=True)
 
         data = [c, o, h, low, per, dm, bids, asks, tbids, tasks, code, dt, receivetime]
-        if DICT_SET['코인트레이더'] and code in self.list_gsjm2:
+        if self.dict_set['코인트레이더'] and code in self.list_gsjm2:
             injango = code in self.list_jang
             self.cstgQ.put(data + [injango])
             if injango:
                 self.coinQ.put([code, c])
 
-        if DICT_SET['코인콜렉터']:
+        if self.dict_set['코인콜렉터']:
             self.tick5Q.put(data)
 
 
@@ -258,6 +249,7 @@ class WebsOrderbook:
         self.coinQ = qlist[9]
         self.cstgQ = qlist[11]
         self.tick5Q = qlist[16]
+        self.dict_set = DICT_SET
         self.time_tickers = now()
         self.websQ_order = None
         self.Start()
@@ -278,8 +270,8 @@ class WebsOrderbook:
                 if type(data) == str and data == 'terminate':
                     self.websQ_order.terminate()
                     break
-                else:
-                    self.UpdateVars(data[0], data[1], data[2], data[3])
+                elif type(data) == dict:
+                    self.dict_set = data
 
             data = self.websQ_order.get()
             if data == 'ConnectionClosedError':
@@ -312,9 +304,9 @@ class WebsOrderbook:
                 data = [code, tsjr, tbjr,
                         s5hg, s4hg, s3hg, s2hg, s1hg, b1hg, b2hg, b3hg, b4hg, b5hg,
                         s5jr, s4jr, s3jr, s2jr, s1jr, b1jr, b2jr, b3jr, b4jr, b5jr]
-                if DICT_SET['코인콜렉터']:
+                if self.dict_set['코인콜렉터']:
                     self.tick5Q.put(data)
-                if DICT_SET['코인트레이더']:
+                if self.dict_set['코인트레이더']:
                     self.cstgQ.put(data)
 
             if now() > self.time_tickers:
@@ -324,11 +316,3 @@ class WebsOrderbook:
                     time.sleep(2)
                     self.websQ_order = WebSocketManager('orderbook', codes)
                 self.time_tickers = timedelta_sec(600)
-
-    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, cc, ct, cmt, cmd):
-        global DICT_SET
-        DICT_SET['코인콜렉터'] = cc
-        DICT_SET['코인트레이더'] = ct
-        DICT_SET['코인순위시간'] = cmt
-        DICT_SET['코인순위선정'] = cmd

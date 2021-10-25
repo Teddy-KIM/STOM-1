@@ -16,13 +16,11 @@ class TelegramMsg:
         self.teleQ = qlist[4]
         self.stockQ = qlist[8]
         self.coinQ = qlist[9]
+        self.dict_set = DICT_SET
+        self.UpdateBot(self.dict_set)
         self.updater = None
+        self.bot = None
 
-        if DICT_SET['텔레그램봇토큰'] is not None:
-            self.bot = telegram.Bot(DICT_SET['텔레그램봇토큰'])
-            self.SetCustomButton()
-        else:
-            self.bot = None
         self.Start()
 
     def Start(self):
@@ -32,18 +30,28 @@ class TelegramMsg:
                 self.SendMsg(msg)
             elif type(msg) == pd.DataFrame:
                 self.UpdateDataframe(msg)
+            elif type(msg) == dict:
+                self.UpdateBot(msg)
 
     def __del__(self):
         if self.updater is not None:
             self.updater.stop()
 
+    def UpdateBot(self, dict_set):
+        self.dict_set = dict_set
+        if self.dict_set['텔레그램봇토큰'] is not None:
+            self.bot = telegram.Bot(self.dict_set['텔레그램봇토큰'])
+            self.SetCustomButton()
+        else:
+            self.bot = None
+
     def SetCustomButton(self):
         custum_button = [['/당일체결목록', '/당일거래목록', '/계좌잔고평가', '/잔고청산주문']]
         reply_markup = telegram.ReplyKeyboardMarkup(custum_button)
-        self.bot.send_message(chat_id=DICT_SET['텔레그램사용자아이디'],
+        self.bot.send_message(chat_id=self.dict_set['텔레그램사용자아이디'],
                               text='사용자버튼 설정을 완료하였습니다.',
                               reply_markup=reply_markup)
-        self.updater = Updater(DICT_SET['텔레그램봇토큰'])
+        self.updater = Updater(self.dict_set['텔레그램봇토큰'])
         self.updater.dispatcher.add_handler(MessageHandler(Filters.text, self.ButtonClicked))
         self.updater.start_polling(drop_pending_updates=True)
 
@@ -55,7 +63,7 @@ class TelegramMsg:
     def SendMsg(self, msg):
         if self.bot is not None:
             try:
-                self.bot.sendMessage(chat_id=DICT_SET['텔레그램사용자아이디'], text=msg)
+                self.bot.sendMessage(chat_id=self.dict_set['텔레그램사용자아이디'], text=msg)
             except Exception as e:
                 self.windowQ.put([ui_num['설정텍스트'], f'시스템 명령 오류 알림 - SendMsg {e}'])
         else:

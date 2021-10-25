@@ -7,8 +7,6 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import now, strf_time, timedelta_sec, float2str1p6
 from utility.setting import DB_COIN_STRATEGY, DICT_SET, ui_num, columns_gj
 
-DICT_SET = DICT_SET
-
 
 class StrategyCoin:
     def __init__(self, qlist):
@@ -22,6 +20,7 @@ class StrategyCoin:
         self.query2Q = qlist[3]
         self.coinQ = qlist[9]
         self.cstgQ = qlist[11]
+        self.dict_set = DICT_SET
 
         con = sqlite3.connect(DB_COIN_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
@@ -29,18 +28,18 @@ class StrategyCoin:
         con.close()
 
         self.buystrategy1 = None
-        if DICT_SET['코인장초매수전략'] != '':
-            self.buystrategy1 = compile(dfb['전략코드'][DICT_SET['코인장초매수전략']], '<string>', 'exec')
+        if self.dict_set['코인장초매수전략'] != '':
+            self.buystrategy1 = compile(dfb['전략코드'][self.dict_set['코인장초매수전략']], '<string>', 'exec')
         self.sellstrategy1 = None
-        if DICT_SET['코인장초매도전략'] != '':
-            self.sellstrategy1 = compile(dfs['전략코드'][DICT_SET['코인장초매도전략']], '<string>', 'exec')
+        if self.dict_set['코인장초매도전략'] != '':
+            self.sellstrategy1 = compile(dfs['전략코드'][self.dict_set['코인장초매도전략']], '<string>', 'exec')
 
         self.buystrategy2 = None
-        if DICT_SET['코인장중매수전략'] != '':
-            self.buystrategy2 = compile(dfb['전략코드'][DICT_SET['코인장중매수전략']], '<string>', 'exec')
+        if self.dict_set['코인장중매수전략'] != '':
+            self.buystrategy2 = compile(dfb['전략코드'][self.dict_set['코인장중매수전략']], '<string>', 'exec')
         self.sellstrategy2 = None
-        if DICT_SET['코인장중매도전략'] != '':
-            self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['코인장중매도전략']], '<string>', 'exec')
+        if self.dict_set['코인장중매도전략'] != '':
+            self.sellstrategy2 = compile(dfs['전략코드'][self.dict_set['코인장중매도전략']], '<string>', 'exec')
 
         self.list_buy = []      # 매수주문리스트
         self.list_sell = []     # 매도주문리스트
@@ -78,8 +77,9 @@ class StrategyCoin:
                                      data[8], data[9], data[10], data[11], data[12], data[13])
                 elif len(data) == 5:
                     self.SellStrategy(data[0], data[1], data[2], data[3], data[4])
-                elif len(data) == 6:
-                    self.UpdateVars(data[0], data[1], data[2], data[3], data[4], data[5])
+            elif type(data) == dict:
+                self.dict_set = data
+                self.UpdateStrategy()
 
             if now() > self.dict_time['관심종목']:
                 self.windowQ.put([ui_num['C관심종목'], self.dict_gsjm])
@@ -89,9 +89,9 @@ class StrategyCoin:
         if gubun == '조건진입':
             if code not in self.dict_gsjm.keys():
                 if 90000 < int(strf_time('%H%M%S')) < 100000:
-                    data = np.zeros((DICT_SET['코인장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                    data = np.zeros((self.dict_set['코인장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
                 else:
-                    data = np.zeros((DICT_SET['코인장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                    data = np.zeros((self.dict_set['코인장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
                 df = pd.DataFrame(data, columns=columns_gj)
                 self.dict_gsjm[code] = df.copy()
         elif gubun == '조건이탈':
@@ -139,9 +139,9 @@ class StrategyCoin:
         self.CheckStrategy()
 
         if 90000 < int(strf_time('%H%M%S')) < 100000:
-            평균값계산틱수 = DICT_SET['코인장초평균값계산틱수']
+            평균값계산틱수 = self.dict_set['코인장초평균값계산틱수']
         else:
-            평균값계산틱수 = DICT_SET['코인장중평균값계산틱수']
+            평균값계산틱수 = self.dict_set['코인장중평균값계산틱수']
         평균값인덱스 = 평균값계산틱수 + 1
 
         고저평균 = (고가 + 저가) / 2
@@ -247,28 +247,19 @@ class StrategyCoin:
     def UpdateGoansimJongmok(self):
         for code in list(self.dict_gsjm.keys()):
             if 90000 < int(strf_time('%H%M%S')) < 100000:
-                data = np.zeros((DICT_SET['코인장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                data = np.zeros((self.dict_set['코인장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
             else:
-                data = np.zeros((DICT_SET['코인장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                data = np.zeros((self.dict_set['코인장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
             df = pd.DataFrame(data, columns=columns_gj)
             self.dict_gsjm[code] = df.copy()
 
-    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, jcb, jcs, at1, jjb, jjs, at2):
-        global DICT_SET
-        DICT_SET['코인장초매수전략'] = jcb
-        DICT_SET['코인장초매도전략'] = jcs
-        DICT_SET['코인장초평균값계산틱수'] = at1
-        DICT_SET['코인장중매수전략'] = jjb
-        DICT_SET['코인장중매도전략'] = jjs
-        DICT_SET['코인장중평균값계산틱수'] = at2
+    def UpdateStrategy(self):
         self.UpdateGoansimJongmok()
-
         con = sqlite3.connect(DB_COIN_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')
         con.close()
-        self.buystrategy1 = compile(dfb['전략코드'][DICT_SET['코인장초매수전략']], '<string>', 'exec')
-        self.sellstrategy1 = compile(dfs['전략코드'][DICT_SET['코인장초매도전략']], '<string>', 'exec')
-        self.buystrategy2 = compile(dfb['전략코드'][DICT_SET['코인장중매수전략']], '<string>', 'exec')
-        self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['코인장중매도전략']], '<string>', 'exec')
+        self.buystrategy1 = compile(dfb['전략코드'][self.dict_set['코인장초매수전략']], '<string>', 'exec')
+        self.sellstrategy1 = compile(dfs['전략코드'][self.dict_set['코인장초매도전략']], '<string>', 'exec')
+        self.buystrategy2 = compile(dfb['전략코드'][self.dict_set['코인장중매수전략']], '<string>', 'exec')
+        self.sellstrategy2 = compile(dfs['전략코드'][self.dict_set['코인장중매도전략']], '<string>', 'exec')

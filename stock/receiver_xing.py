@@ -9,8 +9,6 @@ from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import ui_num, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
 
-DICT_SET = DICT_SET
-
 
 class ReceiverXing:
     app = QtWidgets.QApplication(sys.argv)
@@ -32,6 +30,7 @@ class ReceiverXing:
         self.tick2Q = qlist[13]
         self.tick3Q = qlist[14]
         self.tick4Q = qlist[15]
+        self.dict_set = DICT_SET
 
         self.dict_bool = {
             '실시간조건검색시작': False,
@@ -105,7 +104,7 @@ class ReceiverXing:
         self.EventLoop()
 
     def XingLogin(self):
-        self.xas.Login(DICT_SET['아이디2'], DICT_SET['비밀번호2'], DICT_SET['인증서비밀번호2'])
+        self.xas.Login(self.dict_set['아이디2'], self.dict_set['비밀번호2'], self.dict_set['인증서비밀번호2'])
 
         con = sqlite3.connect(DB_STOCK_TICK)
         df = pd.read_sql("SELECT name FROM sqlite_master WHERE TYPE = 'table'", con)
@@ -146,7 +145,7 @@ class ReceiverXing:
         self.query2Q.put('주식디비트리거시작')
         self.query1Q.put([1, df, 'codename', 'replace'])
 
-        df = self.xaq.BlockRequest('t1866', user_id=DICT_SET['아이디2'], gb='2', group_name='STOM')
+        df = self.xaq.BlockRequest('t1866', user_id=self.dict_set['아이디2'], gb='2', group_name='STOM')
         try:
             self.list_cond = [[df.index[0], df['query_name'][0]], [df.index[1], df['query_name'][1]]]
         except KeyError:
@@ -163,13 +162,13 @@ class ReceiverXing:
             if not self.sreceivQ.empty():
                 data = self.sreceivQ.get()
                 if type(data) == list:
-                    if type(data[0]) == str:
-                        self.UpdateRealreg(data)
-                    elif type(data[0]) == int:
-                        self.UpdateVars(data[0], data[1], data[2], data[3])
+                    self.UpdateRealreg(data)
+                    continue
                 elif type(data) == str:
                     self.UpdateJangolist(data)
-                continue
+                    continue
+                elif type(data) == dict:
+                    self.dict_set = data
 
             if self.operation == 1 and now() > self.dict_time['휴무종료']:
                 break
@@ -217,14 +216,6 @@ class ReceiverXing:
             self.xar_hp.RemoveAllRealData()
             self.xar_cd.RemoveAllRealData()
             self.xar_hd.RemoveAllRealData()
-
-    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
-    def UpdateVars(self, sc, st, smt, smd):
-        global DICT_SET
-        DICT_SET['주식콜렉터'] = sc
-        DICT_SET['주식트레이더'] = st
-        DICT_SET['주식순위시간'] = smt
-        DICT_SET['주식순위선정'] = smd
 
     def UpdateJangolist(self, data):
         code = data.split(' ')[1]
@@ -287,7 +278,7 @@ class ReceiverXing:
     def StartJangjungStrategy(self):
         self.dict_bool['장중단타전략시작'] = True
         self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
-        list_top = list(self.df_mc.index[:DICT_SET['주식순위선정']])
+        list_top = list(self.df_mc.index[:self.dict_set['주식순위선정']])
         insert_list = set(list_top) - set(self.list_gsjm1)
         if len(insert_list) > 0:
             for code in list(insert_list):
@@ -301,7 +292,7 @@ class ReceiverXing:
 
     def ConditionSearch(self):
         self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
-        list_top = list(self.df_mc.index[:DICT_SET['주식순위선정']])
+        list_top = list(self.df_mc.index[:self.dict_set['주식순위선정']])
         insert_list = set(list_top) - set(self.list_prmt)
         if len(insert_list) > 0:
             for code in list(insert_list):
@@ -316,7 +307,7 @@ class ReceiverXing:
         if code not in self.list_gsjm1:
             self.list_gsjm1.append(code)
         if code not in self.list_jang and code not in self.list_gsjm2:
-            if DICT_SET['주식트레이더']:
+            if self.dict_set['주식트레이더']:
                 self.sstgQ.put(['조건진입', code])
             self.list_gsjm2.append(code)
 
@@ -324,7 +315,7 @@ class ReceiverXing:
         if code in self.list_gsjm1:
             self.list_gsjm1.remove(code)
         if code not in self.list_jang and code in self.list_gsjm2:
-            if DICT_SET['주식트레이더']:
+            if self.dict_set['주식트레이더']:
                 self.sstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
@@ -529,7 +520,7 @@ class ReceiverXing:
         elif dt_ != self.dict_cdjm[code].index[-1]:
             predm = self.dict_cdjm[code]['10초전당일거래대금'][-1]
             self.dict_cdjm[code].at[dt_] = dm - predm, dm
-            if len(self.dict_cdjm[code]) == DICT_SET['주식순위시간'] * 6:
+            if len(self.dict_cdjm[code]) == self.dict_set['주식순위시간'] * 6:
                 if per > 0:
                     self.df_mc.at[code] = self.dict_cdjm[code]['10초누적거래대금'].sum()
                 elif code in self.df_mc.index:
@@ -541,13 +532,13 @@ class ReceiverXing:
         data = [c, o, h, low, per, dm, ch, bids, asks, vitime, vid5price]
         data += self.dict_hoga[code] + [code, dt, receivetime]
 
-        if DICT_SET['주식트레이더'] and code in self.list_gsjm2:
+        if self.dict_set['주식트레이더'] and code in self.list_gsjm2:
             injango = code in self.list_jang
             self.sstgQ.put(data + [name, injango])
             if injango:
                 self.stockQ.put([code, name, c])
 
-        if DICT_SET['주식콜렉터']:
+        if self.dict_set['주식콜렉터']:
             data[9] = strf_time('%Y%m%d%H%M%S', vitime)
             if code in self.list_code1:
                 self.tick1Q.put(data)
