@@ -1537,14 +1537,14 @@ class Window(QtWidgets.QMainWindow):
             DICT_SET['코인리시버'] = cr
             DICT_SET['코인콜렉터'] = cc
             DICT_SET['코인트레이더'] = ct
-            sreceivQ.put([sc, st, smt, smd])
-            creceiv1Q.put([cc, ct, cmt, cmd])
-            creceiv2Q.put([cc, ct, cmt, cmd])
-            tick1Q.put([sts, stt, std])
-            tick2Q.put([sts, stt, std])
-            tick3Q.put([sts, stt, std])
-            tick4Q.put([sts, stt, std])
-            tick5Q.put([cts])
+            sreceivQ.put([sc, st, int(smt), int(smd)])
+            creceiv1Q.put([cc, ct, int(cmt), int(cmd)])
+            creceiv2Q.put([cc, ct, int(cmt), int(cmd)])
+            tick1Q.put([sts, stt, int(std)])
+            tick2Q.put([sts, stt, int(std)])
+            tick3Q.put([sts, stt, int(std)])
+            tick4Q.put([sts, stt, int(std)])
+            tick5Q.put([int(cts)])
 
     def ButtonClicked_78(self):
         id1 = self.sj_sacc_lineEdit_01.text()
