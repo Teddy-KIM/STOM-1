@@ -7,19 +7,21 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import now, strf_time, timedelta_sec, float2str1p6
 from utility.setting import DB_STOCK_STRATEGY, DICT_SET, ui_num, columns_gj
 
+DICT_SET = DICT_SET
+
 
 class StrategyStock:
     def __init__(self, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.windowQ = qlist[0]
         self.teleQ = qlist[4]
-        self.stockQ = qlist[7]
-        self.sstgQ = qlist[9]
+        self.stockQ = qlist[8]
+        self.sstgQ = qlist[10]
 
         con = sqlite3.connect(DB_STOCK_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
@@ -71,7 +73,10 @@ class StrategyStock:
                                      data[25], data[26], data[27], data[28], data[29], data[30], data[31], data[32],
                                      data[33], data[34], data[35], data[36], data[37])
                 elif len(data) == 6:
-                    self.SellStrategy(data[0], data[1], data[2], data[3], data[4], data[5])
+                    if type(data[0]) == str:
+                        self.SellStrategy(data[0], data[1], data[2], data[3], data[4], data[5])
+                    elif type(data[0]) == int:
+                        self.UpdateVars(data[0], data[1], data[2], data[3], data[4], data[5])
             elif data == '전략프로세스종료':
                 break
 
@@ -217,8 +222,34 @@ class StrategyStock:
 
     def CheckStrategy(self):
         if int(strf_time('%H%M%S')) >= 100000 and not self.startjjstg:
-            for code in list(self.dict_gsjm.keys()):
-                data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
-                df = pd.DataFrame(data, columns=columns_gj)
-                self.dict_gsjm[code] = df.copy()
+            self.UpdateGoansimJongmok()
             self.startjjstg = True
+
+    def UpdateGoansimJongmok(self):
+        for code in list(self.dict_gsjm.keys()):
+            if int(strf_time('%H%M%S')) >= 100000:
+                data = np.zeros((DICT_SET['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
+            else:
+                data = np.zeros((DICT_SET['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+            df = pd.DataFrame(data, columns=columns_gj)
+            self.dict_gsjm[code] = df.copy()
+
+    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
+    def UpdateVars(self, jcb, jcs, at1, jjb, jjs, at2):
+        global DICT_SET
+        DICT_SET['주식장초매수전략'] = jcb
+        DICT_SET['주식장초매도전략'] = jcs
+        DICT_SET['주식장초평균값계산틱수'] = at1
+        DICT_SET['주식장중매수전략'] = jjb
+        DICT_SET['주식장중매도전략'] = jjs
+        DICT_SET['주식장중평균값계산틱수'] = at2
+        self.UpdateGoansimJongmok()
+
+        con = sqlite3.connect(DB_STOCK_STRATEGY)
+        dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
+        dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')
+        con.close()
+        self.buystrategy1 = compile(dfb['전략코드'][DICT_SET['주식장초매수전략']], '<string>', 'exec')
+        self.sellstrategy1 = compile(dfs['전략코드'][DICT_SET['주식장초매도전략']], '<string>', 'exec')
+        self.buystrategy2 = compile(dfb['전략코드'][DICT_SET['주식장중매수전략']], '<string>', 'exec')
+        self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['주식장중매도전략']], '<string>', 'exec')

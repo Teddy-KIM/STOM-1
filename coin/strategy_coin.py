@@ -11,15 +11,15 @@ from utility.setting import DB_COIN_STRATEGY, DICT_SET, ui_num, columns_gj
 class StrategyCoin:
     def __init__(self, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
-        self.coinQ = qlist[8]
-        self.cstgQ = qlist[10]
+        self.coinQ = qlist[9]
+        self.cstgQ = qlist[11]
 
         con = sqlite3.connect(DB_COIN_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
@@ -76,6 +76,8 @@ class StrategyCoin:
                                      data[8], data[9], data[10], data[11], data[12], data[13])
                 elif len(data) == 5:
                     self.SellStrategy(data[0], data[1], data[2], data[3], data[4])
+                elif len(data) == 6:
+                    self.UpdateVars(data[0], data[1], data[2], data[3], data[4], data[5])
 
             if now() > self.dict_time['관심종목']:
                 self.windowQ.put([ui_num['C관심종목'], self.dict_gsjm])
@@ -248,3 +250,23 @@ class StrategyCoin:
                 data = np.zeros((DICT_SET['코인장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
             df = pd.DataFrame(data, columns=columns_gj)
             self.dict_gsjm[code] = df.copy()
+
+    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
+    def UpdateVars(self, jcb, jcs, at1, jjb, jjs, at2):
+        global DICT_SET
+        DICT_SET['코인장초매수전략'] = jcb
+        DICT_SET['코인장초매도전략'] = jcs
+        DICT_SET['코인장초평균값계산틱수'] = at1
+        DICT_SET['코인장중매수전략'] = jjb
+        DICT_SET['코인장중매도전략'] = jjs
+        DICT_SET['코인장중평균값계산틱수'] = at2
+        self.UpdateGoansimJongmok()
+
+        con = sqlite3.connect(DB_COIN_STRATEGY)
+        dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
+        dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')
+        con.close()
+        self.buystrategy1 = compile(dfb['전략코드'][DICT_SET['코인장초매수전략']], '<string>', 'exec')
+        self.sellstrategy1 = compile(dfs['전략코드'][DICT_SET['코인장초매도전략']], '<string>', 'exec')
+        self.buystrategy2 = compile(dfb['전략코드'][DICT_SET['코인장중매수전략']], '<string>', 'exec')
+        self.sellstrategy2 = compile(dfs['전략코드'][DICT_SET['코인장중매도전략']], '<string>', 'exec')
