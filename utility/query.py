@@ -5,10 +5,10 @@ from utility.setting import ui_num, DB_TRADELIST, DB_SETTING, DB_STOCK_STRATEGY,
 class Query:
     def __init__(self, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.windowQ = qlist[0]
         self.query1Q = qlist[2]

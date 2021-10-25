@@ -8,24 +8,26 @@ from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, DB_TRADELIST, DICT_SET
 
+DICT_SET = DICT_SET
+
 
 class TraderXing:
     app = QtWidgets.QApplication(sys.argv)
 
     def __init__(self, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.windowQ = qlist[0]
         self.soundQ = qlist[1]
         self.query1Q = qlist[2]
         self.teleQ = qlist[4]
         self.sreceivQ = qlist[5]
-        self.stockQ = qlist[7]
-        self.sstgQ = qlist[9]
+        self.stockQ = qlist[8]
+        self.sstgQ = qlist[10]
 
         self.df_cj = pd.DataFrame(columns=columns_cj)   # 체결목록
         self.df_jg = pd.DataFrame(columns=columns_jg)   # 잔고목록
@@ -140,10 +142,14 @@ class TraderXing:
             if not self.stockQ.empty():
                 data = self.stockQ.get()
                 if type(data) == list:
-                    if len(data) == 3:
-                        self.UpdateJango(data[0], data[1], data[2])
-                    elif len(data) == 5:
+                    if len(data) == 5:
                         self.BuySell(data[0], data[1], data[2], data[3], data[4])
+                        continue
+                    elif len(data) == 3:
+                        self.UpdateJango(data[0], data[1], data[2])
+                        continue
+                    elif len(data) == 2:
+                        self.UpdateVars(data[0], data[1])
                 elif type(data) == str:
                     self.TelegramCmd(data)
 
@@ -218,6 +224,12 @@ class TraderXing:
                 MgntrnCode='000', LoanDt='', OrdCndiTpCode='0'
             )
 
+    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
+    def UpdateVars(self, bc1, bc2):
+        global DICT_SET
+        DICT_SET['주식장초최대매수종목수'] = bc1
+        DICT_SET['주식장중최대매수종목수'] = bc2
+
     def TelegramCmd(self, work):
         if work == '/당일체결목록':
             if len(self.df_cj) > 0:
@@ -273,7 +285,10 @@ class TraderXing:
             tsg = int(df['tdtsunik'].iloc[0])
             tbg = int(df['mamt'].iloc[0])
             tpg = int(df['tappamt'].iloc[0])
-            tsp = float(tsg / tbg * 100)
+            if tbg == 0:
+                tsp = 0.
+            else:
+                tsp = float(tsg / tbg * 100)
             self.df_tj.at[self.dict_strg['당일날짜']] = \
                 self.dict_intg['추정예탁자산'], self.dict_intg['예수금'], 0, tsp, tsg, tbg, tpg
         self.windowQ.put([ui_num['S잔고평가'], self.df_tj])

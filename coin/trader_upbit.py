@@ -12,18 +12,18 @@ from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, colu
 class TraderUpbit:
     def __init__(self, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.windowQ = qlist[0]
         self.soundQ = qlist[1]
         self.query1Q = qlist[2]
         self.teleQ = qlist[4]
-        self.creceivQ = qlist[6]
-        self.coinQ = qlist[8]
-        self.cstgQ = qlist[10]
+        self.creceiv1Q = qlist[6]
+        self.coinQ = qlist[9]
+        self.cstgQ = qlist[11]
 
         self.upbit = None                               # 매도수 주문 및 체결 확인용 객체
         self.buy_uuid = {}                              # 매수 주문 저장용 딕셔너리 key : 티커명 value : uuid
@@ -90,7 +90,7 @@ class TraderUpbit:
                     self.dict_buyt[code] = strp_time('%Y%m%d%H%M%S%f', df['체결시간'].iloc[0])
                 else:
                     self.dict_buyt[code] = now()
-                self.creceivQ.put(['잔고편입',  code])
+                self.creceiv1Q.put(['잔고편입', code])
 
         self.windowQ.put([ui_num['C로그텍스트'], '시스템 명령 실행 알림 - 데이터베이스 불러오기 완료'])
 
@@ -140,14 +140,15 @@ class TraderUpbit:
             """ 주문 및 잔고갱신용 큐를 감시한다. """
             if not self.coinQ.empty():
                 data = self.coinQ.get()
-                if data[0] == '매수':
-                    self.Buy(data[1], data[2], data[3])
-                elif data[0] == '매도':
-                    self.Sell(data[1], data[2], data[3])
-                else:
-                    code, c = data
-                    if code in self.df_jg.index:
-                        self.UpdateJango(code, c)
+                if type(data[0]) == str:
+                    if data[0] == '매수':
+                        self.Buy(data[1], data[2], data[3])
+                    elif data[0] == '매도':
+                        self.Sell(data[1], data[2], data[3])
+                    elif data[0] in self.df_jg.index:
+                        self.UpdateJango(data[0], data[1])
+                elif type(data[0]) == int:
+                    self.UpdateVars(data[0], data[1])
 
             """ 주문의 체결확인은 0.5초마다 반복한다. """
             if len(self.buy_uuid) > 0 and now() > self.dict_time['매수체결확인']:
@@ -286,6 +287,12 @@ class TraderUpbit:
             self.df_jg.at[code, columns] = c, sp, sg, pg
             self.cstgQ.put([code, sp, oc, c, self.dict_buyt[code]])
 
+    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
+    def UpdateVars(self, bc1, bc2):
+        global DICT_SET
+        DICT_SET['코인장초최대매수종목수'] = bc1
+        DICT_SET['코인장중최대매수종목수'] = bc2
+
     """ 시장가 주문의 체결확인은 리턴값중 체결수량만 확인하여 그 수량이 0을 초과할 경우 매도수를 기록한다. """
     def CheckBuyChegeol(self):
         buy_list = []
@@ -373,7 +380,7 @@ class TraderUpbit:
             self.dict_intg['예수금'] -= bg + bfee
             self.dict_intg['추정예수금'] = self.dict_intg['예수금']
             self.cstgQ.put(['매수완료', code])
-            self.creceivQ.put(['잔고편입', code])
+            self.creceiv1Q.put(['잔고편입', code])
             self.query1Q.put([2, self.df_jg, 'c_jangolist', 'replace'])
             self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 체결 알림 - [매수] {code} 코인 {cp}원 {cc}개'])
 
@@ -415,7 +422,7 @@ class TraderUpbit:
         self.cstgQ.put(self.dict_intg['종목당투자금'])
 
         self.cstgQ.put(['매도완료', code])
-        self.creceivQ.put(['잔고청산', code])
+        self.creceiv1Q.put(['잔고청산', code])
         self.windowQ.put([ui_num['C체결목록'], self.df_cj])
         self.windowQ.put([ui_num['C거래목록'], self.df_td])
         self.windowQ.put([ui_num['C로그텍스트'], f'매매 시스템 체결 알림 - [매도] {code} 코인 {cp}원 {cc}개'])

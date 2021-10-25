@@ -7,10 +7,10 @@ from utility.setting import ui_num, DB_STOCK_TICK, DB_COIN_TICK
 class QueryTick:
     def __init__(self, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
@@ -102,12 +102,6 @@ class QueryTick:
                 except Exception as e:
                     self.windowQ.put([ui_num['C단순텍스트'], f'시스템 명령 오류 알림 - QueryTick con2 to_sql {e}'])
 
-    """
-    DB에 fake_table 'dist'를 생성하고 거기에 트리거를 붙임, 트리거는 dist에 INSERT가 일어날때마다 한번씩 작동합니다.
-    DB에 있는 TABLE이 추가/삭제 등 변경되었을 경우에는 기존 트리거를 삭제하고 트리거 생성하여 다시 붙여줘야 함
-    'dist' 테이블에 의미없는 한 건을 INSERT 하면 트리거는 'temp' 테이블에 있는 데이터를 각 테이블로 나눠서 INSERT 시키고
-    'temp' 테이블의 데이터를 삭제합니다.
-    """
     def create_trigger1(self):
         res = self.cur1.execute("SELECT name FROM sqlite_master WHERE type='table';")
         table_list = []

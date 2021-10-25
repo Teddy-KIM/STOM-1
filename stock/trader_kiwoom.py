@@ -11,24 +11,26 @@ from utility.static import now, strf_time, strp_time, timedelta_sec, readEnc, pa
 from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, sn_oper, sn_brrq, \
     sn_brrd, DB_TRADELIST, DICT_SET
 
+DICT_SET = DICT_SET
+
 
 class TraderKiwoom:
     app = QtWidgets.QApplication(sys.argv)
 
     def __init__(self, qlist):
         """
-                    0        1       2        3       4       5          6        7      8      9     10
-        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceivQ, stockQ, coinQ, sstgQ, cstgQ,
-                 tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, wsk1Q, wsk2Q, chartQ]
-                   11       12      13     14      15     16     17      18
+                    0        1       2        3       4       5          6          7        8      9
+        qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+                   10    11      12      13      14      15      16      17
         """
         self.windowQ = qlist[0]
         self.soundQ = qlist[1]
         self.query1Q = qlist[2]
         self.teleQ = qlist[4]
         self.sreceivQ = qlist[5]
-        self.stockQ = qlist[7]
-        self.sstgQ = qlist[9]
+        self.stockQ = qlist[8]
+        self.sstgQ = qlist[10]
 
         self.df_cj = pd.DataFrame(columns=columns_cj)   # 체결목록
         self.df_jg = pd.DataFrame(columns=columns_jg)   # 잔고목록
@@ -139,6 +141,8 @@ class TraderKiwoom:
                     elif len(data) == 3:
                         self.UpdateJango(data[0], data[1], data[2])
                         continue
+                    elif len(data) == 2:
+                        self.UpdateVars(data[0], data[1])
                 elif type(data) == str:
                     self.TelegramCmd(data)
 
@@ -475,6 +479,12 @@ class TraderKiwoom:
         sg = pg - bg
         sp = round(sg / bg * 100, 2)
         return pg, sg, sp
+
+    # noinspection PyMethodMayBeStatic, PyGlobalUndefined
+    def UpdateVars(self, bc1, bc2):
+        global DICT_SET
+        DICT_SET['주식장초최대매수종목수'] = bc1
+        DICT_SET['주식장중최대매수종목수'] = bc2
 
     def OnReceiveChejanData(self, gubun, itemcnt, fidlist):
         if gubun != '0' and itemcnt != '' and fidlist != '':
