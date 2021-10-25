@@ -43,7 +43,7 @@ class CollectorStock:
             self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 시작'])
         while True:
             data = self.tickQ.get()
-            if len(data) == list:
+            if type(data) == list:
                 if len(data) != 2:
                     self.UpdateTickData(data)
                 elif data[0] == '콜렉터종료':
