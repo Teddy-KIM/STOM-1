@@ -132,7 +132,7 @@ class TraderXing:
                 self.sreceivQ.put(f'잔고편입 {code}')
 
         if int(strf_time('%H%M%S')) > 90000:
-            self.dict_intg['장운영상태'] = 3
+            self.dict_intg['장운영상태'] = 21
 
     def EventLoop(self):
         self.GetAccountjanGo()
