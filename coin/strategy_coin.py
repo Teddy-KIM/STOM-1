@@ -7,6 +7,8 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import now, strf_time, timedelta_sec, float2str1p6
 from utility.setting import DB_COIN_STRATEGY, DICT_SET, ui_num, columns_gj
 
+DICT_SET = DICT_SET
+
 
 class StrategyCoin:
     def __init__(self, qlist):
