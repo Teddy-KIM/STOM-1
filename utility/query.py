@@ -32,57 +32,41 @@ class Query:
         while True:
             query = self.query1Q.get()
             if query[0] == 1:
-                if len(query) == 2:
-                    try:
+                try:
+                    if len(query) == 2:
                         self.cur1.execute(query[1])
-                    except Exception as e:
-                        self.windowQ.put([ui_num['설정텍스트'], f'시스템 명령 오류 알림 - Query con1 execute {e}'])
-                    else:
                         self.con1.commit()
-                elif len(query) == 4:
-                    try:
+                    elif len(query) == 4:
                         query[1].to_sql(query[2], self.con1, if_exists=query[3], chunksize=1000, method='multi')
-                    except Exception as e:
-                        self.windowQ.put([ui_num['설정텍스트'], f'시스템 명령 오류 알림 - Query con1 to_sql {e}'])
+                except Exception as e:
+                    self.windowQ.put([ui_num['설정텍스트'], f'시스템 명령 오류 알림 - Query con1 {e}'])
             elif query[0] == 2:
-                if len(query) == 2:
-                    try:
+                try:
+                    if len(query) == 2:
                         self.cur2.execute(query[1])
-                    except Exception as e:
-                        self.windowQ.put([ui_num['설정텍스트'], f'시스템 명령 오류 알림 - Query con2 execute {e}'])
-                    else:
                         self.con2.commit()
-                elif len(query) == 4:
-                    try:
+                    elif len(query) == 4:
                         query[1].to_sql(query[2], self.con2, if_exists=query[3], chunksize=1000, method='multi')
-                    except Exception as e:
-                        if 's_' in query[2]:
-                            self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 오류 알림 - Query con2 to_sql {e}'])
-                        else:
-                            self.windowQ.put([ui_num['C로그텍스트'], f'시스템 명령 오류 알림 - Query con2 to_sql {e}'])
+                except Exception as e:
+                    if 's_' in query[2]:
+                        self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 오류 알림 - Query con2 {e}'])
+                    else:
+                        self.windowQ.put([ui_num['C로그텍스트'], f'시스템 명령 오류 알림 - Query con2 {e}'])
             elif query[0] == 3:
-                if len(query) == 2:
-                    try:
+                try:
+                    if len(query) == 2:
                         self.cur3.execute(query[1])
-                    except Exception as e:
-                        self.windowQ.put([ui_num['S전략텍스트'], f'시스템 명령 오류 알림 - Query con3 execute {e}'])
-                    else:
                         self.con3.commit()
-                elif len(query) == 4:
-                    try:
+                    elif len(query) == 4:
                         query[1].to_sql(query[2], self.con3, if_exists=query[3], chunksize=1000, method='multi')
-                    except Exception as e:
-                        self.windowQ.put([ui_num['S전략텍스트'], f'시스템 명령 오류 알림 - Query con3 to_sql {e}'])
+                except Exception as e:
+                    self.windowQ.put([ui_num['S전략텍스트'], f'시스템 명령 오류 알림 - Query con3 {e}'])
             elif query[0] == 4:
-                if len(query) == 2:
-                    try:
+                try:
+                    if len(query) == 2:
                         self.con4.execute(query[1])
-                    except Exception as e:
-                        self.windowQ.put([ui_num['C전략텍스트'], f'시스템 명령 오류 알림 - Query con4 execute {e}'])
-                    else:
                         self.con4.commit()
-                elif len(query) == 4:
-                    try:
+                    elif len(query) == 4:
                         query[1].to_sql(query[2], self.con4, if_exists=query[3], chunksize=1000, method='multi')
-                    except Exception as e:
-                        self.windowQ.put([ui_num['C전략텍스트'], f'시스템 명령 오류 알림 - Query con4 to_sql {e}'])
+                except Exception as e:
+                    self.windowQ.put([ui_num['C전략텍스트'], f'시스템 명령 오류 알림 - Query con4 {e}'])

@@ -76,7 +76,7 @@ class QueryTick:
                     elif len(query) == 4:
                         query[1].to_sql(query[2], self.con1, if_exists=query[3], chunksize=1000, method='multi')
                 except Exception as e:
-                    self.windowQ.put([ui_num['S단순텍스트'], f'시스템 명령 오류 알림 - QueryTick con1 to_sql {e}'])
+                    self.windowQ.put([ui_num['S단순텍스트'], f'시스템 명령 오류 알림 - QueryTick con1 {e}'])
             elif query[0] == 2:
                 try:
                     if len(query) == 2:
@@ -100,7 +100,7 @@ class QueryTick:
                     elif len(query) == 4:
                         query[1].to_sql(query[2], self.con2, if_exists=query[3], chunksize=1000, method='multi')
                 except Exception as e:
-                    self.windowQ.put([ui_num['C단순텍스트'], f'시스템 명령 오류 알림 - QueryTick con2 to_sql {e}'])
+                    self.windowQ.put([ui_num['C단순텍스트'], f'시스템 명령 오류 알림 - QueryTick con2 {e}'])
 
     def create_trigger1(self):
         res = self.cur1.execute("SELECT name FROM sqlite_master WHERE type='table';")
