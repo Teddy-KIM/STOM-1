@@ -152,7 +152,7 @@ class TraderKiwoom:
             if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
                 self.JangoChungsan2()
             if self.dict_intg['장운영상태'] == 8:
-                self.AllRemoveRealreg()
+                self.RemoveAllRealreg()
                 self.SaveDayData()
                 break
 
@@ -219,12 +219,6 @@ class TraderKiwoom:
         sleeptime = timedelta_sec(0.25)
         while now() < sleeptime:
             pythoncom.PumpWaitingMessages()
-
-    def UpdateRealreg(self, rreg):
-        if len(rreg) == 2:
-            self.ocx.dynamicCall('SetRealRemove(QString, QString)', rreg)
-        elif len(rreg) == 4:
-            self.ocx.dynamicCall('SetRealReg(QString, QString, QString, QString)', rreg)
 
     def TelegramCmd(self, work):
         if work == '/당일체결목록':
@@ -342,7 +336,7 @@ class TraderKiwoom:
             self.soundQ.put('장중전략 잔고청산 주문을 전송하였습니다.')
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장중전략 잔고청산 주문 완료'])
 
-    def AllRemoveRealreg(self):
+    def RemoveAllRealreg(self):
         self.SetRealRemove(['ALL', 'ALL'])
         if self.dict_set['주식알림소리']:
             self.soundQ.put('실시간 데이터의 수신을 중단하였습니다.')
