@@ -226,7 +226,7 @@ class StrategyStock:
 
     def UpdateGoansimJongmok(self):
         for code in list(self.dict_gsjm.keys()):
-            if int(strf_time('%H%M%S')) >= 100000:
+            if int(strf_time('%H%M%S')) < 100000:
                 data = np.zeros((self.dict_set['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
             else:
                 data = np.zeros((self.dict_set['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
