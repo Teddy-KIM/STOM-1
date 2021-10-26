@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import sqlite3
-from PyQt5 import QtWidgets
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
@@ -10,8 +9,6 @@ from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, colu
 
 
 class TraderXing:
-    app = QtWidgets.QApplication(sys.argv)
-
     def __init__(self, qlist):
         """
                     0        1       2        3       4       5          6          7        8      9
@@ -138,6 +135,8 @@ class TraderXing:
         self.GetAccountjanGo()
         self.OperationRealreg()
         while True:
+            pythoncom.PumpWaitingMessages()
+
             if not self.stockQ.empty():
                 data = self.stockQ.get()
                 if type(data) == list:
@@ -154,13 +153,12 @@ class TraderXing:
 
             if self.dict_intg['장운영상태'] == 1 and now() > self.dict_time['휴무종료']:
                 break
-            if self.dict_intg['장운영상태'] == 21:
-                if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
-                    self.JangoChungsan1()
-                if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
-                    self.JangoChungsan2()
-            if self.dict_intg['장운영상태'] == 41:
-                self.AllRemoveRealreg()
+            if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
+                self.JangoChungsan1()
+            if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
+                self.JangoChungsan2()
+            if self.dict_intg['장운영상태'] == 41 and int(strf_time('%H%M%S')) >= 153500:
+                self.RemoveAllRealreg()
                 self.SaveDayData()
                 break
 
@@ -168,10 +166,7 @@ class TraderXing:
                 self.UpdateTotaljango()
                 self.dict_time['거래정보'] = timedelta_sec(1)
 
-            time_loop = timedelta_sec(0.25)
-            while now() < time_loop:
-                pythoncom.PumpWaitingMessages()
-                time.sleep(0.0001)
+            time.sleep(0.001)
 
         self.sstgQ.put('전략프로세스종료')
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
@@ -335,7 +330,7 @@ class TraderXing:
             self.soundQ.put('장중전략 잔고청산 주문을 전송하였습니다.')
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장중전략 잔고청산 주문 완료'])
 
-    def AllRemoveRealreg(self):
+    def RemoveAllRealreg(self):
         self.xar_op.RemoveAllRealData()
         self.xar_cg.RemoveAllRealData()
         if self.dict_set['주식알림소리']:

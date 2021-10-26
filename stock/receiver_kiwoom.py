@@ -157,12 +157,11 @@ class ReceiverKiwoom:
     def EventLoop(self):
         self.OperationRealreg()
         while True:
+            pythoncom.PumpWaitingMessages()
+
             if not self.sreceivQ.empty():
                 data = self.sreceivQ.get()
-                if type(data) == list:
-                    self.UpdateRealreg(data)
-                    continue
-                elif type(data) == str:
+                if type(data) == str:
                     self.UpdateJangolist(data)
                     continue
                 elif type(data) == dict:
@@ -180,7 +179,7 @@ class ReceiverKiwoom:
                     if not self.dict_bool['장중단타전략시작']:
                         self.StartJangjungStrategy()
             if self.operation == 8:
-                self.AllRemoveRealreg()
+                self.RemoveAllRealreg()
                 self.SaveTickData()
                 break
 
@@ -189,26 +188,9 @@ class ReceiverKiwoom:
                     self.UpdateMoneyTop()
                 self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
-            time_loop = timedelta_sec(0.25)
-            while now() < time_loop:
-                pythoncom.PumpWaitingMessages()
-                time.sleep(0.0001)
+            time.sleep(0.001)
 
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
-
-    def UpdateRealreg(self, rreg):
-        sn = rreg[0]
-        if len(rreg) == 2:
-            self.ocx.dynamicCall('SetRealRemove(QString, QString)', rreg)
-            self.windowQ.put([ui_num['S단순텍스트'], f'실시간 알림 중단 완료 - 모든 실시간 데이터 수신 중단'])
-        elif len(rreg) == 4:
-            ret = self.ocx.dynamicCall('SetRealReg(QString, QString, QString, QString)', rreg)
-            result = '완료' if ret == 0 else '실패'
-            if sn == sn_oper:
-                self.windowQ.put([ui_num['S단순텍스트'], f'실시간 알림 등록 {result} - 장운영시간 [{sn}]'])
-            else:
-                text = f"실시간 알림 등록 {result} - [{sn}] 종목갯수 {len(rreg[1].split(';'))}"
-                self.windowQ.put([ui_num['S단순텍스트'], text])
 
     def UpdateJangolist(self, data):
         code = data.split(' ')[1]
@@ -224,28 +206,31 @@ class ReceiverKiwoom:
                 self.list_gsjm2.remove(code)
 
     def OperationRealreg(self):
-        self.sreceivQ.put([sn_oper, ' ', '215;20;214', 0])
+        self.SetRealReg([sn_oper, ' ', '215;20;214', 0])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
 
         self.Block_Request('opt10054', 시장구분='000', 장전구분='1', 종목코드='', 발동구분='1', 제외종목='111111011',
                            거래량구분='0', 거래대금구분='0', 발동방향='0', output='발동종목', next=0)
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - VI발동해제 등록 완료'])
 
-        self.list_code = self.SendCondition(sn_oper, self.dict_cond[1], 1, 0)
+        self.list_code = self.SendCondition([sn_oper, self.dict_cond[1], 1, 0])
         self.list_code1 = [code for i, code in enumerate(self.list_code) if i % 4 == 0]
         self.list_code2 = [code for i, code in enumerate(self.list_code) if i % 4 == 1]
         self.list_code3 = [code for i, code in enumerate(self.list_code) if i % 4 == 2]
         self.list_code4 = [code for i, code in enumerate(self.list_code) if i % 4 == 3]
         k = 0
         for i in range(0, len(self.list_code), 100):
-            self.sreceivQ.put([sn_recv + k, ';'.join(self.list_code[i:i + 100]), '10;12;14;30;228;41;61;71;81', 1])
+            rreg = [sn_recv + k, ';'.join(self.list_code[i:i + 100]), '10;12;14;30;228;41;61;71;81', 1]
+            self.SetRealReg(rreg)
+            text = f"실시간 알림 등록 완료 - [{sn_recv + k}] 종목갯수 {len(rreg[1].split(';'))}"
+            self.windowQ.put([ui_num['S단순텍스트'], text])
             k += 1
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간 등록 완료'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 시작'])
 
     def ConditionSearchStart(self):
         self.dict_bool['실시간조건검색시작'] = True
-        codes = self.SendCondition(sn_cond, self.dict_cond[0], 0, 1)
+        codes = self.SendCondition([sn_cond, self.dict_cond[0], 0, 1])
         if len(codes) > 0:
             for code in codes:
                 self.InsertGsjmlist(code)
@@ -253,7 +238,7 @@ class ReceiverKiwoom:
 
     def ConditionSearchStop(self):
         self.dict_bool['실시간조건검색중단'] = True
-        self.ocx.dynamicCall("SendConditionStop(QString, QString, int)", sn_cond, self.dict_cond[0], 0)
+        self.SendConditionStop([sn_cond, self.dict_cond[0], 0])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간조건검색 중단 완료'])
 
     def StartJangjungStrategy(self):
@@ -300,8 +285,8 @@ class ReceiverKiwoom:
                 self.sstgQ.put(['조건이탈', code])
             self.list_gsjm2.remove(code)
 
-    def AllRemoveRealreg(self):
-        self.sreceivQ.put(['ALL', 'ALL'])
+    def RemoveAllRealreg(self):
+        self.SetRealRemove(['ALL', 'ALL'])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 실시간 데이터 중단 완료'])
 
     def SaveTickData(self):
@@ -577,12 +562,22 @@ class ReceiverKiwoom:
             pythoncom.PumpWaitingMessages()
         return self.df_tr
 
-    def SendCondition(self, screen, cond_name, cond_index, search):
+    def SendCondition(self, cond):
         self.dict_bool['CR수신'] = False
-        self.ocx.dynamicCall('SendCondition(QString, QString, int, int)', screen, cond_name, cond_index, search)
-        while not self.dict_bool['CR수신']:
+        self.ocx.dynamicCall('SendCondition(QString, QString, int, int)', cond)
+        sleeptime = timedelta_sec(0.25)
+        while not self.dict_bool['CR수신'] or now() < sleeptime:
             pythoncom.PumpWaitingMessages()
         return self.list_trcd
+
+    def SendConditionStop(self, cond):
+        self.ocx.dynamicCall("SendConditionStop(QString, QString, int)", cond)
+
+    def SetRealReg(self, rreg):
+        self.ocx.dynamicCall('SetRealReg(QString, QString, QString, QString)', rreg)
+
+    def SetRealRemove(self, rreg):
+        self.ocx.dynamicCall('SetRealRemove(QString, QString)', rreg)
 
     def GetMasterCodeName(self, code):
         return self.ocx.dynamicCall('GetMasterCodeName(QString)', code)

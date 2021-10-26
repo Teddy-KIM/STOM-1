@@ -129,12 +129,12 @@ class TraderKiwoom:
         self.GetAccountjanGo()
         self.OperationRealreg()
         while True:
+            pythoncom.PumpWaitingMessages()
+
             if not self.stockQ.empty():
                 data = self.stockQ.get()
                 if type(data) == list:
-                    if len(data) == 10:
-                        self.SendOrder(data)
-                    elif len(data) == 5:
+                    if len(data) == 5:
                         self.BuySell(data[0], data[1], data[2], data[3], data[4])
                         continue
                     elif len(data) == 3:
@@ -160,24 +160,13 @@ class TraderKiwoom:
                 self.UpdateTotaljango()
                 self.dict_time['거래정보'] = timedelta_sec(1)
 
-            time_loop = timedelta_sec(0.25)
-            while now() < time_loop:
-                pythoncom.PumpWaitingMessages()
-                time.sleep(0.0001)
+            time.sleep(0.001)
 
         self.sstgQ.put('전략프로세스종료')
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
         if self.dict_set['주식알림소리']:
             self.soundQ.put('주식 트레이더를 종료합니다.')
         self.teleQ.put('주식 트레이더를 종료하였습니다.')
-
-    def SendOrder(self, order):
-        name = order[-1]
-        del order[-1]
-        ret = self.ocx.dynamicCall(
-            'SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)', order)
-        if ret != 0:
-            self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 오류 알림 - {name} {order[5]}주 {order[0]} 주문 실패'])
 
     def BuySell(self, gubun, code, name, c, oc):
         if gubun == '매수':
@@ -218,7 +207,18 @@ class TraderKiwoom:
         if self.dict_set['주식모의투자'] or gubun == '시드부족':
             self.UpdateChejanData(code, name, '체결', gubun, c, c, oc, 0, strf_time('%Y%m%d%H%M%S%f'))
         else:
-            self.stockQ.put([gubun, '4989', self.dict_strg['계좌번호'], on, code, oc, 0, '03', '', name])
+            self.SendOrder([gubun, '4989', self.dict_strg['계좌번호'], on, code, oc, 0, '03', '', name])
+
+    def SendOrder(self, order):
+        name = order[-1]
+        del order[-1]
+        ret = self.ocx.dynamicCall(
+            'SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)', order)
+        if ret != 0:
+            self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 오류 알림 - {name} {order[5]}주 {order[0]} 주문 실패'])
+        sleeptime = timedelta_sec(0.25)
+        while now() < sleeptime:
+            pythoncom.PumpWaitingMessages()
 
     def UpdateRealreg(self, rreg):
         if len(rreg) == 2:
@@ -302,7 +302,7 @@ class TraderKiwoom:
             self.UpdateTotaltradelist(first=True)
 
     def OperationRealreg(self):
-        self.stockQ.put([sn_oper, ' ', '215;20;214', 0])
+        self.SetRealReg([sn_oper, ' ', '215;20;214', 0])
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 시작'])
 
@@ -343,7 +343,7 @@ class TraderKiwoom:
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장중전략 잔고청산 주문 완료'])
 
     def AllRemoveRealreg(self):
-        self.stockQ.put(['ALL', 'ALL'])
+        self.SetRealRemove(['ALL', 'ALL'])
         if self.dict_set['주식알림소리']:
             self.soundQ.put('실시간 데이터의 수신을 중단하였습니다.')
         self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 실행 알림 - 실시간 데이터 중단 완료'])
@@ -655,6 +655,12 @@ class TraderKiwoom:
         if trcode != 'opt10054':
             self.DisconnectRealData(sn_brrq)
         return self.df_tr
+
+    def SetRealReg(self, rreg):
+        self.ocx.dynamicCall('SetRealReg(QString, QString, QString, QString)', rreg)
+
+    def SetRealRemove(self, rreg):
+        self.ocx.dynamicCall('SetRealRemove(QString, QString)', rreg)
 
     def DisconnectRealData(self, screen):
         self.ocx.dynamicCall('DisconnectRealData(QString)', screen)

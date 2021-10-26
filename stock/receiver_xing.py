@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import sqlite3
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
@@ -11,8 +10,6 @@ from utility.setting import ui_num, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
 
 
 class ReceiverXing:
-    app = QtWidgets.QApplication(sys.argv)
-
     def __init__(self, qlist):
         """
                     0        1       2        3       4       5          6          7        8      9
@@ -165,6 +162,8 @@ class ReceiverXing:
     def EventLoop(self):
         self.OperationRealreg()
         while True:
+            pythoncom.PumpWaitingMessages()
+
             if not self.sreceivQ.empty():
                 data = self.sreceivQ.get()
                 if type(data) == str:
@@ -184,21 +183,17 @@ class ReceiverXing:
                         self.ConditionSearchStop()
                     if not self.dict_bool['장중단타전략시작']:
                         self.StartJangjungStrategy()
-            if self.operation == 41:
-                if int(strf_time('%H%M%S')) >= 153500:
-                    self.RemoveAllRealreg()
-                    self.SaveTickData()
-                    break
+            if self.operation == 41 and int(strf_time('%H%M%S')) >= 153500:
+                self.RemoveAllRealreg()
+                self.SaveTickData()
+                break
 
             if now() > self.dict_time['거래대금순위기록']:
                 if len(self.list_gsjm1) > 0:
                     self.UpdateMoneyTop()
                 self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
-            time_loop = timedelta_sec(0.25)
-            while now() < time_loop:
-                pythoncom.PumpWaitingMessages()
-                time.sleep(0.0001)
+            time.sleep(0.001)
 
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
 
