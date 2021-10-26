@@ -59,7 +59,7 @@ class ReceiverXing:
         self.operation = 1
         self.str_tday = strf_time('%Y%m%d')
         self.str_jcct = self.str_tday + '090000'
-        self.time_mcct = None
+        self.dt_mtct = None
 
         remaintime = (strp_time('%Y%m%d%H%M%S', self.str_tday + '090100') - now()).total_seconds()
         self.dict_time = {
@@ -320,16 +320,17 @@ class ReceiverXing:
     def UpdateMoneyTop(self):
         timetype = '%Y%m%d%H%M%S'
         list_text = ';'.join(self.list_gsjm1)
-        curr_strftime = self.str_jcct
-        curr_datetime = strp_time(timetype, curr_strftime)
-        if self.time_mcct is not None:
-            gap_seconds = (curr_datetime - self.time_mcct).total_seconds()
+        curr_strtime = self.str_jcct
+        curr_datetime = strp_time(timetype, curr_strtime)
+        if self.dt_mtct is not None:
+            gap_seconds = (curr_datetime - self.dt_mtct).total_seconds()
             while gap_seconds > 1:
                 gap_seconds -= 1
                 pre_time = strf_time(timetype, timedelta_sec(-gap_seconds, curr_datetime))
                 self.df_mt.at[pre_time] = list_text
-        self.df_mt.at[curr_strftime] = list_text
-        self.time_mcct = curr_datetime
+        if curr_datetime != self.dt_mtct:
+            self.df_mt.at[curr_strtime] = list_text
+            self.dt_mtct = curr_datetime
 
         if now() > self.dict_time['거래대금순위저장']:
             self.query2Q.put([1, self.df_mt, 'moneytop', 'append'])
