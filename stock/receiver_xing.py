@@ -410,20 +410,15 @@ class ReceiverXing:
             elif not self.dict_vipr[code][0] and now() > self.dict_vipr[code][1]:
                 self.UpdateViPrice(code, c)
             try:
-                predt = self.dict_tick[code][0]
-                bid_volumns = self.dict_tick[code][1]
-                ask_volumns = self.dict_tick[code][2]
+                predt, bid_volumns, ask_volumns = self.dict_tick[code]
             except KeyError:
-                predt = None
-                bid_volumns = 0
-                ask_volumns = 0
+                predt, bid_volumns, ask_volumns = None, 0, 0
             if gubun == '+':
                 self.dict_tick[code] = [dt, bid_volumns + v, ask_volumns]
             else:
                 self.dict_tick[code] = [dt, bid_volumns, ask_volumns + v]
             if dt != predt:
-                bids = self.dict_tick[code][1]
-                asks = self.dict_tick[code][2]
+                bids, asks = self.dict_tick[code][1:]
                 self.dict_tick[code] = [dt, 0, 0]
                 try:
                     h = int(data['high'])

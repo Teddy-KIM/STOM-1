@@ -410,20 +410,15 @@ class ReceiverKiwoom:
                 if code in self.dict_vipr.keys() and not self.dict_vipr[code][0] and now() > self.dict_vipr[code][1]:
                     self.UpdateViPrice(code, c)
                 try:
-                    predt = self.dict_tick[code][0]
-                    bid_volumns = self.dict_tick[code][1]
-                    ask_volumns = self.dict_tick[code][2]
+                    predt, bid_volumns, ask_volumns = self.dict_tick[code]
                 except KeyError:
-                    predt = None
-                    bid_volumns = 0
-                    ask_volumns = 0
+                    predt, bid_volumns, ask_volumns = None, 0, 0
                 if v > 0:
                     self.dict_tick[code] = [dt, bid_volumns + abs(v), ask_volumns]
                 else:
                     self.dict_tick[code] = [dt, bid_volumns, ask_volumns + abs(v)]
                 if dt != predt:
-                    bids = self.dict_tick[code][1]
-                    asks = self.dict_tick[code][2]
+                    bids, asks = self.dict_tick[code][1:]
                     self.dict_tick[code] = [dt, 0, 0]
                     try:
                         h = abs(int(self.GetCommRealData(code, 17)))
@@ -441,26 +436,16 @@ class ReceiverKiwoom:
             try:
                 tsjr = int(self.GetCommRealData(code, 121))
                 tbjr = int(self.GetCommRealData(code, 125))
-                s5hg = abs(int(self.GetCommRealData(code, 45)))
-                s4hg = abs(int(self.GetCommRealData(code, 44)))
-                s3hg = abs(int(self.GetCommRealData(code, 43)))
-                s2hg = abs(int(self.GetCommRealData(code, 42)))
-                s1hg = abs(int(self.GetCommRealData(code, 41)))
-                b1hg = abs(int(self.GetCommRealData(code, 51)))
-                b2hg = abs(int(self.GetCommRealData(code, 52)))
-                b3hg = abs(int(self.GetCommRealData(code, 53)))
-                b4hg = abs(int(self.GetCommRealData(code, 54)))
-                b5hg = abs(int(self.GetCommRealData(code, 55)))
-                s5jr = int(self.GetCommRealData(code, 65))
-                s4jr = int(self.GetCommRealData(code, 64))
-                s3jr = int(self.GetCommRealData(code, 63))
-                s2jr = int(self.GetCommRealData(code, 62))
-                s1jr = int(self.GetCommRealData(code, 61))
-                b1jr = int(self.GetCommRealData(code, 71))
-                b2jr = int(self.GetCommRealData(code, 72))
-                b3jr = int(self.GetCommRealData(code, 73))
-                b4jr = int(self.GetCommRealData(code, 74))
-                b5jr = int(self.GetCommRealData(code, 75))
+                s5hg, b5hg = abs(int(self.GetCommRealData(code, 45))), abs(int(self.GetCommRealData(code, 55)))
+                s4hg, b4hg = abs(int(self.GetCommRealData(code, 44))), abs(int(self.GetCommRealData(code, 54)))
+                s3hg, b3hg = abs(int(self.GetCommRealData(code, 43))), abs(int(self.GetCommRealData(code, 53)))
+                s2hg, b2hg = abs(int(self.GetCommRealData(code, 42))), abs(int(self.GetCommRealData(code, 52)))
+                s1hg, b1hg = abs(int(self.GetCommRealData(code, 41))), abs(int(self.GetCommRealData(code, 51)))
+                s5jr, b5jr = int(self.GetCommRealData(code, 65)), int(self.GetCommRealData(code, 75))
+                s4jr, b4jr = int(self.GetCommRealData(code, 64)), int(self.GetCommRealData(code, 74))
+                s3jr, b3jr = int(self.GetCommRealData(code, 63)), int(self.GetCommRealData(code, 73))
+                s2jr, b2jr = int(self.GetCommRealData(code, 62)), int(self.GetCommRealData(code, 72))
+                s1jr, b1jr = int(self.GetCommRealData(code, 61)), int(self.GetCommRealData(code, 71))
             except Exception as e:
                 self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData 주식호가잔량 {e}'])
             else:
