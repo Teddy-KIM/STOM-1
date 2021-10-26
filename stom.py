@@ -615,6 +615,16 @@ class Window(QtWidgets.QMainWindow):
             self.sj_main_checkBox_10.nextCheckState()
             QtWidgets.QMessageBox.critical(self, '오류 알림', '코인 틱데이터는 전체 종목 저장만 가능합니다.\n')
 
+    def CheckboxChanged_11(self, state):
+        if state != Qt.Checked and (self.trader_kiwoom_proc.is_alive() or self.trader_xing_proc.is_alive()):
+            self.sj_stock_checkBox_01.nextCheckState()
+            QtWidgets.QMessageBox.critical(self, '오류 알림', '장중에는 모의모드를 해제할 수 없습니다.\n')
+
+    def CheckboxChanged_12(self, state):
+        if state != Qt.Checked and self.trader_coin_proc.is_alive():
+            self.sj_coin_checkBox_01.nextCheckState()
+            QtWidgets.QMessageBox.critical(self, '오류 알림', '트레이더 실행 중에는 모의모드를 해제할 수 없습니다.\n')
+
     @QtCore.pyqtSlot(int)
     def CellClicked_01(self, row):
         tableWidget = None

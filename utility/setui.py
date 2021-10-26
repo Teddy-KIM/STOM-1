@@ -96,13 +96,18 @@ def SetUI(self):
         syntax.PythonHighlighter(textedit)
         return textedit
 
-    # noinspection PyUnresolvedReferences
     def setCombobox(tab, Activated=None):
         combobox = QtWidgets.QComboBox(tab)
         if Activated is not None:
             combobox.setFont(qfont14)
             combobox.currentTextChanged.connect(Activated)
         return combobox
+
+    def setCheckBos(name, groupbox, changed=None):
+        checkbox = QtWidgets.QCheckBox(name, groupbox)
+        if changed is not None:
+            checkbox.stateChanged.connect(changed)
+        return checkbox
 
     def setLineedit(groupbox, enter=None, passhide=False):
         lineedit = QtWidgets.QLineEdit(groupbox)
@@ -454,21 +459,15 @@ def SetUI(self):
     self.sj_main_comboBox_01 = setCombobox(self.sj_groupBox_01)
     self.sj_main_comboBox_01.addItem('키움증권')
     self.sj_main_comboBox_01.addItem('이베스트투자증권')
-    self.sj_main_checkBox_01 = QtWidgets.QCheckBox('주식 리시버', self.sj_groupBox_01)
-    self.sj_main_checkBox_01.stateChanged.connect(self.CheckboxChanged_01)
-    self.sj_main_checkBox_02 = QtWidgets.QCheckBox('주식 콜렉터', self.sj_groupBox_01)
-    self.sj_main_checkBox_02.stateChanged.connect(self.CheckboxChanged_02)
-    self.sj_main_checkBox_03 = QtWidgets.QCheckBox('주식 트레이더', self.sj_groupBox_01)
-    self.sj_main_checkBox_03.stateChanged.connect(self.CheckboxChanged_03)
+    self.sj_main_checkBox_01 = setCheckBos('주식 리시버', self.sj_groupBox_01, changed=self.CheckboxChanged_01)
+    self.sj_main_checkBox_02 = setCheckBos('주식 콜렉터', self.sj_groupBox_01, changed=self.CheckboxChanged_02)
+    self.sj_main_checkBox_03 = setCheckBos('주식 트레이더', self.sj_groupBox_01, changed=self.CheckboxChanged_03)
 
     self.sj_main_comboBox_02 = setCombobox(self.sj_groupBox_01)
     self.sj_main_comboBox_02.addItem('업비트')
-    self.sj_main_checkBox_04 = QtWidgets.QCheckBox('코인 리시버', self.sj_groupBox_01)
-    self.sj_main_checkBox_04.stateChanged.connect(self.CheckboxChanged_04)
-    self.sj_main_checkBox_05 = QtWidgets.QCheckBox('코인 콜렉터', self.sj_groupBox_01)
-    self.sj_main_checkBox_05.stateChanged.connect(self.CheckboxChanged_05)
-    self.sj_main_checkBox_06 = QtWidgets.QCheckBox('코인 트레이더', self.sj_groupBox_01)
-    self.sj_main_checkBox_06.stateChanged.connect(self.CheckboxChanged_06)
+    self.sj_main_checkBox_04 = setCheckBos('코인 리시버', self.sj_groupBox_01, changed=self.CheckboxChanged_04)
+    self.sj_main_checkBox_05 = setCheckBos('코인 콜렉터', self.sj_groupBox_01, changed=self.CheckboxChanged_05)
+    self.sj_main_checkBox_06 = setCheckBos('코인 트레이더', self.sj_groupBox_01, changed=self.CheckboxChanged_06)
 
     text = '주식 최근거래대금순위 집계시간(분)                         ' \
            '최근거래대금순위 선정등수                                 ' \
@@ -480,17 +479,13 @@ def SetUI(self):
     self.sj_main_lineEdit_03 = setLineedit(self.sj_groupBox_01)
     self.sj_main_lineEdit_04 = setLineedit(self.sj_groupBox_01)
 
-    self.sj_main_checkBox_07 = QtWidgets.QCheckBox('주식 틱데이터 실시간 저장', self.sj_groupBox_01)
-    self.sj_main_checkBox_07.stateChanged.connect(self.CheckboxChanged_07)
-    self.sj_main_checkBox_08 = QtWidgets.QCheckBox('전체 종목 저장    |', self.sj_groupBox_01)
-    self.sj_main_checkBox_08.stateChanged.connect(self.CheckboxChanged_08)
+    self.sj_main_checkBox_07 = setCheckBos('주식 틱데이터 실시간 저장', self.sj_groupBox_01, changed=self.CheckboxChanged_07)
+    self.sj_main_checkBox_08 = setCheckBos('전체 종목 저장    |', self.sj_groupBox_01, changed=self.CheckboxChanged_08)
     self.sj_main_labellll_03 = QtWidgets.QLabel('실시간 저장 주기(초)', self.sj_groupBox_01)
     self.sj_main_lineEdit_05 = setLineedit(self.sj_groupBox_01)
 
-    self.sj_main_checkBox_09 = QtWidgets.QCheckBox('코인 틱데이터 실시간 저장', self.sj_groupBox_01)
-    self.sj_main_checkBox_09.stateChanged.connect(self.CheckboxChanged_09)
-    self.sj_main_checkBox_10 = QtWidgets.QCheckBox('전체 종목 저장    |', self.sj_groupBox_01)
-    self.sj_main_checkBox_10.stateChanged.connect(self.CheckboxChanged_10)
+    self.sj_main_checkBox_09 = setCheckBos('코인 틱데이터 실시간 저장', self.sj_groupBox_01, changed=self.CheckboxChanged_09)
+    self.sj_main_checkBox_10 = setCheckBos('전체 종목 저장    |', self.sj_groupBox_01, changed=self.CheckboxChanged_10)
     self.sj_main_labellll_04 = QtWidgets.QLabel('실시간 저장 주기(초)', self.sj_groupBox_01)
     self.sj_main_lineEdit_06 = setLineedit(self.sj_groupBox_01)
 
@@ -526,7 +521,7 @@ def SetUI(self):
     self.sj_tele_lineEdit_01 = setLineedit(self.sj_groupBox_04, passhide=True)
     self.sj_tele_lineEdit_02 = setLineedit(self.sj_groupBox_04, passhide=True)
 
-    self.sj_stock_checkBox_01 = QtWidgets.QCheckBox('모의투자    |', self.sj_groupBox_05)
+    self.sj_stock_checkBox_01 = setCheckBos('모의투자    |', self.sj_groupBox_05, changed=self.CheckboxChanged_11)
     self.sj_stock_checkBox_02 = QtWidgets.QCheckBox('알림소리    |', self.sj_groupBox_05)
     text = '장초전략 매수                                              '\
            '매도                                                       '\
@@ -545,7 +540,7 @@ def SetUI(self):
     self.sj_stock_lineEdit_03 = setLineedit(self.sj_groupBox_05)
     self.sj_stock_lineEdit_04 = setLineedit(self.sj_groupBox_05)
 
-    self.sj_coin_checkBox_01 = QtWidgets.QCheckBox('모의투자    |', self.sj_groupBox_06)
+    self.sj_coin_checkBox_01 = setCheckBos('모의투자    |', self.sj_groupBox_06, changed=self.CheckboxChanged_12)
     self.sj_coin_checkBox_02 = QtWidgets.QCheckBox('알림소리    |', self.sj_groupBox_06)
     text = '장초전략 매수                                              '\
            '매도                                                       '\
