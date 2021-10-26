@@ -94,7 +94,7 @@ class QueryTick:
                                 dfc = dfc.append(query[1][code])
                             dfc.to_sql("temp", self.con2, if_exists='append', chunksize=1000, method='multi')
                             self.cur2.execute('INSERT INTO "dist" ("cnt") values (1);')
-                        save_time = (now() - start).total_seconds()
+                        save_time = float2str1p6((now() - start).total_seconds())
                         text = f'시스템 명령 실행 알림 - 틱데이터 저장 쓰기소요시간은 [{save_time}]초입니다.'
                         self.windowQ.put([ui_num['C단순텍스트'], text])
                     elif len(query) == 4:
