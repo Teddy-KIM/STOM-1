@@ -125,7 +125,8 @@ class Window(QtWidgets.QMainWindow):
     def StockReceiverStart(self):
         self.backtester_proc = None
         if self.dict_set['아이디2'] is not None:
-            if self.dict_set['증권사'] == '키움증권':
+            start = False
+            if self.dict_set['증권사'] == '키움증권' and not self.collector_stock_proc1.is_alive():
                 os.system(f'python {LOGIN_PATH}/versionupdater.py')
                 os.system(f'python {LOGIN_PATH}/autologin2.py')
             if self.dict_set['주식콜렉터']:
@@ -139,31 +140,37 @@ class Window(QtWidgets.QMainWindow):
                     self.collector_stock_proc4.start()
             if self.dict_set['증권사'] == '키움증권' and not self.receiver_kiwoom_proc.is_alive():
                 self.receiver_kiwoom_proc.start()
+                start = True
             elif self.dict_set['증권사'] == '이베스트투자증권' and not self.receiver_xing_proc.is_alive():
                 self.receiver_xing_proc.start()
-            if self.dict_set['주식콜렉터']:
-                text = '주식 리시버 및 콜렉터를 시작하였습니다.'
-            else:
-                text = '주식 리시버를 시작하였습니다.'
-            soundQ.put(text)
-            teleQ.put(text)
+                start = True
+            if start:
+                if self.dict_set['주식콜렉터']:
+                    text = '주식 리시버 및 콜렉터를 시작하였습니다.'
+                else:
+                    text = '주식 리시버를 시작하였습니다.'
+                soundQ.put(text)
+                teleQ.put(text)
         else:
             QtWidgets.QMessageBox.critical(
                 self, '오류 알림', '두번째 계정이 설정되지 않아\n콜렉터를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
 
     def StockTraderStart(self):
         if self.dict_set['아이디1'] is not None:
-            if self.dict_set['증권사'] == '키움증권':
+            start = False
+            if self.dict_set['증권사'] == '키움증권' and not self.strategy_stock_proc.is_alive():
                 os.system(f'python {LOGIN_PATH}/autologin1.py')
             if not self.strategy_stock_proc.is_alive():
                 self.strategy_stock_proc.start()
+                start = True
             if self.dict_set['증권사'] == '키움증권' and not self.trader_kiwoom_proc.is_alive():
                 self.trader_kiwoom_proc.start()
             elif self.dict_set['증권사'] == '이베스트투자증권' and not self.trader_xing_proc.is_alive():
                 self.trader_xing_proc.start()
-            text = '주식 트레이더를 시작하였습니다.'
-            soundQ.put(text)
-            teleQ.put(text)
+            if start:
+                text = '주식 트레이더를 시작하였습니다.'
+                soundQ.put(text)
+                teleQ.put(text)
         else:
             QtWidgets.QMessageBox.critical(
                 self, '오류 알림', '첫번째 계정이 설정되지 않아\n트레이더를 시작할 수 없습니다.\n계정 설정 후 다시 시작하십시오.\n')
