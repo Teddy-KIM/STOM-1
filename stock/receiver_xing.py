@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import sqlite3
-from PyQt5.QtCore import QTimer
+from threading import Timer
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
@@ -67,10 +67,6 @@ class ReceiverXing:
             '거래대금순위기록': now(),
             '거래대금순위저장': now()
         }
-
-        self.timer = QTimer()
-        self.timer.setInterval(10000)
-        self.timer.timeout.connect(self.ConditionSearch)
 
         self.xas = XASession()
         self.xaq = XAQuery(self)
@@ -266,9 +262,9 @@ class ReceiverXing:
             for code in list(delete_list):
                 self.DeleteGsjmlist(code)
         self.list_prmt = list_top
-        self.timer.start()
+        Timer(10, self.MoneyTopSearch).start()
 
-    def ConditionSearch(self):
+    def MoneyTopSearch(self):
         self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
         list_top = list(self.df_mc.index[:self.dict_set['주식순위선정']])
         insert_list = set(list_top) - set(self.list_prmt)
@@ -280,6 +276,7 @@ class ReceiverXing:
             for code in list(delete_list):
                 self.DeleteGsjmlist(code)
         self.list_prmt = list_top
+        Timer(10, self.MoneyTopSearch).start()
 
     def InsertGsjmlist(self, code):
         if code not in self.list_gsjm1:

@@ -46,7 +46,7 @@ class WebsTicker:
         self.websQ_ticker = None
         self.codes = None
 
-        Timer(10, self.ConditionSearch).start()
+        Timer(10, self.MoneyTopSearch).start()
 
         self.Start()
 
@@ -158,20 +158,19 @@ class WebsTicker:
                 self.cstgQ.put(['조건이탈', code])
                 self.list_gsjm2.remove(code)
 
-    def ConditionSearch(self):
-        if len(self.df_mc) > 0:
-            self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
-            list_top = list(self.df_mc.index[:self.dict_set['코인순위선정']])
-            insert_list = set(list_top) - set(self.pre_top)
-            if len(insert_list) > 0:
-                for code in list(insert_list):
-                    self.InsertGsjmlist(code)
-            delete_list = set(self.pre_top) - set(list_top)
-            if len(delete_list) > 0:
-                for code in list(delete_list):
-                    self.DeleteGsjmlist(code)
-            self.pre_top = list_top
-        Timer(10, self.ConditionSearch).start()
+    def MoneyTopSearch(self):
+        self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
+        list_top = list(self.df_mc.index[:self.dict_set['코인순위선정']])
+        insert_list = set(list_top) - set(self.pre_top)
+        if len(insert_list) > 0:
+            for code in list(insert_list):
+                self.InsertGsjmlist(code)
+        delete_list = set(self.pre_top) - set(list_top)
+        if len(delete_list) > 0:
+            for code in list(delete_list):
+                self.DeleteGsjmlist(code)
+        self.pre_top = list_top
+        Timer(10, self.MoneyTopSearch).start()
 
     def InsertGsjmlist(self, code):
         if code not in self.list_gsjm1:

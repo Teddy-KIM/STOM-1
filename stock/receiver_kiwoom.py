@@ -85,7 +85,7 @@ class ReceiverKiwoom:
 
         self.timer = QTimer()
         self.timer.setInterval(10000)
-        self.timer.timeout.connect(self.ConditionSearch)
+        self.timer.timeout.connect(self.MoneyTopSearch)
 
         self.ocx = QAxWidget('KHOPENAPI.KHOpenAPICtrl.1')
         self.ocx.OnEventConnect.connect(self.OnEventConnect)
@@ -256,7 +256,7 @@ class ReceiverKiwoom:
         self.list_prmt = list_top
         self.timer.start()
 
-    def ConditionSearch(self):
+    def MoneyTopSearch(self):
         self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
         list_top = list(self.df_mc.index[:self.dict_set['주식순위선정']])
         insert_list = set(list_top) - set(self.list_prmt)
