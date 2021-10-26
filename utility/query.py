@@ -49,7 +49,7 @@ class Query:
                     try:
                         self.cur2.execute(query[1])
                     except Exception as e:
-                        self.windowQ.put([ui_num['설정텍스트'], f'시스템 명령 오류 알림 - Query con1 execute {e}'])
+                        self.windowQ.put([ui_num['설정텍스트'], f'시스템 명령 오류 알림 - Query con2 execute {e}'])
                     else:
                         self.con2.commit()
                 elif len(query) == 4:
