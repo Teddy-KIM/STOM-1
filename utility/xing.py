@@ -197,5 +197,5 @@ class XARealEvents:
             self.user_class.OnReceiveRealData(out_data)
         elif trcode in ['H1_', 'HA_']:
             self.user_class.OnReceiveHogaData(out_data)
-        elif trcode == 'SC1_':
+        elif trcode == 'SC1':
             self.user_class.OnReceiveChegeolData(out_data)

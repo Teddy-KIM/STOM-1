@@ -311,9 +311,6 @@ class TraderXing:
 
     def OperationRealreg(self):
         self.dict_bool['트레이더시작'] = True
-        self.xar_op.RemoveAllRealData()
-        self.xar_cg.RemoveAllRealData()
-
         self.xar_op.AddRealData('0')
         self.xar_cg.AddRealData()
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
