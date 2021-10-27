@@ -6,13 +6,8 @@ from PyQt5 import QtWidgets
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
-from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, DB_TRADELIST, DICT_SET
-
-
-def TraderXingMain(qlist):
-    app = QtWidgets.QApplication(sys.argv)
-    TraderXing(qlist)
-    app.exec_()
+from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, dict_oper, \
+    DB_TRADELIST, DICT_SET
 
 
 class Updater(QtCore.QThread):
@@ -37,6 +32,7 @@ class Updater(QtCore.QThread):
 
 class TraderXing:
     def __init__(self, qlist):
+        app = QtWidgets.QApplication(sys.argv)
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
@@ -113,6 +109,8 @@ class TraderXing:
         self.qtimer.setInterval(1000)
         self.qtimer.timeout.connect(self.Scheduler)
         self.qtimer.start()
+
+        app.exec_()
 
     def LoadDatabase(self):
         con = sqlite3.connect(DB_TRADELIST)
@@ -428,15 +426,6 @@ class TraderXing:
                 self.OperationAlert(status)
 
     def OperationAlert(self, status):
-        dict_oper = {
-            25: '장시작 10분전전입니다.',
-            24: '장시작 5분전전입니다.',
-            23: '장시작 1분전전입니다.',
-            22: '장시작 10초전입니다.',
-            44: '장마감 5분전전입니다.',
-            43: '장마감 1분전전입니다.',
-            42: '장마감 10초전전입니다.'
-        }
         if self.dict_set['주식알림소리']:
             if status == 21:
                 self.soundQ.put(f"{self.dict_strg['당일날짜'][:4]}년 {self.dict_strg['당일날짜'][4:6]}월 "

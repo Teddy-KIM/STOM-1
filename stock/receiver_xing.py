@@ -6,13 +6,7 @@ from PyQt5 import QtWidgets
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
-from utility.setting import ui_num, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
-
-
-def ReceiverXingMain(qlist):
-    app = QtWidgets.QApplication(sys.argv)
-    ReceiverXing(qlist)
-    app.exec_()
+from utility.setting import ui_num, dict_oper, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
 
 
 class Updater(QtCore.QThread):
@@ -34,6 +28,7 @@ class Updater(QtCore.QThread):
 
 class ReceiverXing:
     def __init__(self, qlist):
+        app = QtWidgets.QApplication(sys.argv)
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
@@ -124,6 +119,8 @@ class ReceiverXing:
         self.qtimer2 = QtCore.QTimer()
         self.qtimer2.setInterval(1000)
         self.qtimer2.timeout.connect(self.MoneyTopSearch)
+
+        app.exec_()
 
     def __del__(self):
         self.xar_op.RemoveAllRealData()
@@ -363,17 +360,6 @@ class ReceiverXing:
             self.list_gsjm2.remove(code)
 
     def OnReceiveOperData(self, data):
-        dict_oper = {
-            25: '장시작 10분전전입니다.',
-            24: '장시작 5분전전입니다.',
-            23: '장시작 1분전전입니다.',
-            22: '장시작 10초전입니다.',
-            21: '장시작',
-            44: '장마감 5분전전입니다.',
-            43: '장마감 1분전전입니다.',
-            42: '장마감 10초전전입니다.',
-            41: '장마감'
-        }
         try:
             gubun = data['jangubun']
             status = int(data['jstatus'])

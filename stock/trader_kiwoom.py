@@ -13,12 +13,6 @@ from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, colu
     sn_brrd, DB_TRADELIST, DICT_SET
 
 
-def TraderKiwoomMain(qlist):
-    app = QtWidgets.QApplication(sys.argv)
-    TraderKiwoom(qlist)
-    app.exec_()
-
-
 class Updater(QtCore.QThread):
     data1 = QtCore.pyqtSignal(list)
     data2 = QtCore.pyqtSignal(dict)
@@ -41,6 +35,7 @@ class Updater(QtCore.QThread):
 
 class TraderKiwoom:
     def __init__(self, qlist):
+        app = QtWidgets.QApplication(sys.argv)
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
@@ -114,6 +109,8 @@ class TraderKiwoom:
         self.qtimer.setInterval(1000)
         self.qtimer.timeout.connect(self.Scheduler)
         self.qtimer.start()
+
+        app.exec_()
 
     def LoadDatabase(self):
         con = sqlite3.connect(DB_TRADELIST)

@@ -11,12 +11,6 @@ from utility.static import now, strf_time, strp_time, timedelta_sec, readEnc, pa
 from utility.setting import ui_num, sn_oper, sn_recv, sn_cond, sn_brrq, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
 
 
-def ReceiverKiwoomMain(qlist):
-    app = QtWidgets.QApplication(sys.argv)
-    ReceiverKiwoom(qlist)
-    app.exec_()
-
-
 class Updater(QtCore.QThread):
     data1 = QtCore.pyqtSignal(str)
     data2 = QtCore.pyqtSignal(dict)
@@ -35,9 +29,8 @@ class Updater(QtCore.QThread):
 
 
 class ReceiverKiwoom:
-    app = QtWidgets.QApplication(sys.argv)
-
     def __init__(self, qlist):
+        app = QtWidgets.QApplication(sys.argv)
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
@@ -128,6 +121,8 @@ class ReceiverKiwoom:
         self.qtimer2 = QtCore.QTimer()
         self.qtimer2.setInterval(1000)
         self.qtimer2.timeout.connect(self.MoneyTopSearch)
+
+        app.exec_()
 
     def CommConnect(self):
         self.ocx.dynamicCall('CommConnect()')
