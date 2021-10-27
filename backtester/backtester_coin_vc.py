@@ -587,8 +587,12 @@ if __name__ == "__main__":
                     num[i][2] = num[i][3]
                 elif i < len(num) - 1:
                     i += 1
-                    if i == 7:
-                        num[i][0] = 0.
+                    if i == 1:
+                        num[i][0] -= num[i][2]
+                        num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
+                        num[i][2] = num[i][3]
+                    elif i == 7:
+                        num[i][0] = 0
                     ogin_var = num[i][0]
                 else:
                     break
