@@ -546,8 +546,8 @@ if __name__ == "__main__":
                     high_var = num
                     print(f' 최고수익률 갱신 {htsp}%')
 
-        gap_ch = [high_var[0] - 0.9, high_var[0] + 0.9, 0.1, 0.1]
-        avg_time = [high_var[1], high_var[1], 30, 3]
+        gap_ch = [high_var[0] - 0.5, high_var[0] + 0.5, 0.5, 0.5]
+        avg_time = [high_var[1], high_var[1], 60, 30]
         gap_sm = [50, 500, 50, 10]
         ch_low = [50, 100, 10, 10]
         dm_low = [0, 100000, 10000, 1000]
