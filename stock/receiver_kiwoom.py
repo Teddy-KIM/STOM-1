@@ -50,6 +50,7 @@ class ReceiverKiwoom:
         self.dict_set = DICT_SET
 
         self.dict_bool = {
+            '리시버시작': False,
             '실시간조건검색시작': False,
             '실시간조건검색중단': False,
             '장중단타전략시작': False,

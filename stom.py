@@ -200,20 +200,6 @@ class Window(QtWidgets.QMainWindow):
                 soundQ.put(text)
                 teleQ.put(text)
 
-    def StockBacktestStart(self):
-        if self.backtester_proc is not None and self.backtester_proc.poll() != 0:
-            QtWidgets.QMessageBox.critical(self, '오류 알림', '현재 백테스터가 실행중입니다.\n중복 실행할 수 없습니다.\n')
-            return
-        else:
-            self.backtester_proc = subprocess.Popen(f'python {SYSTEM_PATH}/backtester/backtester_stock_vc.py')
-
-    def CoinBacktestStart(self):
-        if self.backtester_proc is not None and self.backtester_proc.poll() != 0:
-            QtWidgets.QMessageBox.critical(self, '오류 알림', '현재 백테스터가 실행중입니다.\n중복 실행할 수 없습니다.\n')
-            return
-        else:
-            self.backtester_proc = subprocess.Popen(f'python {SYSTEM_PATH}/backtester/backtester_coin_vc.py')
-
     def ClearTextEdit(self):
         self.st_textEdit.clear()
         self.ct_textEdit.clear()
