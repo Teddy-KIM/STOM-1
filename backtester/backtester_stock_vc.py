@@ -557,7 +557,7 @@ if __name__ == "__main__":
         gap_sm = [50, 500, 50, 10]
         ch_low = [50, 100, 10, 10]
         dm_low = [0, 100000, 10000, 1000]
-        per_low = [0, 10, 1, 0.1]
+        per_low = [0, 10, 1, 1]
         per_high = [25, 15, -1, -1]
         sell_ratio = [0.5, 1.0, 0.1, 0.1]
         num = [gap_ch, avg_time, gap_sm, ch_low, dm_low, per_low, per_high, sell_ratio]
