@@ -352,10 +352,9 @@ class TraderUpbit:
     """
     def UpdateBuy(self, code, cp, cc, cancle=False):
         dt = strf_time('%Y%m%d%H%M%S%f')
-        if self.dict_set['코인모의투자'] and len(self.df_cj) > 0:
-            if dt in self.df_cj['체결시간'].values:
-                while dt in self.df_cj['체결시간'].values:
-                    dt = str(int(dt) + 1)
+        if dt in self.df_cj.index:
+            while dt in self.df_cj.index:
+                dt = str(int(dt) + 1)
 
         order_gubun = '매수' if not cancle else '시드부족'
         if cancle:
@@ -389,10 +388,9 @@ class TraderUpbit:
 
     def UpdateSell(self, code, cp, cc):
         dt = strf_time('%Y%m%d%H%M%S%f')
-        if self.dict_set['코인모의투자'] and len(self.df_cj) > 0:
-            if dt in self.df_cj['체결시간'].values:
-                while dt in self.df_cj['체결시간'].values:
-                    dt = str(int(dt) + 1)
+        if dt in self.df_cj.index:
+            while dt in self.df_cj.index:
+                dt = str(int(dt) + 1)
 
         bp = self.df_jg['매입가'][code]
         bg = bp * cc
