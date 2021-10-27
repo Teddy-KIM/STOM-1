@@ -100,7 +100,7 @@ class BackTesterCoinStg:
             for h, index in enumerate(self.df.index):
                 if h != 0 and index[:8] != self.df.index[h - 1][:8]:
                     self.ccond = 0
-                if int(index[:8]) < int_daylimit or \
+                if int(index[:8]) <= int_daylimit or \
                         (not self.hold and (int(index[8:]) < self.starttime or self.endtime <= int(index[8:]))):
                     continue
                 self.index = index
