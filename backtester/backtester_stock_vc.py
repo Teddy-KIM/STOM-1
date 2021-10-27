@@ -526,8 +526,8 @@ if __name__ == "__main__":
     q = Queue()
 
     if len(table_list) > 0:
-        gap_chs = [3, 4, 5, 6, 7, 8, 9]
-        avg_times = [30, 60, 90, 120, 150, 180]
+        gap_chs = [3, 4, 5]
+        avg_times = [60, 90, 120]
         htsp = -100
         high_var = []
 
@@ -561,9 +561,7 @@ if __name__ == "__main__":
         per_high = [25, 15, -1, -1]
         sell_ratio = [0.5, 1.0, 0.1, 0.1]
         num = [gap_ch, avg_time, gap_sm, ch_low, dm_low, per_low, per_high, sell_ratio]
-
         ogin_var = high_var[0]
-        high_var = high_var[0]
 
         i = 0
         while True:
@@ -595,14 +593,9 @@ if __name__ == "__main__":
                     num[i][2] = num[i][3]
                 elif i < len(num) - 1:
                     i += 1
-                    if i == 1:
-                        num[i][0] -= num[i][2]
-                        num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
-                        num[i][2] = num[i][3]
-                    elif i == 7:
+                    if i == 7:
                         num[i][0] = 0.
                     ogin_var = num[i][0]
-                    high_var = num[i][0]
                 else:
                     break
             num[i][0] = round(num[i][0] + num[i][2], 1)
