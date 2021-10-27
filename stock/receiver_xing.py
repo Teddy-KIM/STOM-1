@@ -1,12 +1,35 @@
 import os
 import sys
-import time
 import sqlite3
-from threading import Timer
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import ui_num, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
+
+
+def ReceiverXingMain(qlist):
+    app = QtWidgets.QApplication(sys.argv)
+    ReceiverXing(qlist)
+    app.exec_()
+
+
+class Updater(QtCore.QThread):
+    data1 = QtCore.pyqtSignal(str)
+    data2 = QtCore.pyqtSignal(dict)
+
+    def __init__(self, sreceivQ):
+        super().__init__()
+        self.sreceivQ = sreceivQ
+
+    def run(self):
+        while True:
+            data = self.sreceivQ.get()
+            if type(data) == str:
+                self.data1.emit(data)
+            elif type(data) == dict:
+                self.data2.emit(data)
 
 
 class ReceiverXing:
@@ -30,6 +53,7 @@ class ReceiverXing:
         self.dict_set = DICT_SET
 
         self.dict_bool = {
+            '리시버시작': False,
             '실시간조건검색시작': False,
             '실시간조건검색중단': False,
             '장중단타전략시작': False,
@@ -85,7 +109,21 @@ class ReceiverXing:
         self.xar_hp.RegisterRes('H1_')
         self.xar_hd.RegisterRes('HA_')
 
-        self.Start()
+        self.XingLogin()
+
+        self.updater = Updater(self.sreceivQ)
+        self.updater.data1.connect(self.UpdateJangolist)
+        self.updater.data2.connect(self.UpdateDictset)
+        self.updater.start()
+
+        self.qtimer1 = QtCore.QTimer()
+        self.qtimer1.setInterval(1000)
+        self.qtimer1.timeout.connect(self.Scheduler)
+        self.qtimer1.start()
+
+        self.qtimer2 = QtCore.QTimer()
+        self.qtimer2.setInterval(1000)
+        self.qtimer2.timeout.connect(self.MoneyTopSearch)
 
     def __del__(self):
         self.xar_op.RemoveAllRealData()
@@ -97,10 +135,6 @@ class ReceiverXing:
         if len(self.list_alertnum) > 0:
             for alertnum in self.list_alertnum:
                 self.xaq.RemoveService(alertnum)
-
-    def Start(self):
-        self.XingLogin()
-        self.EventLoop()
 
     def XingLogin(self):
         self.xas.Login(self.dict_set['아이디2'], self.dict_set['비밀번호2'], self.dict_set['인증서비밀번호2'])
@@ -155,44 +189,6 @@ class ReceiverXing:
             print('전략서버에 그룹명을 반드시 STOM으로 생성하십시오.')
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
-    def EventLoop(self):
-        self.OperationRealreg()
-        while True:
-            pythoncom.PumpWaitingMessages()
-
-            if not self.sreceivQ.empty():
-                data = self.sreceivQ.get()
-                if type(data) == str:
-                    self.UpdateJangolist(data)
-                    continue
-                elif type(data) == dict:
-                    self.dict_set = data
-
-            if self.operation == 1 and now() > self.dict_time['휴무종료']:
-                break
-            if self.operation == 21:
-                if int(strf_time('%H%M%S')) < 100000:
-                    if not self.dict_bool['실시간조건검색시작']:
-                        self.ConditionSearchStart()
-                if 100000 <= int(strf_time('%H%M%S')):
-                    if self.dict_bool['실시간조건검색시작'] and not self.dict_bool['실시간조건검색중단']:
-                        self.ConditionSearchStop()
-                    if not self.dict_bool['장중단타전략시작']:
-                        self.StartJangjungStrategy()
-            if self.operation == 41 and int(strf_time('%H%M%S')) >= 153500:
-                self.RemoveAllRealreg()
-                self.SaveTickData()
-                break
-
-            if now() > self.dict_time['거래대금순위기록']:
-                if len(self.list_gsjm1) > 0:
-                    self.UpdateMoneyTop()
-                self.dict_time['거래대금순위기록'] = timedelta_sec(1)
-
-            time.sleep(0.001)
-
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
-
     def UpdateJangolist(self, data):
         code = data.split(' ')[1]
         if '잔고편입' in data and code not in self.list_jang:
@@ -205,6 +201,35 @@ class ReceiverXing:
             if code not in self.list_gsjm1 and code in self.list_gsjm2:
                 self.sstgQ.put(['조건이탈', code])
                 self.list_gsjm2.remove(code)
+
+    def UpdateDictset(self, data):
+        self.dict_set = data
+
+    def Scheduler(self):
+        if self.operation == 1 and not self.dict_bool['리시버시작']:
+            self.OperationRealreg()
+        if self.operation == 1 and now() > self.dict_time['휴무종료']:
+            self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
+            sys.exit()
+        if self.operation == 21:
+            if int(strf_time('%H%M%S')) < 100000:
+                if not self.dict_bool['실시간조건검색시작']:
+                    self.ConditionSearchStart()
+            if 100000 <= int(strf_time('%H%M%S')):
+                if self.dict_bool['실시간조건검색시작'] and not self.dict_bool['실시간조건검색중단']:
+                    self.ConditionSearchStop()
+                if not self.dict_bool['장중단타전략시작']:
+                    self.StartJangjungStrategy()
+        if self.operation == 41 and int(strf_time('%H%M%S')) >= 153500:
+            self.RemoveAllRealreg()
+            self.SaveTickData()
+            self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
+            sys.exit()
+
+        if now() > self.dict_time['거래대금순위기록']:
+            if len(self.list_gsjm1) > 0:
+                self.UpdateMoneyTop()
+            self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
     def OperationRealreg(self):
         self.xar_op.AddRealData('0')
@@ -262,37 +287,7 @@ class ReceiverXing:
             for code in list(delete_list):
                 self.DeleteGsjmlist(code)
         self.list_prmt = list_top
-        Timer(10, self.MoneyTopSearch).start()
-
-    def MoneyTopSearch(self):
-        self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
-        list_top = list(self.df_mc.index[:self.dict_set['주식순위선정']])
-        insert_list = set(list_top) - set(self.list_prmt)
-        if len(insert_list) > 0:
-            for code in list(insert_list):
-                self.InsertGsjmlist(code)
-        delete_list = set(self.list_prmt) - set(list_top)
-        if len(delete_list) > 0:
-            for code in list(delete_list):
-                self.DeleteGsjmlist(code)
-        self.list_prmt = list_top
-        Timer(10, self.MoneyTopSearch).start()
-
-    def InsertGsjmlist(self, code):
-        if code not in self.list_gsjm1:
-            self.list_gsjm1.append(code)
-        if code not in self.list_jang and code not in self.list_gsjm2:
-            if self.dict_set['주식트레이더']:
-                self.sstgQ.put(['조건진입', code])
-            self.list_gsjm2.append(code)
-
-    def DeleteGsjmlist(self, code):
-        if code in self.list_gsjm1:
-            self.list_gsjm1.remove(code)
-        if code not in self.list_jang and code in self.list_gsjm2:
-            if self.dict_set['주식트레이더']:
-                self.sstgQ.put(['조건이탈', code])
-            self.list_gsjm2.remove(code)
+        self.qtimer2.start()
 
     def RemoveAllRealreg(self):
         self.xar_op.RemoveAllRealData()
@@ -336,6 +331,35 @@ class ReceiverXing:
             self.query2Q.put([1, self.df_mt, 'moneytop', 'append'])
             self.df_mt = pd.DataFrame(columns=['거래대금순위'])
             self.dict_time['거래대금순위저장'] = timedelta_sec(10)
+
+    def MoneyTopSearch(self):
+        self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
+        list_top = list(self.df_mc.index[:self.dict_set['주식순위선정']])
+        insert_list = set(list_top) - set(self.list_prmt)
+        if len(insert_list) > 0:
+            for code in list(insert_list):
+                self.InsertGsjmlist(code)
+        delete_list = set(self.list_prmt) - set(list_top)
+        if len(delete_list) > 0:
+            for code in list(delete_list):
+                self.DeleteGsjmlist(code)
+        self.list_prmt = list_top
+
+    def InsertGsjmlist(self, code):
+        if code not in self.list_gsjm1:
+            self.list_gsjm1.append(code)
+        if code not in self.list_jang and code not in self.list_gsjm2:
+            if self.dict_set['주식트레이더']:
+                self.sstgQ.put(['조건진입', code])
+            self.list_gsjm2.append(code)
+
+    def DeleteGsjmlist(self, code):
+        if code in self.list_gsjm1:
+            self.list_gsjm1.remove(code)
+        if code not in self.list_jang and code in self.list_gsjm2:
+            if self.dict_set['주식트레이더']:
+                self.sstgQ.put(['조건이탈', code])
+            self.list_gsjm2.remove(code)
 
     def OnReceiveOperData(self, data):
         dict_oper = {

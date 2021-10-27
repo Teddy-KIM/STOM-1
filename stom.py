@@ -9,11 +9,11 @@ from coin.collector_coin import CollectorCoin
 from coin.strategy_coin import StrategyCoin
 from coin.trader_upbit import TraderUpbit
 from stock.receiver_kiwoom import ReceiverKiwoom
-from stock.receiver_xing import ReceiverXing
+from stock.receiver_xing import ReceiverXingMain
 from stock.collector_stock import CollectorStock
 from stock.strategy_stock import StrategyStock
 from stock.trader_kiwoom import TraderKiwoom
-from stock.trader_xing import TraderXing
+from stock.trader_xing import TraderXingMain
 from utility.setui import *
 from utility.sound import Sound
 from utility.query import Query
@@ -96,14 +96,14 @@ class Window(QtWidgets.QMainWindow):
         self.trader_coin_proc = Process(target=TraderUpbit, args=(qlist,))
 
         self.receiver_kiwoom_proc = Process(target=ReceiverKiwoom, args=(qlist,))
-        self.receiver_xing_proc = Process(target=ReceiverXing, args=(qlist,))
+        self.receiver_xing_proc = Process(target=ReceiverXingMain, args=(qlist,))
         self.collector_stock_proc1 = Process(target=CollectorStock, args=(1, qlist))
         self.collector_stock_proc2 = Process(target=CollectorStock, args=(2, qlist))
         self.collector_stock_proc3 = Process(target=CollectorStock, args=(3, qlist))
         self.collector_stock_proc4 = Process(target=CollectorStock, args=(4, qlist))
         self.strategy_stock_proc = Process(target=StrategyStock, args=(qlist,))
         self.trader_kiwoom_proc = Process(target=TraderKiwoom, args=(qlist,))
-        self.trader_xing_proc = Process(target=TraderXing, args=(qlist,))
+        self.trader_xing_proc = Process(target=TraderXingMain, args=(qlist,))
 
     def ProcessStarter(self):
         if now().weekday() not in [6, 7]:

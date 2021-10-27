@@ -1,11 +1,38 @@
 import os
 import sys
-import time
 import sqlite3
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
 from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, DB_TRADELIST, DICT_SET
+
+
+def TraderXingMain(qlist):
+    app = QtWidgets.QApplication(sys.argv)
+    TraderXing(qlist)
+    app.exec_()
+
+
+class Updater(QtCore.QThread):
+    data1 = QtCore.pyqtSignal(list)
+    data2 = QtCore.pyqtSignal(dict)
+    data3 = QtCore.pyqtSignal(str)
+
+    def __init__(self, stockQ):
+        super().__init__()
+        self.stockQ = stockQ
+
+    def run(self):
+        while True:
+            data = self.stockQ.get()
+            if type(data) == list:
+                self.data1.emit(data)
+            elif type(data) == dict:
+                self.data2.emit(data)
+            elif type(data) == str:
+                self.data3.emit(data)
 
 
 class TraderXing:
@@ -48,6 +75,8 @@ class TraderXing:
             '계좌번호': ''
         }
         self.dict_bool = {
+            '계좌조회': False,
+            '트레이더시작': False,
             '장초전략잔고청산': False,
             '장중전략잔고청산': False,
             '로그인': False
@@ -64,17 +93,26 @@ class TraderXing:
 
         self.xas = XASession()
         self.xaq = XAQuery(self)
+
         self.xar_op = XAReal(self)
         self.xar_cg = XAReal(self)
+
         self.xar_op.RegisterRes('JIF')
         self.xar_cg.RegisterRes('SC1')
 
-        self.Start()
-
-    def Start(self):
         self.LoadDatabase()
         self.XingLogin()
-        self.EventLoop()
+
+        self.updater = Updater(self.stockQ)
+        self.updater.data1.connect(self.BuySellUpdateJangolist)
+        self.updater.data2.connect(self.UpdateDictset)
+        self.updater.data3.connect(self.TelegramCmd)
+        self.updater.start()
+
+        self.qtimer = QtCore.QTimer()
+        self.qtimer.setInterval(1000)
+        self.qtimer.timeout.connect(self.Scheduler)
+        self.qtimer.start()
 
     def LoadDatabase(self):
         con = sqlite3.connect(DB_TRADELIST)
@@ -131,48 +169,11 @@ class TraderXing:
         if int(strf_time('%H%M%S')) > 90000:
             self.dict_intg['장운영상태'] = 21
 
-    def EventLoop(self):
-        self.GetAccountjanGo()
-        self.OperationRealreg()
-        while True:
-            pythoncom.PumpWaitingMessages()
-
-            if not self.stockQ.empty():
-                data = self.stockQ.get()
-                if type(data) == list:
-                    if len(data) == 5:
-                        self.BuySell(data[0], data[1], data[2], data[3], data[4])
-                        continue
-                    elif len(data) == 3:
-                        self.UpdateJango(data[0], data[1], data[2])
-                        continue
-                elif type(data) == dict:
-                    self.dict_set = data
-                elif type(data) == str:
-                    self.TelegramCmd(data)
-
-            if self.dict_intg['장운영상태'] == 1 and now() > self.dict_time['휴무종료']:
-                break
-            if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
-                self.JangoChungsan1()
-            if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
-                self.JangoChungsan2()
-            if self.dict_intg['장운영상태'] == 41 and int(strf_time('%H%M%S')) >= 153500:
-                self.RemoveAllRealreg()
-                self.SaveDayData()
-                break
-
-            if now() > self.dict_time['거래정보']:
-                self.UpdateTotaljango()
-                self.dict_time['거래정보'] = timedelta_sec(1)
-
-            time.sleep(0.001)
-
-        self.sstgQ.put('전략프로세스종료')
-        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
-        if self.dict_set['주식알림소리']:
-            self.soundQ.put('주식 트레이더를 종료합니다.')
-        self.teleQ.put('주식 트레이더를 종료하였습니다.')
+    def BuySellUpdateJangolist(self, data):
+        if len(data) == 5:
+            self.BuySell(data[0], data[1], data[2], data[3], data[4])
+        elif len(data) == 3:
+            self.UpdateJango(data[0], data[1], data[2])
 
     def BuySell(self, gubun, code, name, c, oc):
         if gubun == '매수':
@@ -219,6 +220,9 @@ class TraderXing:
                 MgntrnCode='000', LoanDt='', OrdCndiTpCode='0'
             )
 
+    def UpdateDictset(self, data):
+        self.dict_set = data
+
     def TelegramCmd(self, work):
         if work == '/당일체결목록':
             if len(self.df_cj) > 0:
@@ -240,6 +244,26 @@ class TraderXing:
                 self.JangoChungsan1()
             elif not self.dict_bool['장중전략잔고청산']:
                 self.JangoChungsan2()
+
+    def Scheduler(self):
+        if self.dict_intg['장운영상태'] == 1 and not self.dict_bool['계좌조회']:
+            self.GetAccountjanGo()
+        if self.dict_intg['장운영상태'] == 1 and not self.dict_bool['트레이더시작']:
+            self.OperationRealreg()
+        if self.dict_intg['장운영상태'] == 1 and now() > self.dict_time['휴무종료']:
+            self.SysExit()
+        if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
+            self.JangoChungsan1()
+        if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
+            self.JangoChungsan2()
+        if self.dict_intg['장운영상태'] == 41 and int(strf_time('%H%M%S')) >= 153500:
+            self.RemoveAllRealreg()
+            self.SaveDayData()
+            self.SysExit()
+
+        if now() > self.dict_time['거래정보']:
+            self.UpdateTotaljango()
+            self.dict_time['거래정보'] = timedelta_sec(1)
 
     def GetAccountjanGo(self):
         df = self.xaq.BlockRequest(
@@ -560,3 +584,11 @@ class TraderXing:
         if omc == 0:
             df = pd.DataFrame([[name, og, oc, omc, op, cp, dt]], columns=columns_cj, index=[on])
             self.query1Q.put([2, df, 's_chegeollist', 'append'])
+
+    def SysExit(self):
+        self.sstgQ.put('전략프로세스종료')
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
+        if self.dict_set['주식알림소리']:
+            self.soundQ.put('주식 트레이더를 종료합니다.')
+        self.teleQ.put('주식 트레이더를 종료하였습니다.')
+        sys.exit()
