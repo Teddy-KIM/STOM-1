@@ -206,7 +206,7 @@ class ReceiverXing:
         self.dict_set = data
 
     def Scheduler(self):
-        if self.operation == 1 and not self.dict_bool['리시버시작']:
+        if not self.dict_bool['리시버시작']:
             self.OperationRealreg()
         if self.operation == 1 and now() > self.dict_time['휴무종료']:
             self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
@@ -232,6 +232,7 @@ class ReceiverXing:
             self.dict_time['거래대금순위기록'] = timedelta_sec(1)
 
     def OperationRealreg(self):
+        self.dict_bool['리시버시작'] = True
         self.xar_op.AddRealData('0')
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
 

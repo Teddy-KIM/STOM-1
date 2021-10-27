@@ -1,15 +1,37 @@
 import os
 import sys
-import time
 import sqlite3
 import pythoncom
 import pandas as pd
+from PyQt5 import QtCore
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QTimer
 from PyQt5.QAxContainer import QAxWidget
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.static import now, strf_time, strp_time, timedelta_sec, readEnc, parseDat
 from utility.setting import ui_num, sn_oper, sn_recv, sn_cond, sn_brrq, DICT_SET, DB_TRADELIST, DB_STOCK_TICK
+
+
+def ReceiverKiwoomMain(qlist):
+    app = QtWidgets.QApplication(sys.argv)
+    ReceiverKiwoom(qlist)
+    app.exec_()
+
+
+class Updater(QtCore.QThread):
+    data1 = QtCore.pyqtSignal(str)
+    data2 = QtCore.pyqtSignal(dict)
+
+    def __init__(self, sreceivQ):
+        super().__init__()
+        self.sreceivQ = sreceivQ
+
+    def run(self):
+        while True:
+            data = self.sreceivQ.get()
+            if type(data) == str:
+                self.data1.emit(data)
+            elif type(data) == dict:
+                self.data2.emit(data)
 
 
 class ReceiverKiwoom:
@@ -83,10 +105,6 @@ class ReceiverKiwoom:
             '거래대금순위저장': now()
         }
 
-        self.timer = QTimer()
-        self.timer.setInterval(10000)
-        self.timer.timeout.connect(self.MoneyTopSearch)
-
         self.ocx = QAxWidget('KHOPENAPI.KHOpenAPICtrl.1')
         self.ocx.OnEventConnect.connect(self.OnEventConnect)
         self.ocx.OnReceiveTrData.connect(self.OnReceiveTrData)
@@ -94,11 +112,22 @@ class ReceiverKiwoom:
         self.ocx.OnReceiveTrCondition.connect(self.OnReceiveTrCondition)
         self.ocx.OnReceiveConditionVer.connect(self.OnReceiveConditionVer)
         self.ocx.OnReceiveRealCondition.connect(self.OnReceiveRealCondition)
-        self.Start()
 
-    def Start(self):
         self.CommConnect()
-        self.EventLoop()
+
+        self.updater = Updater(self.sreceivQ)
+        self.updater.data1.connect(self.UpdateJangolist)
+        self.updater.data2.connect(self.UpdateDictset)
+        self.updater.start()
+
+        self.qtimer1 = QtCore.QTimer()
+        self.qtimer1.setInterval(1000)
+        self.qtimer1.timeout.connect(self.Scheduler)
+        self.qtimer1.start()
+
+        self.qtimer2 = QtCore.QTimer()
+        self.qtimer2.setInterval(1000)
+        self.qtimer2.timeout.connect(self.MoneyTopSearch)
 
     def CommConnect(self):
         self.ocx.dynamicCall('CommConnect()')
@@ -154,44 +183,6 @@ class ReceiverKiwoom:
             print('HTS에서 보이는 번호와 API는 다를 수 있으니 조건식을 모두 지우고 새로 작성하십시오.')
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
-    def EventLoop(self):
-        self.OperationRealreg()
-        while True:
-            pythoncom.PumpWaitingMessages()
-
-            if not self.sreceivQ.empty():
-                data = self.sreceivQ.get()
-                if type(data) == str:
-                    self.UpdateJangolist(data)
-                    continue
-                elif type(data) == dict:
-                    self.dict_set = data
-
-            if self.operation == 1 and now() > self.dict_time['휴무종료']:
-                break
-            if self.operation == 3:
-                if int(strf_time('%H%M%S')) < 100000:
-                    if not self.dict_bool['실시간조건검색시작']:
-                        self.ConditionSearchStart()
-                if 100000 <= int(strf_time('%H%M%S')):
-                    if self.dict_bool['실시간조건검색시작'] and not self.dict_bool['실시간조건검색중단']:
-                        self.ConditionSearchStop()
-                    if not self.dict_bool['장중단타전략시작']:
-                        self.StartJangjungStrategy()
-            if self.operation == 8:
-                self.RemoveAllRealreg()
-                self.SaveTickData()
-                break
-
-            if now() > self.dict_time['거래대금순위기록']:
-                if len(self.list_gsjm1) > 0:
-                    self.UpdateMoneyTop()
-                self.dict_time['거래대금순위기록'] = timedelta_sec(1)
-
-            time.sleep(0.001)
-
-        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
-
     def UpdateJangolist(self, data):
         code = data.split(' ')[1]
         if '잔고편입' in data and code not in self.list_jang:
@@ -205,7 +196,37 @@ class ReceiverKiwoom:
                 self.sstgQ.put(['조건이탈', code])
                 self.list_gsjm2.remove(code)
 
+    def UpdateDictset(self, data):
+        self.dict_set = data
+
+    def Scheduler(self):
+        if not self.dict_bool['리시버시작']:
+            self.OperationRealreg()
+        if self.operation == 1 and now() > self.dict_time['휴무종료']:
+            self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
+            sys.exit()
+        if self.operation == 3:
+            if int(strf_time('%H%M%S')) < 100000:
+                if not self.dict_bool['실시간조건검색시작']:
+                    self.ConditionSearchStart()
+            if 100000 <= int(strf_time('%H%M%S')):
+                if self.dict_bool['실시간조건검색시작'] and not self.dict_bool['실시간조건검색중단']:
+                    self.ConditionSearchStop()
+                if not self.dict_bool['장중단타전략시작']:
+                    self.StartJangjungStrategy()
+        if self.operation == 8 and int(strf_time('%H%M%S')) >= 153500:
+            self.RemoveAllRealreg()
+            self.SaveTickData()
+            self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 리시버 종료'])
+            sys.exit()
+
+        if now() > self.dict_time['거래대금순위기록']:
+            if len(self.list_gsjm1) > 0:
+                self.UpdateMoneyTop()
+            self.dict_time['거래대금순위기록'] = timedelta_sec(1)
+
     def OperationRealreg(self):
+        self.dict_bool['리시버시작'] = True
         self.SetRealReg([sn_oper, ' ', '215;20;214', 0])
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
 
@@ -254,36 +275,7 @@ class ReceiverKiwoom:
             for code in list(delete_list):
                 self.DeleteGsjmlist(code)
         self.list_prmt = list_top
-        self.timer.start()
-
-    def MoneyTopSearch(self):
-        self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
-        list_top = list(self.df_mc.index[:self.dict_set['주식순위선정']])
-        insert_list = set(list_top) - set(self.list_prmt)
-        if len(insert_list) > 0:
-            for code in list(insert_list):
-                self.InsertGsjmlist(code)
-        delete_list = set(self.list_prmt) - set(list_top)
-        if len(delete_list) > 0:
-            for code in list(delete_list):
-                self.DeleteGsjmlist(code)
-        self.list_prmt = list_top
-
-    def InsertGsjmlist(self, code):
-        if code not in self.list_gsjm1:
-            self.list_gsjm1.append(code)
-        if code not in self.list_jang and code not in self.list_gsjm2:
-            if self.dict_set['주식트레이더']:
-                self.sstgQ.put(['조건진입', code])
-            self.list_gsjm2.append(code)
-
-    def DeleteGsjmlist(self, code):
-        if code in self.list_gsjm1:
-            self.list_gsjm1.remove(code)
-        if code not in self.list_jang and code in self.list_gsjm2:
-            if self.dict_set['주식트레이더']:
-                self.sstgQ.put(['조건이탈', code])
-            self.list_gsjm2.remove(code)
+        self.qtimer2.start()
 
     def RemoveAllRealreg(self):
         self.SetRealRemove(['ALL', 'ALL'])
@@ -322,6 +314,35 @@ class ReceiverKiwoom:
             self.query2Q.put([1, self.df_mt, 'moneytop', 'append'])
             self.df_mt = pd.DataFrame(columns=['거래대금순위'])
             self.dict_time['거래대금순위저장'] = timedelta_sec(10)
+
+    def MoneyTopSearch(self):
+        self.df_mc.sort_values(by=['최근거래대금'], ascending=False, inplace=True)
+        list_top = list(self.df_mc.index[:self.dict_set['주식순위선정']])
+        insert_list = set(list_top) - set(self.list_prmt)
+        if len(insert_list) > 0:
+            for code in list(insert_list):
+                self.InsertGsjmlist(code)
+        delete_list = set(self.list_prmt) - set(list_top)
+        if len(delete_list) > 0:
+            for code in list(delete_list):
+                self.DeleteGsjmlist(code)
+        self.list_prmt = list_top
+
+    def InsertGsjmlist(self, code):
+        if code not in self.list_gsjm1:
+            self.list_gsjm1.append(code)
+        if code not in self.list_jang and code not in self.list_gsjm2:
+            if self.dict_set['주식트레이더']:
+                self.sstgQ.put(['조건진입', code])
+            self.list_gsjm2.append(code)
+
+    def DeleteGsjmlist(self, code):
+        if code in self.list_gsjm1:
+            self.list_gsjm1.remove(code)
+        if code not in self.list_jang and code in self.list_gsjm2:
+            if self.dict_set['주식트레이더']:
+                self.sstgQ.put(['조건이탈', code])
+            self.list_gsjm2.remove(code)
 
     def OnEventConnect(self, err_code):
         if err_code == 0:

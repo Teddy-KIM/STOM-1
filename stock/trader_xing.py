@@ -246,9 +246,9 @@ class TraderXing:
                 self.JangoChungsan2()
 
     def Scheduler(self):
-        if self.dict_intg['장운영상태'] == 1 and not self.dict_bool['계좌조회']:
+        if not self.dict_bool['계좌조회']:
             self.GetAccountjanGo()
-        if self.dict_intg['장운영상태'] == 1 and not self.dict_bool['트레이더시작']:
+        if not self.dict_bool['트레이더시작']:
             self.OperationRealreg()
         if self.dict_intg['장운영상태'] == 1 and now() > self.dict_time['휴무종료']:
             self.SysExit()
@@ -266,6 +266,7 @@ class TraderXing:
             self.dict_time['거래정보'] = timedelta_sec(1)
 
     def GetAccountjanGo(self):
+        self.dict_bool['계좌조회'] = True
         df = self.xaq.BlockRequest(
             't0424', accno=self.dict_strg['계좌번호'], passwd=self.dict_set['계좌비밀번호1'],
             prcgb='1', chegb='2', dangb='0', charge='1', cts_expcode=''
@@ -308,8 +309,10 @@ class TraderXing:
 
         if len(self.df_td) > 0:
             self.UpdateTotaltradelist(first=True)
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 계좌 조회 완료'])
 
     def OperationRealreg(self):
+        self.dict_bool['트레이더시작'] = True
         self.xar_op.RemoveAllRealData()
         self.xar_cg.RemoveAllRealData()
 

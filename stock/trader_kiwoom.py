@@ -2,8 +2,9 @@ import os
 import sys
 import time
 import sqlite3
-import pythoncom
 import pandas as pd
+import pythoncom
+from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5.QAxContainer import QAxWidget
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
@@ -12,9 +13,33 @@ from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, colu
     sn_brrd, DB_TRADELIST, DICT_SET
 
 
-class TraderKiwoom:
+def TraderKiwoomMain(qlist):
     app = QtWidgets.QApplication(sys.argv)
+    TraderKiwoom(qlist)
+    app.exec_()
 
+
+class Updater(QtCore.QThread):
+    data1 = QtCore.pyqtSignal(list)
+    data2 = QtCore.pyqtSignal(dict)
+    data3 = QtCore.pyqtSignal(str)
+
+    def __init__(self, stockQ):
+        super().__init__()
+        self.stockQ = stockQ
+
+    def run(self):
+        while True:
+            data = self.stockQ.get()
+            if type(data) == list:
+                self.data1.emit(data)
+            elif type(data) == dict:
+                self.data2.emit(data)
+            elif type(data) == str:
+                self.data3.emit(data)
+
+
+class TraderKiwoom:
     def __init__(self, qlist):
         """
                     0        1       2        3       4       5          6          7        8      9
@@ -53,6 +78,8 @@ class TraderKiwoom:
             '계좌번호': ''
         }
         self.dict_bool = {
+            '계좌조회': False,
+            '트레이더시작': False,
             '장초전략잔고청산': False,
             '장중전략잔고청산': False,
             '로그인': False,
@@ -73,12 +100,20 @@ class TraderKiwoom:
         self.ocx.OnReceiveTrData.connect(self.OnReceiveTrData)
         self.ocx.OnReceiveRealData.connect(self.OnReceiveRealData)
         self.ocx.OnReceiveChejanData.connect(self.OnReceiveChejanData)
-        self.Start()
 
-    def Start(self):
         self.LoadDatabase()
         self.CommConnect()
-        self.EventLoop()
+
+        self.updater = Updater(self.stockQ)
+        self.updater.data1.connect(self.BuySellUpdateJangolist)
+        self.updater.data2.connect(self.UpdateDictset)
+        self.updater.data3.connect(self.TelegramCmd)
+        self.updater.start()
+
+        self.qtimer = QtCore.QTimer()
+        self.qtimer.setInterval(1000)
+        self.qtimer.timeout.connect(self.Scheduler)
+        self.qtimer.start()
 
     def LoadDatabase(self):
         con = sqlite3.connect(DB_TRADELIST)
@@ -125,48 +160,11 @@ class TraderKiwoom:
         if int(strf_time('%H%M%S')) > 90000:
             self.dict_intg['장운영상태'] = 3
 
-    def EventLoop(self):
-        self.GetAccountjanGo()
-        self.OperationRealreg()
-        while True:
-            pythoncom.PumpWaitingMessages()
-
-            if not self.stockQ.empty():
-                data = self.stockQ.get()
-                if type(data) == list:
-                    if len(data) == 5:
-                        self.BuySell(data[0], data[1], data[2], data[3], data[4])
-                        continue
-                    elif len(data) == 3:
-                        self.UpdateJango(data[0], data[1], data[2])
-                        continue
-                elif type(data) == dict:
-                    self.dict_set = data
-                elif type(data) == str:
-                    self.TelegramCmd(data)
-
-            if self.dict_intg['장운영상태'] == 1 and now() > self.dict_time['휴무종료']:
-                break
-            if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
-                self.JangoChungsan1()
-            if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
-                self.JangoChungsan2()
-            if self.dict_intg['장운영상태'] == 8:
-                self.RemoveAllRealreg()
-                self.SaveDayData()
-                break
-
-            if now() > self.dict_time['거래정보']:
-                self.UpdateTotaljango()
-                self.dict_time['거래정보'] = timedelta_sec(1)
-
-            time.sleep(0.001)
-
-        self.sstgQ.put('전략프로세스종료')
-        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
-        if self.dict_set['주식알림소리']:
-            self.soundQ.put('주식 트레이더를 종료합니다.')
-        self.teleQ.put('주식 트레이더를 종료하였습니다.')
+    def BuySellUpdateJangolist(self, data):
+        if len(data) == 5:
+            self.BuySell(data[0], data[1], data[2], data[3], data[4])
+        elif len(data) == 3:
+            self.UpdateJango(data[0], data[1], data[2])
 
     def BuySell(self, gubun, code, name, c, oc):
         if gubun == '매수':
@@ -220,6 +218,9 @@ class TraderKiwoom:
         while now() < sleeptime:
             pythoncom.PumpWaitingMessages()
 
+    def UpdateDictset(self, data):
+        self.dict_set = data
+
     def TelegramCmd(self, work):
         if work == '/당일체결목록':
             if len(self.df_cj) > 0:
@@ -242,7 +243,28 @@ class TraderKiwoom:
             elif not self.dict_bool['장중전략잔고청산']:
                 self.JangoChungsan2()
 
+    def Scheduler(self):
+        if not self.dict_bool['계좌조회']:
+            self.GetAccountjanGo()
+        if not self.dict_bool['트레이더시작']:
+            self.OperationRealreg()
+        if self.dict_intg['장운영상태'] == 1 and now() > self.dict_time['휴무종료']:
+            self.SysExit()
+        if int(strf_time('%H%M%S')) >= 100000 and not self.dict_bool['장초전략잔고청산']:
+            self.JangoChungsan1()
+        if int(strf_time('%H%M%S')) >= 152900 and not self.dict_bool['장중전략잔고청산']:
+            self.JangoChungsan2()
+        if self.dict_intg['장운영상태'] == 8 and int(strf_time('%H%M%S')) >= 153500:
+            self.RemoveAllRealreg()
+            self.SaveDayData()
+            self.SysExit()
+
+        if now() > self.dict_time['거래정보']:
+            self.UpdateTotaljango()
+            self.dict_time['거래정보'] = timedelta_sec(1)
+
     def GetAccountjanGo(self):
+        self.dict_bool['계좌조회'] = True
         while True:
             df = self.Block_Request('opw00004', 계좌번호=self.dict_strg['계좌번호'], 비밀번호='', 상장폐지조회구분=0,
                                     비밀번호입력매체구분='00', output='계좌평가현황', next=0)
@@ -294,8 +316,10 @@ class TraderKiwoom:
 
         if len(self.df_td) > 0:
             self.UpdateTotaltradelist(first=True)
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 계좌 조회 완료'])
 
     def OperationRealreg(self):
+        self.dict_bool['트레이더시작'] = True
         self.SetRealReg([sn_oper, ' ', '215;20;214', 0])
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 장운영시간 등록 완료'])
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 시작'])
@@ -672,3 +696,10 @@ class TraderKiwoom:
 
     def GetChejanData(self, fid):
         return self.ocx.dynamicCall('GetChejanData(int)', fid)
+
+    def SysExit(self):
+        self.sstgQ.put('전략프로세스종료')
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
+        if self.dict_set['주식알림소리']:
+            self.soundQ.put('주식 트레이더를 종료합니다.')
+        self.teleQ.put('주식 트레이더를 종료하였습니다.')
