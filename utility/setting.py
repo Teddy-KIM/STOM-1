@@ -111,6 +111,8 @@ style_fc_bt = 'color: rgb(230, 230, 235);'
 style_bc_st = 'background-color: rgb(70, 70, 75);'
 style_bc_bt = 'background-color: rgb(50, 50, 55);'
 style_bc_dk = 'background-color: rgb(30, 30, 35);'
+style_bc_by = 'background-color: rgb(100, 70, 70);'
+style_bc_sl = 'background-color: rgb(70, 70, 100);'
 style_pgbar = 'QProgressBar {background-color: #28282d;} QProgressBar::chunk {background-color: #5a5a5f;}'
 
 ui_num = {'설정텍스트': 0, 'S단순텍스트': 1, 'S로그텍스트': 2, 'S종목명딕셔너리': 3,

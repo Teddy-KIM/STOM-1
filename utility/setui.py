@@ -5,7 +5,7 @@ from utility import syntax
 from utility.static import CustomViewBox
 from utility.setting import qfont12, qfont14, style_bc_st, style_bc_bt, style_bc_dk, style_fc_bt, style_pgbar, \
     columns_tt, columns_td, columns_tj, columns_jg, columns_gj_, columns_cj, columns_dt, columns_dd, columns_nt, \
-    columns_nd, ICON_PATH
+    columns_nd, ICON_PATH, style_bc_by, style_bc_sl
 
 
 class TabBar(QtWidgets.QTabBar):
@@ -59,15 +59,19 @@ class ProxyStyle(QtWidgets.QProxyStyle):
 
 
 def SetUI(self):
-    def setPushbutton(name, box=None, click=None, cmd=None, icon=None, tip=None, color=False):
+    def setPushbutton(name, box=None, click=None, cmd=None, icon=None, tip=None, color=0):
         if box is not None:
             pushbutton = QtWidgets.QPushButton(name, box)
         else:
             pushbutton = QtWidgets.QPushButton(name, self)
-        if color:
-            pushbutton.setStyleSheet(style_bc_st)
-        else:
+        if color == 0:
             pushbutton.setStyleSheet(style_bc_bt)
+        elif color == 1:
+            pushbutton.setStyleSheet(style_bc_st)
+        elif color == 2:
+            pushbutton.setStyleSheet(style_bc_by)
+        elif color == 3:
+            pushbutton.setStyleSheet(style_bc_sl)
         pushbutton.setFont(qfont12)
         if click is not None:
             if cmd is not None:
@@ -335,10 +339,10 @@ def SetUI(self):
 
     self.ssb_comboBox = setCombobox(self.ss_tab, self.Activated_01)
     self.ssb_lineEdit = setLineedit2(self.ss_tab)
-    self.ssb_pushButton_01 = setPushbutton('매수전략 로딩', box=self.ss_tab, click=self.ButtonClicked_07, color=True)
-    self.ssb_pushButton_02 = setPushbutton('매수전략 저장', box=self.ss_tab, click=self.ButtonClicked_08, color=True)
-    self.ssb_pushButton_03 = setPushbutton('매수변수 로딩', box=self.ss_tab, click=self.ButtonClicked_09, color=True)
-    self.ssb_pushButton_04 = setPushbutton('매수전략 시작', box=self.ss_tab, click=self.ButtonClicked_10, color=True)
+    self.ssb_pushButton_01 = setPushbutton('매수전략 로딩', box=self.ss_tab, click=self.ButtonClicked_07, color=1)
+    self.ssb_pushButton_02 = setPushbutton('매수전략 저장', box=self.ss_tab, click=self.ButtonClicked_08, color=1)
+    self.ssb_pushButton_03 = setPushbutton('매수변수 로딩', box=self.ss_tab, click=self.ButtonClicked_09, color=1)
+    self.ssb_pushButton_04 = setPushbutton('매수전략 시작', box=self.ss_tab, click=self.ButtonClicked_10, color=1)
     self.ssb_pushButton_05 = setPushbutton('VI해제시간비교', box=self.ss_tab, click=self.ButtonClicked_11)
     self.ssb_pushButton_06 = setPushbutton('VI아래5호가비교', box=self.ss_tab, click=self.ButtonClicked_12)
     self.ssb_pushButton_07 = setPushbutton('등락율제한', box=self.ss_tab, click=self.ButtonClicked_13)
@@ -349,8 +353,8 @@ def SetUI(self):
     self.ssb_pushButton_12 = setPushbutton('초당거래대금차이', box=self.ss_tab, click=self.ButtonClicked_18)
     self.ssb_pushButton_13 = setPushbutton('호가총잔량비교', box=self.ss_tab, click=self.ButtonClicked_19)
     self.ssb_pushButton_14 = setPushbutton('1호가잔량비교', box=self.ss_tab, click=self.ButtonClicked_20)
-    self.ssb_pushButton_15 = setPushbutton('매수시그널', box=self.ss_tab, click=self.ButtonClicked_21)
-    self.ssb_pushButton_16 = setPushbutton('매수전략 중지', box=self.ss_tab, click=self.ButtonClicked_22, color=True)
+    self.ssb_pushButton_15 = setPushbutton('매수시그널', box=self.ss_tab, click=self.ButtonClicked_21, color=2)
+    self.ssb_pushButton_16 = setPushbutton('매수전략 중지', box=self.ss_tab, click=self.ButtonClicked_22, color=1)
 
     text = '백테기간                      총시간(초)                      평균틱수'
     self.ssb_labellll_01 = QtWidgets.QLabel(text, self.ss_tab)
@@ -363,15 +367,15 @@ def SetUI(self):
     self.ssb_lineEdit_04 = setLineedit(self.ss_tab)
     self.ssb_lineEdit_05 = setLineedit(self.ss_tab)
     self.ssb_lineEdit_06 = setLineedit(self.ss_tab)
-    self.sb_pushButton_01 = setPushbutton('백테스팅', box=self.ss_tab, click=self.ButtonClicked_23, color=True)
-    self.sb_pushButton_02 = setPushbutton('최적화', box=self.ss_tab, click=self.ButtonClicked_24, color=True)
+    self.sb_pushButton_01 = setPushbutton('백테스팅', box=self.ss_tab, click=self.ButtonClicked_23, color=1)
+    self.sb_pushButton_02 = setPushbutton('최적화', box=self.ss_tab, click=self.ButtonClicked_24, color=1)
 
     self.sss_comboBox = setCombobox(self.ss_tab, self.Activated_02)
     self.sss_lineEdit = setLineedit2(self.ss_tab)
-    self.sss_pushButton_01 = setPushbutton('매도전략 로딩', box=self.ss_tab, click=self.ButtonClicked_25, color=True)
-    self.sss_pushButton_02 = setPushbutton('매도전략 저장', box=self.ss_tab, click=self.ButtonClicked_26, color=True)
-    self.sss_pushButton_03 = setPushbutton('매도변수 로딩', box=self.ss_tab, click=self.ButtonClicked_27, color=True)
-    self.sss_pushButton_04 = setPushbutton('매도전략 시작', box=self.ss_tab, click=self.ButtonClicked_28, color=True)
+    self.sss_pushButton_01 = setPushbutton('매도전략 로딩', box=self.ss_tab, click=self.ButtonClicked_25, color=1)
+    self.sss_pushButton_02 = setPushbutton('매도전략 저장', box=self.ss_tab, click=self.ButtonClicked_26, color=1)
+    self.sss_pushButton_03 = setPushbutton('매도변수 로딩', box=self.ss_tab, click=self.ButtonClicked_27, color=1)
+    self.sss_pushButton_04 = setPushbutton('매도전략 시작', box=self.ss_tab, click=self.ButtonClicked_28, color=1)
     self.sss_pushButton_05 = setPushbutton('손절라인청산', box=self.ss_tab, click=self.ButtonClicked_29)
     self.sss_pushButton_06 = setPushbutton('익절라인청산', box=self.ss_tab, click=self.ButtonClicked_30)
     self.sss_pushButton_07 = setPushbutton('수익율보존청산', box=self.ss_tab, click=self.ButtonClicked_31)
@@ -380,8 +384,8 @@ def SetUI(self):
     self.sss_pushButton_10 = setPushbutton('고저평균등락율', box=self.ss_tab, click=self.ButtonClicked_34)
     self.sss_pushButton_11 = setPushbutton('평균값데드크로스', box=self.ss_tab, click=self.ButtonClicked_35)
     self.sss_pushButton_12 = setPushbutton('호가총잔량비교', box=self.ss_tab, click=self.ButtonClicked_36)
-    self.sss_pushButton_13 = setPushbutton('매도시그널', box=self.ss_tab, click=self.ButtonClicked_37)
-    self.sss_pushButton_14 = setPushbutton('매도전략 중지', box=self.ss_tab, click=self.ButtonClicked_38, color=True)
+    self.sss_pushButton_13 = setPushbutton('매도시그널', box=self.ss_tab, click=self.ButtonClicked_37, color=3)
+    self.sss_pushButton_14 = setPushbutton('매도전략 중지', box=self.ss_tab, click=self.ButtonClicked_38, color=1)
 
     self.cs_textEdit_01 = setTextEdit2(self.cs_tab)
     self.cs_textEdit_02 = setTextEdit2(self.cs_tab)
@@ -389,10 +393,10 @@ def SetUI(self):
 
     self.csb_comboBox = setCombobox(self.cs_tab, self.Activated_03)
     self.csb_lineEdit = setLineedit2(self.cs_tab)
-    self.csb_pushButton_01 = setPushbutton('매수전략 로딩', box=self.cs_tab, click=self.ButtonClicked_39, color=True)
-    self.csb_pushButton_02 = setPushbutton('매수전략 저장', box=self.cs_tab, click=self.ButtonClicked_40, color=True)
-    self.csb_pushButton_03 = setPushbutton('매수변수 로딩', box=self.cs_tab, click=self.ButtonClicked_41, color=True)
-    self.csb_pushButton_04 = setPushbutton('매수전략 시작', box=self.cs_tab, click=self.ButtonClicked_42, color=True)
+    self.csb_pushButton_01 = setPushbutton('매수전략 로딩', box=self.cs_tab, click=self.ButtonClicked_39, color=1)
+    self.csb_pushButton_02 = setPushbutton('매수전략 저장', box=self.cs_tab, click=self.ButtonClicked_40, color=1)
+    self.csb_pushButton_03 = setPushbutton('매수변수 로딩', box=self.cs_tab, click=self.ButtonClicked_41, color=1)
+    self.csb_pushButton_04 = setPushbutton('매수전략 시작', box=self.cs_tab, click=self.ButtonClicked_42, color=1)
     self.csb_pushButton_05 = setPushbutton('등락율제한', box=self.cs_tab, click=self.ButtonClicked_43)
     self.csb_pushButton_06 = setPushbutton('고저평균대비등락율', box=self.cs_tab, click=self.ButtonClicked_44)
     self.csb_pushButton_07 = setPushbutton('시가대비', box=self.cs_tab, click=self.ButtonClicked_45)
@@ -403,8 +407,8 @@ def SetUI(self):
     self.csb_pushButton_12 = setPushbutton('초당거래대금차이', box=self.cs_tab, click=self.ButtonClicked_50)
     self.csb_pushButton_13 = setPushbutton('호가총잔량비교', box=self.cs_tab, click=self.ButtonClicked_51)
     self.csb_pushButton_14 = setPushbutton('1호가잔량비교', box=self.cs_tab, click=self.ButtonClicked_52)
-    self.csb_pushButton_15 = setPushbutton('매수시그널', box=self.cs_tab, click=self.ButtonClicked_53)
-    self.csb_pushButton_16 = setPushbutton('매수전략 중지', box=self.cs_tab, click=self.ButtonClicked_54, color=True)
+    self.csb_pushButton_15 = setPushbutton('매수시그널', box=self.cs_tab, click=self.ButtonClicked_53, color=2)
+    self.csb_pushButton_16 = setPushbutton('매수전략 중지', box=self.cs_tab, click=self.ButtonClicked_54, color=1)
 
     text = '백테기간                      총시간(초)                      평균틱수'
     self.csb_labellll_01 = QtWidgets.QLabel(text, self.cs_tab)
@@ -417,15 +421,15 @@ def SetUI(self):
     self.csb_lineEdit_04 = setLineedit(self.cs_tab)
     self.csb_lineEdit_05 = setLineedit(self.cs_tab)
     self.csb_lineEdit_06 = setLineedit(self.cs_tab)
-    self.cb_pushButton_01 = setPushbutton('백테스팅', box=self.cs_tab, click=self.ButtonClicked_55, color=True)
-    self.cb_pushButton_02 = setPushbutton('최적화', box=self.cs_tab, click=self.ButtonClicked_56, color=True)
+    self.cb_pushButton_01 = setPushbutton('백테스팅', box=self.cs_tab, click=self.ButtonClicked_55, color=1)
+    self.cb_pushButton_02 = setPushbutton('최적화', box=self.cs_tab, click=self.ButtonClicked_56, color=1)
 
     self.css_comboBox = setCombobox(self.cs_tab, self.Activated_04)
     self.css_lineEdit = setLineedit2(self.cs_tab)
-    self.css_pushButton_01 = setPushbutton('매도전략 로딩', box=self.cs_tab, click=self.ButtonClicked_57, color=True)
-    self.css_pushButton_02 = setPushbutton('매도전략 저장', box=self.cs_tab, click=self.ButtonClicked_58, color=True)
-    self.css_pushButton_03 = setPushbutton('매도변수 로딩', box=self.cs_tab, click=self.ButtonClicked_59, color=True)
-    self.css_pushButton_04 = setPushbutton('매도전략 시작', box=self.cs_tab, click=self.ButtonClicked_60, color=True)
+    self.css_pushButton_01 = setPushbutton('매도전략 로딩', box=self.cs_tab, click=self.ButtonClicked_57, color=1)
+    self.css_pushButton_02 = setPushbutton('매도전략 저장', box=self.cs_tab, click=self.ButtonClicked_58, color=1)
+    self.css_pushButton_03 = setPushbutton('매도변수 로딩', box=self.cs_tab, click=self.ButtonClicked_59, color=1)
+    self.css_pushButton_04 = setPushbutton('매도전략 시작', box=self.cs_tab, click=self.ButtonClicked_60, color=1)
     self.css_pushButton_05 = setPushbutton('손절라인청산', box=self.cs_tab, click=self.ButtonClicked_61)
     self.css_pushButton_06 = setPushbutton('익절라인청산', box=self.cs_tab, click=self.ButtonClicked_62)
     self.css_pushButton_07 = setPushbutton('수익율보존청산', box=self.cs_tab, click=self.ButtonClicked_63)
@@ -434,8 +438,8 @@ def SetUI(self):
     self.css_pushButton_10 = setPushbutton('평균값데드크로스', box=self.cs_tab, click=self.ButtonClicked_66)
     self.css_pushButton_11 = setPushbutton('고저평균대비등락율', box=self.cs_tab, click=self.ButtonClicked_67)
     self.css_pushButton_12 = setPushbutton('호가총잔량비교', box=self.cs_tab, click=self.ButtonClicked_68)
-    self.css_pushButton_13 = setPushbutton('매도시그널', box=self.cs_tab, click=self.ButtonClicked_69)
-    self.css_pushButton_14 = setPushbutton('매도전략 중지', box=self.cs_tab, click=self.ButtonClicked_70, color=True)
+    self.css_pushButton_13 = setPushbutton('매도시그널', box=self.cs_tab, click=self.ButtonClicked_69, color=3)
+    self.css_pushButton_14 = setPushbutton('매도전략 중지', box=self.cs_tab, click=self.ButtonClicked_70, color=1)
 
     self.st_textEdit = setTextEdit(self.lg_tab)
     self.ct_textEdit = setTextEdit(self.lg_tab)
