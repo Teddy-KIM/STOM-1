@@ -16,21 +16,24 @@ class TelegramMsg:
         self.teleQ = qlist[4]
         self.stockQ = qlist[8]
         self.coinQ = qlist[9]
-        self.dict_set = DICT_SET
+        self.dict_set = None
         self.updater = None
         self.bot = None
-        self.UpdateBot(self.dict_set)
+        self.UpdateBot(DICT_SET)
         self.Start()
 
     def Start(self):
         while True:
-            msg = self.teleQ.get()
-            if type(msg) == str:
-                self.SendMsg(msg)
-            elif type(msg) == pd.DataFrame:
-                self.UpdateDataframe(msg)
-            elif type(msg) == dict:
-                self.UpdateBot(msg)
+            data = self.teleQ.get()
+            if type(data) == str:
+                self.SendMsg(data)
+            elif type(data) == pd.DataFrame:
+                self.UpdateDataframe(data)
+            elif type(data) == dict:
+                if self.updater is not None:
+                    self.updater.stop()
+                    self.updater = None
+                self.UpdateBot(data)
 
     def __del__(self):
         if self.updater is not None:
