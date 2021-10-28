@@ -20,7 +20,6 @@ class TelegramMsg:
         self.UpdateBot(self.dict_set)
         self.updater = None
         self.bot = None
-
         self.Start()
 
     def Start(self):
@@ -39,7 +38,7 @@ class TelegramMsg:
 
     def UpdateBot(self, dict_set):
         self.dict_set = dict_set
-        if self.dict_set['텔레그램봇토큰'] is not None:
+        if self.updater is None and self.dict_set['텔레그램봇토큰'] is not None:
             self.bot = telegram.Bot(self.dict_set['텔레그램봇토큰'])
             self.SetCustomButton()
         else:
