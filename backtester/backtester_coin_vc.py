@@ -489,6 +489,8 @@ class Total:
                 conn = sqlite3.connect(DB_BACKTEST)
                 df_back.to_sql(f"coin_vc_vars_{strf_time('%Y%m%d')}", conn, if_exists='append', chunksize=1000)
                 conn.close()
+                if len(df_tsg) == 0:
+                    df_bct = pd.DataFrame(columns=['보유종목수'])
 
         if len(df_tsg) > 0:
             df_tsg.sort_values(by=['매도시간'], inplace=True)
