@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.setting import DB_STOCK_STRATEGY, DB_STOCK_TICK, DB_BACKTEST, DB_SETTING
 from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
-BETTING = 10000000     # 종목당 배팅금액
+BETTING = 20000000     # 종목당 배팅금액
 
 
 class BackTesterStockStg:
