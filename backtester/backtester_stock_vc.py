@@ -595,7 +595,7 @@ if __name__ == "__main__":
                     i += 1
                     high_var = num[i][0]
                     if i == 1:
-                        num[i][0] -= num[i][2]
+                        num[i][0] -= num[i][2] * 2
                     elif i == 7:
                         num[i][0] = 0
                 else:
