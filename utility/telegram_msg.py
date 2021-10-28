@@ -17,9 +17,9 @@ class TelegramMsg:
         self.stockQ = qlist[8]
         self.coinQ = qlist[9]
         self.dict_set = DICT_SET
-        self.UpdateBot(self.dict_set)
         self.updater = None
         self.bot = None
+        self.UpdateBot(self.dict_set)
         self.Start()
 
     def Start(self):
