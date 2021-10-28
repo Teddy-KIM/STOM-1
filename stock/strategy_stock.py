@@ -84,6 +84,7 @@ class StrategyStock:
                 self.dict_time['관심종목'] = timedelta_sec(1)
 
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 전략 연산 종료'])
+        sys.exit()
 
     def UpdateList(self, gubun, code):
         if '조건진입' in gubun:

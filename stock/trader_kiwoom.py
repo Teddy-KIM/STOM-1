@@ -698,3 +698,4 @@ class TraderKiwoom:
         if self.dict_set['주식알림소리']:
             self.soundQ.put('주식 트레이더를 종료합니다.')
         self.teleQ.put('주식 트레이더를 종료하였습니다.')
+        sys.exit()

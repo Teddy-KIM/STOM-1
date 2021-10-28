@@ -55,6 +55,7 @@ class CollectorStock:
 
         if self.gubun == 4:
             self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 콜렉터 종료'])
+        sys.exit()
 
     def UpdateTickData(self, data):
         code = data[-3]
