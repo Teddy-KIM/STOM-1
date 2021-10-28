@@ -117,7 +117,7 @@ class ReceiverXing:
         self.qtimer1.start()
 
         self.qtimer2 = QtCore.QTimer()
-        self.qtimer2.setInterval(1000)
+        self.qtimer2.setInterval(10000)
         self.qtimer2.timeout.connect(self.MoneyTopSearch)
 
         app.exec_()
