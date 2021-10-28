@@ -585,11 +585,8 @@ if __name__ == "__main__":
             if num[i][0] == num[i][1]:
                 num[i][0] = high_var
                 if num[i][2] != num[i][3]:
-                    if num[i][0] != ogin_var:
-                        num[i][0] -= num[i][2]
-                        num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
-                    else:
-                        num[i][1] = round(num[i][0] + num[i][2] - num[i][3], 1)
+                    num[i][0] -= num[i][2]
+                    num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
                     num[i][2] = num[i][3]
                 elif i < len(num) - 1:
                     i += 1
