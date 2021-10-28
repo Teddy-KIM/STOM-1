@@ -427,7 +427,7 @@ class Total:
                 pc = df_back['익절'].sum()
                 mc = df_back['손절'].sum()
                 pper = round(pc / tc * 100, 2)
-                avghold = round(df_back['보유기간합계'].sum() / len(df_back), 2)
+                avghold = round(df_back['보유기간합계'].sum() / tc, 2)
                 avgsp = round(df_back['수익률'].sum() / tc, 2)
                 tsg = int(df_back['수익금'].sum())
                 onedaycount = round(tc / self.totaltime, 4)
