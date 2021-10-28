@@ -269,45 +269,43 @@ class TraderXing:
             't0424', accno=self.dict_strg['계좌번호'], passwd=self.dict_set['계좌비밀번호1'],
             prcgb='1', chegb='2', dangb='0', charge='1', cts_expcode=''
         )
-        if self.dict_set['주식모의투자']:
-            con = sqlite3.connect(DB_TRADELIST)
-            df = pd.read_sql('SELECT * FROM s_tradelist', con)
-            con.close()
-            self.dict_intg['예수금'] = 100000000 - self.df_jg['매입금액'].sum() + df['수익금'].sum()
-        elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
-            self.dict_intg['예수금'] = int(df['sunamt1'].iloc[0])
-        self.dict_intg['추정예수금'] = self.dict_intg['예수금']
 
         if int(strf_time('%H%M%S')) < 100000:
             maxbuycount = self.dict_set['주식장초최대매수종목수']
         else:
             maxbuycount = self.dict_set['주식장중최대매수종목수']
+
         if self.dict_set['주식모의투자']:
+            con = sqlite3.connect(DB_TRADELIST)
+            df = pd.read_sql('SELECT * FROM s_tradelist', con)
+            con.close()
+            self.dict_intg['예수금'] = 100000000 - self.df_jg['매입금액'].sum() + df['수익금'].sum()
             self.dict_intg['추정예탁자산'] = self.dict_intg['예수금'] + self.df_jg['평가금액'].sum()
-        elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
-            self.dict_intg['추정예탁자산'] = int(df['sunamt'].iloc[0])
-
-        self.dict_intg['종목당투자금'] = int(self.dict_intg['추정예탁자산'] * 0.99 / maxbuycount)
-        self.sstgQ.put(self.dict_intg['종목당투자금'])
-
-        if self.dict_set['주식모의투자']:
             self.df_tj.at[self.dict_strg['당일날짜']] = \
                 self.dict_intg['추정예탁자산'], self.dict_intg['예수금'], 0, 0, 0, 0, 0
-        elif len(df) > 0 and df['sunamt1'].iloc[0] != '':
+        elif len(df) > 0 and df['sunamt'].iloc[0] != '':
+            tpg = int(df['tappamt'].iloc[0])
             tsg = int(df['tdtsunik'].iloc[0])
             tbg = int(df['mamt'].iloc[0])
-            tpg = int(df['tappamt'].iloc[0])
+            self.dict_intg['예수금'] = int(df['sunamt'].iloc[0])
+            self.dict_intg['추정예탁자산'] = self.dict_intg['예수금'] + tpg
             if tbg == 0:
                 tsp = 0.
             else:
                 tsp = float(tsg / tbg * 100)
             self.df_tj.at[self.dict_strg['당일날짜']] = \
                 self.dict_intg['추정예탁자산'], self.dict_intg['예수금'], 0, tsp, tsg, tbg, tpg
+        else:
+            self.df_tj.at[self.dict_strg['당일날짜']] = 0, 0, 0, 0., 0, 0, 0
+
+        self.dict_intg['추정예수금'] = self.dict_intg['예수금']
+        self.dict_intg['종목당투자금'] = int(self.dict_intg['추정예탁자산'] * 0.99 / maxbuycount)
+        self.sstgQ.put(self.dict_intg['종목당투자금'])
         self.windowQ.put([ui_num['S잔고평가'], self.df_tj])
+        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 계좌 조회 완료'])
 
         if len(self.df_td) > 0:
             self.UpdateTotaltradelist(first=True)
-        self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 계좌 조회 완료'])
 
     def OperationRealreg(self):
         self.dict_bool['트레이더시작'] = True
