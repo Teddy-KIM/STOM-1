@@ -346,26 +346,25 @@ class BackTesterStockVc:
     def Report(self, count, tcount):
         if self.totalcount > 0:
             plus_per = round((self.totalcount_p / self.totalcount) * 100, 2)
-            avgholdday = round(self.totalholdday / self.totalcount, 2)
-            self.q.put([self.code, self.totalcount, avgholdday, self.totalcount_p, self.totalcount_m,
+            self.q.put([self.code, self.totalcount, self.totalholdday, self.totalcount_p, self.totalcount_m,
                         plus_per, self.totalper, self.totaleyun])
-            totalcount, avgholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun = \
-                self.GetTotal(plus_per, avgholdday)
-            print(f" 종목코드 {self.code} | 평균보유기간 {avgholdday}초 | 거래횟수 {totalcount}회 | "
+            totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun = \
+                self.GetTotal(plus_per, self.totalholdday)
+            print(f" 종목코드 {self.code} | 보유기간합계 {totalholdday}초 | 거래횟수 {totalcount}회 | "
                   f" 익절 {totalcount_p}회 | 손절 {totalcount_m}회 | 승률 {plus_per}% |"
                   f" 수익률 {totalper}% | 수익금 {totaleyun}원 [{count}/{tcount}]")
         else:
             self.q.put([self.code, 0, 0, 0, 0, 0., 0., 0])
 
-    def GetTotal(self, plus_per, avgholdday):
+    def GetTotal(self, plus_per, totalholdday):
         totalcount = str(self.totalcount)
         totalcount = '  ' + totalcount if len(totalcount) == 1 else totalcount
         totalcount = ' ' + totalcount if len(totalcount) == 2 else totalcount
-        avgholdday = str(avgholdday)
-        avgholdday = '   ' + avgholdday if len(avgholdday.split('.')[0]) == 1 else avgholdday
-        avgholdday = '  ' + avgholdday if len(avgholdday.split('.')[0]) == 2 else avgholdday
-        avgholdday = ' ' + avgholdday if len(avgholdday.split('.')[0]) == 3 else avgholdday
-        avgholdday = avgholdday + '0' if len(avgholdday.split('.')[1]) == 1 else avgholdday
+        totalholdday = str(totalholdday)
+        totalholdday = '   ' + totalholdday if len(totalholdday) == 1 else totalholdday
+        totalholdday = '  ' + totalholdday if len(totalholdday) == 2 else totalholdday
+        totalholdday = ' ' + totalholdday if len(totalholdday) == 3 else totalholdday
+        totalholdday = totalholdday + '0' if len(totalholdday) == 1 else totalholdday
         totalcount_p = str(self.totalcount_p)
         totalcount_p = '  ' + totalcount_p if len(totalcount_p) == 1 else totalcount_p
         totalcount_p = ' ' + totalcount_p if len(totalcount_p) == 2 else totalcount_p
@@ -394,7 +393,7 @@ class BackTesterStockVc:
             totaleyun = '  ' + totaleyun if len(totaleyun.split(',')[0]) == 4 else totaleyun
         elif len(totaleyun.split(',')) == 3:
             totaleyun = ' ' + totaleyun if len(totaleyun.split(',')[0]) == 1 else totaleyun
-        return totalcount, avgholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun
+        return totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun
 
 
 class Total:
@@ -426,7 +425,7 @@ class Total:
         self.Start()
 
     def Start(self):
-        columns1 = ['거래횟수', '평균보유기간', '익절', '손절', '승률', '수익률', '수익금']
+        columns1 = ['거래횟수', '보유기간합계', '익절', '손절', '승률', '수익률', '수익금']
         columns2 = ['필요자금', '종목출현빈도수', '거래횟수', '평균보유기간', '익절', '손절', '승률',
                     '평균수익률', '수익률합계', '수익금합계', '체결강도차이', '평균시간', '거래대금차이',
                     '체결강도하한', '누적거래대금하한', '등락율하한', '등락율상한', '청산수익률']
@@ -464,8 +463,7 @@ class Total:
                 pc = df_back['익절'].sum()
                 mc = df_back['손절'].sum()
                 pper = round(pc / tc * 100, 2)
-                df_back_ = df_back[df_back['평균보유기간'] != 0]
-                avghold = round(df_back_['평균보유기간'].sum() / len(df_back_), 2)
+                avghold = round(df_back['보유기간합계'].sum() / tc, 2)
                 avgsp = round(df_back['수익률'].sum() / tc, 2)
                 tsg = int(df_back['수익금'].sum())
                 onedaycount = round(tc / TOTALTIME, 4)
