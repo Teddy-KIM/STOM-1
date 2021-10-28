@@ -521,7 +521,7 @@ if __name__ == "__main__":
 
     if len(table_list) > 0:
         gap_chs = [3, 4, 5]
-        avg_times = [60, 90, 120]
+        avg_times = [60, 120, 180]
         htsp = -100
         high_var = []
 
@@ -547,7 +547,7 @@ if __name__ == "__main__":
                     print(f' 최고수익률 갱신 {htsp}%')
 
         gap_ch = [high_var[0] - 0.5, high_var[0] + 0.5, 0.5, 0.5]
-        avg_time = [high_var[1], high_var[1], 60, 30]
+        avg_time = [high_var[1], high_var[1] + 30, 30, 30]
         gap_sm = [50, 500, 50, 10]
         ch_low = [50, 100, 10, 10]
         dm_low = [0, 10000000000, 1000000000, 1000000000]
@@ -555,7 +555,7 @@ if __name__ == "__main__":
         per_high = [25, 15, -1, -1]
         sell_ratio = [0.5, 1.0, 0.1, 0.1]
         num = [gap_ch, avg_time, gap_sm, ch_low, dm_low, per_low, per_high, sell_ratio]
-        ogin_var = high_var[0]
+        high_var = high_var[0]
 
         i = 0
         while True:
@@ -579,21 +579,16 @@ if __name__ == "__main__":
             if num[i][0] == num[i][1]:
                 num[i][0] = high_var
                 if num[i][2] != num[i][3]:
-                    if num[i][0] != ogin_var:
-                        num[i][0] -= num[i][2]
-                        num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
-                    else:
-                        num[i][1] = round(num[i][0] + num[i][2] - num[i][3], 1)
+                    num[i][0] -= num[i][2]
+                    num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
                     num[i][2] = num[i][3]
                 elif i < len(num) - 1:
                     i += 1
+                    high_var = num[i][0]
                     if i == 1:
                         num[i][0] -= num[i][2]
-                        num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
-                        num[i][2] = num[i][3]
                     elif i == 7:
                         num[i][0] = 0
-                    ogin_var = num[i][0]
                 else:
                     break
             num[i][0] = round(num[i][0] + num[i][2], 1)

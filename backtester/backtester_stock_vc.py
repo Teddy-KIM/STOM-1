@@ -527,7 +527,7 @@ if __name__ == "__main__":
 
     if len(table_list) > 0:
         gap_chs = [3, 4, 5]
-        avg_times = [60, 90, 120]
+        avg_times = [60, 120, 180]
         htsp = -100
         high_var = []
 
@@ -553,7 +553,7 @@ if __name__ == "__main__":
                     print(f' 최고수익률 갱신 {htsp}%')
 
         gap_ch = [high_var[0] - 0.5, high_var[0] + 0.5, 0.5, 0.5]
-        avg_time = [high_var[1], high_var[1], 60, 30]
+        avg_time = [high_var[1], high_var[1] + 30, 30, 30]
         gap_sm = [50, 500, 50, 10]
         ch_low = [50, 100, 10, 10]
         dm_low = [0, 10000, 1000, 1000]
@@ -593,13 +593,11 @@ if __name__ == "__main__":
                     num[i][2] = num[i][3]
                 elif i < len(num) - 1:
                     i += 1
+                    high_var = num[i][0]
                     if i == 1:
                         num[i][0] -= num[i][2]
-                        num[i][1] = round(num[i][0] + num[i][2] * 2 - num[i][3], 1)
-                        num[i][2] = num[i][3]
                     elif i == 7:
                         num[i][0] = 0
-                    ogin_var = num[i][0]
                 else:
                     break
             num[i][0] = round(num[i][0] + num[i][2], 1)
