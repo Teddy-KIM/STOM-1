@@ -17,7 +17,6 @@ class CollectorStock:
         self.gubun = gubun
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
-        self.teleQ = qlist[4]
         if self.gubun == 1:
             self.tickQ = qlist[12]
         elif self.gubun == 2:

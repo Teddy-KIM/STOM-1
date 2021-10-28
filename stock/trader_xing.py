@@ -575,5 +575,5 @@ class TraderXing:
         self.windowQ.put([ui_num['S로그텍스트'], '시스템 명령 실행 알림 - 트레이더 종료'])
         if self.dict_set['주식알림소리']:
             self.soundQ.put('주식 트레이더를 종료합니다.')
-        self.teleQ.put('주식 트레이더를 종료하였습니다.')
+        self.teleQ.put('주식 트레이더 종료')
         sys.exit()
