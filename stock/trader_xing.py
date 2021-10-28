@@ -438,7 +438,7 @@ class TraderXing:
             return
 
         try:
-            code = data['shtnIsuno']
+            code = data['shtnIsuno'][1:]
             name = self.dict_name[code]
             on = data['ordno']
             og = '매도' if data['bnstp'] == '1' else '매수'
