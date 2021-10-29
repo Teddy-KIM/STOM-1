@@ -1030,15 +1030,17 @@ class Window(QtWidgets.QMainWindow):
         if self.backtester_proc is not None and self.backtester_proc.poll() != 0:
             QtWidgets.QMessageBox.critical(self, '오류 알림', '현재 백테스터가 실행중입니다.\n중복 실행할 수 없습니다.\n')
         else:
-            testperiod = self.ssb_lineEdit_01.text()
-            totaltime = self.ssb_lineEdit_02.text()
-            avgtime = self.ssb_lineEdit_03.text()
-            starttime = self.ssb_lineEdit_04.text()
-            endtime = self.ssb_lineEdit_05.text()
-            multi = self.ssb_lineEdit_06.text()
+            startday = self.ssb_lineEdit_01.text()
+            testperiod = self.ssb_lineEdit_02.text()
+            starttime = self.ssb_lineEdit_03.text()
+            endtime = self.ssb_lineEdit_04.text()
+            betting = self.ssb_lineEdit_05.text()
+            avgtime = self.ssb_lineEdit_06.text()
+            multi = self.ssb_lineEdit_07.text()
             buystg = self.ssb_comboBox.currentText()
             sellstg = self.sss_comboBox.currentText()
-            if testperiod == '' or totaltime == '' or avgtime == '' or starttime == '' or endtime == '' or multi == '':
+            if startday == '' or testperiod == '' or starttime == '' or endtime == '' or betting == '' or \
+                    avgtime == '' or multi == '':
                 QtWidgets.QMessageBox.critical(self, '오류 알림', '일부 설정값이 공백 상태입니다.\n')
                 return
             if buystg == '' or sellstg == '':
@@ -1046,7 +1048,7 @@ class Window(QtWidgets.QMainWindow):
                 return
             self.backtester_proc = subprocess.Popen(
                     f'python {SYSTEM_PATH}/backtester/backtester_stock_stg.py '
-                    f'{testperiod} {totaltime} {avgtime} {starttime} {endtime} {multi} {buystg} {sellstg}'
+                    f'{startday} {testperiod} {starttime} {endtime} {betting} {avgtime} {multi} {buystg} {sellstg}'
             )
 
     def ButtonClicked_24(self):
@@ -1259,15 +1261,17 @@ class Window(QtWidgets.QMainWindow):
         if self.backtester_proc is not None and self.backtester_proc.poll() != 0:
             QtWidgets.QMessageBox.critical(self, '오류 알림', '현재 백테스터가 실행중입니다.\n중복 실행할 수 없습니다.\n')
         else:
-            testperiod = self.csb_lineEdit_01.text()
-            totaltime = self.csb_lineEdit_02.text()
-            avgtime = self.csb_lineEdit_03.text()
-            starttime = self.csb_lineEdit_04.text()
-            endtime = self.csb_lineEdit_05.text()
-            multi = self.csb_lineEdit_06.text()
+            startday = self.csb_lineEdit_01.text()
+            testperiod = self.csb_lineEdit_02.text()
+            starttime = self.csb_lineEdit_03.text()
+            endtime = self.csb_lineEdit_04.text()
+            betting = self.csb_lineEdit_05.text()
+            avgtime = self.csb_lineEdit_06.text()
+            multi = self.csb_lineEdit_07.text()
             buystg = self.csb_comboBox.currentText()
             sellstg = self.css_comboBox.currentText()
-            if testperiod == '' or totaltime == '' or avgtime == '' or starttime == '' or endtime == '' or multi == '':
+            if startday == '' or testperiod == '' or starttime == '' or endtime == '' or betting == '' or \
+                    avgtime == '' or multi == '':
                 QtWidgets.QMessageBox.critical(self, '오류 알림', '일부 설정값이 공백 상태입니다.\n')
                 return
             if buystg == '' or sellstg == '':
@@ -1275,7 +1279,7 @@ class Window(QtWidgets.QMainWindow):
                 return
             self.backtester_proc = subprocess.Popen(
                     f'python {SYSTEM_PATH}/backtester/backtester_coin_stg.py '
-                    f'{testperiod} {totaltime} {avgtime} {starttime} {endtime} {multi} {buystg} {sellstg}'
+                    f'{startday} {testperiod} {starttime} {endtime} {betting} {avgtime} {multi} {buystg} {sellstg}'
             )
 
     def ButtonClicked_56(self):

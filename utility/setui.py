@@ -356,10 +356,12 @@ def SetUI(self):
     self.ssb_pushButton_15 = setPushbutton('매수시그널', box=self.ss_tab, click=self.ButtonClicked_21, color=2)
     self.ssb_pushButton_16 = setPushbutton('매수전략 중지', box=self.ss_tab, click=self.ButtonClicked_22, color=1)
 
-    text = '백테기간                      총시간(초)                      평균틱수'
+    text = '백테스트 기간설정                일전 기준, 이전                일간의 데이터'
     self.ssb_labellll_01 = QtWidgets.QLabel(text, self.ss_tab)
-    text = '시작시간                       종료시간                          멀티수'
+    text = '백테스트 시간설정        시작시간                       종료시간'
     self.ssb_labellll_02 = QtWidgets.QLabel(text, self.ss_tab)
+    text = '배팅(백만)                     평균틱수                          멀티수'
+    self.ssb_labellll_03 = QtWidgets.QLabel(text, self.ss_tab)
 
     self.ssb_lineEdit_01 = setLineedit(self.ss_tab)
     self.ssb_lineEdit_02 = setLineedit(self.ss_tab)
@@ -367,6 +369,7 @@ def SetUI(self):
     self.ssb_lineEdit_04 = setLineedit(self.ss_tab)
     self.ssb_lineEdit_05 = setLineedit(self.ss_tab)
     self.ssb_lineEdit_06 = setLineedit(self.ss_tab)
+    self.ssb_lineEdit_07 = setLineedit(self.ss_tab)
     self.sb_pushButton_01 = setPushbutton('백테스팅', box=self.ss_tab, click=self.ButtonClicked_23, color=1)
     self.sb_pushButton_02 = setPushbutton('최적화', box=self.ss_tab, click=self.ButtonClicked_24, color=1)
 
@@ -410,10 +413,12 @@ def SetUI(self):
     self.csb_pushButton_15 = setPushbutton('매수시그널', box=self.cs_tab, click=self.ButtonClicked_53, color=2)
     self.csb_pushButton_16 = setPushbutton('매수전략 중지', box=self.cs_tab, click=self.ButtonClicked_54, color=1)
 
-    text = '백테기간                      총시간(초)                      평균틱수'
+    text = '백테스트 기간설정                일전 기준, 이전                일간의 데이터'
     self.csb_labellll_01 = QtWidgets.QLabel(text, self.cs_tab)
-    text = '시작시간                       종료시간                          멀티수'
+    text = '백테스트 시간설정        시작시간                       종료시간'
     self.csb_labellll_02 = QtWidgets.QLabel(text, self.cs_tab)
+    text = '배팅(백만)                     평균틱수                          멀티수'
+    self.csb_labellll_03 = QtWidgets.QLabel(text, self.cs_tab)
 
     self.csb_lineEdit_01 = setLineedit(self.cs_tab)
     self.csb_lineEdit_02 = setLineedit(self.cs_tab)
@@ -421,6 +426,7 @@ def SetUI(self):
     self.csb_lineEdit_04 = setLineedit(self.cs_tab)
     self.csb_lineEdit_05 = setLineedit(self.cs_tab)
     self.csb_lineEdit_06 = setLineedit(self.cs_tab)
+    self.csb_lineEdit_07 = setLineedit(self.cs_tab)
     self.cb_pushButton_01 = setPushbutton('백테스팅', box=self.cs_tab, click=self.ButtonClicked_55, color=1)
     self.cb_pushButton_02 = setPushbutton('최적화', box=self.cs_tab, click=self.ButtonClicked_56, color=1)
 
@@ -707,7 +713,7 @@ def SetUI(self):
 
     self.ss_textEdit_01.setGeometry(5, 5, 1000, 463)
     self.ss_textEdit_02.setGeometry(5, 473, 1000, 270)
-    self.ss_textEdit_03.setGeometry(1010, 400, 335, 68)
+    self.ss_textEdit_03.setGeometry(1010, 425, 335, 43)
 
     self.ssb_comboBox.setGeometry(1010, 5, 165, 25)
     self.ssb_lineEdit.setGeometry(1180, 5, 165, 25)
@@ -729,15 +735,18 @@ def SetUI(self):
     self.ssb_pushButton_16.setGeometry(1180, 280, 165, 30)
 
     self.ssb_labellll_01.setGeometry(1010, 315, 335, 20)
-    self.ssb_lineEdit_01.setGeometry(1060, 315, 55, 20)
-    self.ssb_lineEdit_02.setGeometry(1175, 315, 55, 20)
-    self.ssb_lineEdit_03.setGeometry(1290, 315, 55, 20)
     self.ssb_labellll_02.setGeometry(1010, 340, 335, 20)
-    self.ssb_lineEdit_04.setGeometry(1060, 340, 55, 20)
-    self.ssb_lineEdit_05.setGeometry(1175, 340, 55, 20)
-    self.ssb_lineEdit_06.setGeometry(1290, 340, 55, 20)
-    self.sb_pushButton_01.setGeometry(1010, 365, 165, 30)
-    self.sb_pushButton_02.setGeometry(1180, 365, 165, 30)
+    self.ssb_labellll_03.setGeometry(1010, 365, 335, 20)
+
+    self.ssb_lineEdit_01.setGeometry(1110, 315, 35, 20)
+    self.ssb_lineEdit_02.setGeometry(1230, 315, 35, 20)
+    self.ssb_lineEdit_03.setGeometry(1175, 340, 55, 20)
+    self.ssb_lineEdit_04.setGeometry(1290, 340, 55, 20)
+    self.ssb_lineEdit_05.setGeometry(1065, 365, 55, 20)
+    self.ssb_lineEdit_06.setGeometry(1175, 365, 55, 20)
+    self.ssb_lineEdit_07.setGeometry(1290, 365, 55, 20)
+    self.sb_pushButton_01.setGeometry(1010, 390, 165, 30)
+    self.sb_pushButton_02.setGeometry(1180, 390, 165, 30)
 
     self.sss_comboBox.setGeometry(1010, 473, 165, 25)
     self.sss_lineEdit.setGeometry(1180, 473, 165, 25)
@@ -758,7 +767,7 @@ def SetUI(self):
 
     self.cs_textEdit_01.setGeometry(5, 5, 1000, 463)
     self.cs_textEdit_02.setGeometry(5, 473, 1000, 270)
-    self.cs_textEdit_03.setGeometry(1010, 400, 335, 68)
+    self.cs_textEdit_03.setGeometry(1010, 425, 335, 43)
 
     self.csb_comboBox.setGeometry(1010, 5, 165, 25)
     self.csb_lineEdit.setGeometry(1180, 5, 165, 25)
@@ -780,15 +789,18 @@ def SetUI(self):
     self.csb_pushButton_16.setGeometry(1180, 280, 165, 30)
 
     self.csb_labellll_01.setGeometry(1010, 315, 335, 20)
-    self.csb_lineEdit_01.setGeometry(1060, 315, 55, 20)
-    self.csb_lineEdit_02.setGeometry(1175, 315, 55, 20)
-    self.csb_lineEdit_03.setGeometry(1290, 315, 55, 20)
     self.csb_labellll_02.setGeometry(1010, 340, 335, 20)
-    self.csb_lineEdit_04.setGeometry(1060, 340, 55, 20)
-    self.csb_lineEdit_05.setGeometry(1175, 340, 55, 20)
-    self.csb_lineEdit_06.setGeometry(1290, 340, 55, 20)
-    self.cb_pushButton_01.setGeometry(1010, 365, 165, 30)
-    self.cb_pushButton_02.setGeometry(1180, 365, 165, 30)
+    self.csb_labellll_03.setGeometry(1010, 365, 335, 20)
+
+    self.csb_lineEdit_01.setGeometry(1110, 315, 35, 20)
+    self.csb_lineEdit_02.setGeometry(1230, 315, 35, 20)
+    self.csb_lineEdit_03.setGeometry(1175, 340, 55, 20)
+    self.csb_lineEdit_04.setGeometry(1290, 340, 55, 20)
+    self.csb_lineEdit_05.setGeometry(1065, 365, 55, 20)
+    self.csb_lineEdit_06.setGeometry(1175, 365, 55, 20)
+    self.csb_lineEdit_07.setGeometry(1290, 365, 55, 20)
+    self.cb_pushButton_01.setGeometry(1010, 390, 165, 30)
+    self.cb_pushButton_02.setGeometry(1180, 390, 165, 30)
 
     self.css_comboBox.setGeometry(1010, 473, 165, 25)
     self.css_lineEdit.setGeometry(1180, 473, 165, 25)

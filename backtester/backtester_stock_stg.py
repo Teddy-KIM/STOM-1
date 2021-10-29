@@ -9,8 +9,6 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.setting import DB_STOCK_STRATEGY, DB_STOCK_TICK, DB_BACKTEST, DB_SETTING
 from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
-BETTING = 20000000     # 종목당 배팅금액
-
 
 class BackTesterStockStg:
     def __init__(self, q_, code_list_, var_, buystg_, sellstg_, df1_, df2_):
@@ -19,11 +17,12 @@ class BackTesterStockStg:
         self.df_name = df1_
         self.df_mt = df2_
 
-        self.testperiod = var_[0]
-        self.totaltime = var_[1]
-        self.avgtime = var_[2]
-        self.starttime = var_[3]
-        self.endtime = var_[4]
+        self.startday = var_[0]
+        self.testperiod = var_[1]
+        self.starttime = var_[2]
+        self.endtime = var_[3]
+        self.betting = var_[4]
+        self.avgtime = var_[5]
 
         conn = sqlite3.connect(DB_STOCK_STRATEGY)
         dfs = pd.read_sql('SELECT * FROM buy', conn).set_index('index')
@@ -60,7 +59,9 @@ class BackTesterStockStg:
     def Start(self):
         conn = sqlite3.connect(DB_STOCK_TICK)
         tcount = len(self.code_list)
-        int_daylimit = int(strf_time('%Y%m%d', timedelta_day(-self.testperiod)))
+        end_day_dt = timedelta_day(-self.starttime)
+        end_day = int(strf_time('%Y%m%d', end_day_dt))
+        start_day = int(strf_time('%Y%m%d', timedelta_day(-self.endtime, end_day_dt)))
         for k, code in enumerate(self.code_list):
             self.code = code
             self.df = pd.read_sql(f"SELECT * FROM '{code}'", conn).set_index('index')
@@ -99,7 +100,7 @@ class BackTesterStockStg:
             for h, index in enumerate(self.df.index):
                 if h != 0 and index[:8] != self.df.index[h - 1][:8]:
                     self.ccond = 0
-                if int(index[:8]) <= int_daylimit or \
+                if int(index[:8]) <= start_day or int(index[:8]) > end_day or \
                         (not self.hold and (int(index[8:]) < self.starttime or self.endtime <= int(index[8:]))):
                     continue
                 self.index = index
@@ -185,7 +186,7 @@ class BackTesterStockStg:
         매도잔량2 = self.df['매도잔량2'][self.index]
         매도잔량1 = self.df['매도잔량1'][self.index]
         현재가 = self.df['현재가'][self.index]
-        매수수량 = int(BETTING / 현재가)
+        매수수량 = int(self.betting / 현재가)
         if 매수수량 > 0:
             남은수량 = 매수수량
             직전남은수량 = 매수수량
@@ -389,12 +390,12 @@ class BackTesterStockStg:
 
 
 class Total:
-    def __init__(self, q_, last_, df1_, totaltime_):
+    def __init__(self, q_, last_, df1_, betting_):
         super().__init__()
         self.q = q_
         self.last = last_
         self.name = df1_
-        self.totaltime = totaltime_
+        self.betting = betting_
         self.Start()
 
     def Start(self):
@@ -439,11 +440,11 @@ class Total:
                 avgsp = round(df_back['수익률'].sum() / tc, 2)
                 tsg = int(df_back['수익금'].sum())
                 avgholdcount = round(df_bct['보유종목수'].mean(), 2)
-                onegm = int(BETTING * avgholdcount)
-                if onegm < BETTING:
-                    onegm = BETTING
+                onegm = int(self.betting * avgholdcount)
+                if onegm < self.betting:
+                    onegm = self.betting
                 tsp = round(tsg / onegm * 100, 4)
-                text = f" 종목당 배팅금액 {format(BETTING, ',')}원, 필요자금 {format(onegm, ',')}원,"\
+                text = f" 종목당 배팅금액 {format(self.betting, ',')}원, 필요자금 {format(onegm, ',')}원,"\
                        f" 거래횟수 {tc}회, 평균동시보유종목수 {avgholdcount}개, 평균보유기간 {avghold}초,\n 익절 {pc}회,"\
                        f" 손절 {mc}회, 승률 {pper}%, 평균수익률 {avgsp}%, 수익률합계 {tsp}%, 수익금합계 {format(tsg, ',')}원"
                 print(text)
@@ -493,20 +494,21 @@ if __name__ == "__main__":
     q = Queue()
 
     if len(table_list) > 0:
-        testperiod = int(sys.argv[1])
-        totaltime = int(sys.argv[2])
-        avgtime = int(sys.argv[3])
-        starttime = int(sys.argv[4])
-        endtime = int(sys.argv[5])
-        var = [testperiod, totaltime, avgtime, starttime, endtime]
+        startday = int(sys.argv[1])
+        testperiod = int(sys.argv[2])
+        starttime = int(sys.argv[3])
+        endtime = int(sys.argv[4])
+        betting = int(sys.argv[5])
+        avgtime = int(sys.argv[6])
+        var = [startday, testperiod, starttime, endtime, betting, avgtime]
 
-        buystg = sys.argv[7]
-        sellstg = sys.argv[8]
+        buystg = sys.argv[8]
+        sellstg = sys.argv[9]
 
-        w = Process(target=Total, args=(q, last, df1, totaltime))
+        w = Process(target=Total, args=(q, last, df1, betting))
         w.start()
         procs = []
-        workcount = int(last / int(sys.argv[6])) + 1
+        workcount = int(last / int(sys.argv[7])) + 1
         for j in range(0, last, workcount):
             code_list = table_list[j:j + workcount]
             p = Process(target=BackTesterStockStg, args=(q, code_list, var, buystg, sellstg, df1, df2))
