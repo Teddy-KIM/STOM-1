@@ -21,7 +21,7 @@ class BackTesterStockStg:
         self.testperiod = var_[1]
         self.starttime = var_[2]
         self.endtime = var_[3]
-        self.betting = var_[4]
+        self.betting = var_[4] * 1000000
         self.avgtime = var_[5]
 
         conn = sqlite3.connect(DB_STOCK_STRATEGY)
