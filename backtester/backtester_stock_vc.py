@@ -3,6 +3,7 @@ import sys
 import sqlite3
 import datetime
 import pandas as pd
+from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
@@ -434,14 +435,14 @@ class Total:
                     '평균수익률', '수익률합계', '수익금합계', '체결강도차이', '평균시간', '거래대금차이',
                     '체결강도하한', '누적거래대금하한', '등락율하한', '등락율상한', '청산수익률']
         df_back = pd.DataFrame(columns=columns1)
-        df_bct = pd.DataFrame(columns=['보유종목수'])
+        df_bct = pd.DataFrame(columns=['hold_count'])
         df_tsg = pd.DataFrame(columns=['종목명', '매수시간', '매도시간', '매수가', '매도가', '수익률', 'sgm'])
         k = 0
         while True:
             data = self.q.get()
             if type(data) == str:
                 if data in df_bct.index:
-                    df_bct.at[data] = df_bct['보유종목수'][data] + 1
+                    df_bct.at[data] = df_bct['hold_count'][data] + 1
                 else:
                     df_bct.at[data] = 1
             elif len(data) == 7:
@@ -476,7 +477,7 @@ class Total:
                 avghold = round(df_back['보유기간합계'].sum() / tc, 2)
                 avgsp = round(df_back['수익률'].sum() / tc, 2)
                 tsg = int(df_back['수익금'].sum())
-                avgholdcount = round(df_bct['보유종목수'].mean(), 2)
+                avgholdcount = round(df_bct['hold_count'].max(), 2)
                 onegm = int(BETTING * avgholdcount)
                 if onegm < BETTING:
                     onegm = BETTING
@@ -493,18 +494,36 @@ class Total:
                 df_back.to_sql(f"stock_vc_vars_{strf_time('%Y%m%d')}", conn, if_exists='append', chunksize=1000)
                 conn.close()
                 if len(df_tsg) == 0:
-                    df_bct = pd.DataFrame(columns=['보유종목수'])
+                    df_bct = pd.DataFrame(columns=['hold_count'])
 
         if len(df_tsg) > 0:
             df_tsg.sort_values(by=['매도시간'], inplace=True)
             df_tsg['sgm_cumsum'] = df_tsg['sgm'].cumsum()
             df_tsg[['sgm', 'sgm_cumsum']] = df_tsg[['sgm', 'sgm_cumsum']].astype(int)
+            df_bct['index'] = df_bct.index
+            df_bct.sort_values(by=['index'], inplace=True)
+            df_bct = df_bct.set_index('index')
+
             conn = sqlite3.connect(DB_BACKTEST)
             df_bct.to_sql(f"stock_vc_hold_{strf_time('%Y%m%d')}", conn, if_exists='append', chunksize=1000)
             df_tsg.to_sql(f"stock_vc_time_{strf_time('%Y%m%d')}", conn, if_exists='append', chunksize=1000)
             conn.close()
-            df_tsg.plot(figsize=(12, 9), rot=45)
+
+            plt.figure(figsize=(12, 10))
+            gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3, 1])
+            plt.subplot(gs[0])
+            plt.plot(df_tsg.index, df_tsg['sgm'], label='sgm')
+            plt.plot(df_tsg.index, df_tsg['sgm_cumsum'], label='sgm_cumsum')
+            plt.xticks([])
+            plt.legend(loc='best')
+            plt.grid()
+            plt.subplot(gs[1])
+            plt.plot(df_bct.index, df_bct['hold_count'], label='hold_count')
+            plt.xticks(list(df_tsg.index[::12]), rotation=45)
+            plt.legend(loc='best')
+            plt.tight_layout()
             plt.savefig(f"{GRAPH_PATH}/stock_vc_{strf_time('%Y%m%d')}.png")
+            plt.show()
         else:
             self.q.put(tsp)
 
