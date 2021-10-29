@@ -442,9 +442,8 @@ class TraderXing:
             og = '매도' if data['bnstp'] == '1' else '매수'
             op = int(data['ordprc'])
             oc = int(data['ordqty'])
-            cp = int(data['execprc'])
-            cc = int(data['execqty'])
-            omc = oc - cc
+            cp = int(data['ordavrexecprc'])
+            omc = int(data['unercqty'])
         except Exception as e:
             self.windowQ.put([ui_num['S로그텍스트'], f'OnReceiveChejanData {e}'])
         else:
