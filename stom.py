@@ -930,10 +930,9 @@ class Window(QtWidgets.QMainWindow):
         con.close()
         if len(df) > 0:
             self.ssb_comboBox.clear()
-            last = len(df.index) - 1
             for i, index in enumerate(df.index):
                 self.ssb_comboBox.addItem(index)
-                if i == last:
+                if i == 0:
                     self.ssb_lineEdit.setText(index)
             windowQ.put([ui_num['S전략텍스트'], '매수전략 불러오기 완료'])
             self.ssb_pushButton_04.setStyleSheet(style_bc_st)
@@ -1067,10 +1066,9 @@ class Window(QtWidgets.QMainWindow):
         con.close()
         if len(df) > 0:
             self.sss_comboBox.clear()
-            last = len(df.index) - 1
             for i, index in enumerate(df.index):
                 self.sss_comboBox.addItem(index)
-                if i == last:
+                if i == 0:
                     self.sss_lineEdit.setText(index)
             windowQ.put([ui_num['S전략텍스트'], '매도전략 불러오기 완료'])
             self.sss_pushButton_04.setStyleSheet(style_bc_st)
@@ -1161,10 +1159,9 @@ class Window(QtWidgets.QMainWindow):
         con.close()
         if len(df) > 0:
             self.csb_comboBox.clear()
-            last = len(df.index) - 1
             for i, index in enumerate(df.index):
                 self.csb_comboBox.addItem(index)
-                if i == last:
+                if i == 0:
                     self.csb_lineEdit.setText(index)
             windowQ.put([ui_num['C전략텍스트'], '매수전략 불러오기 완료'])
             self.csb_pushButton_04.setStyleSheet(style_bc_st)
@@ -1298,10 +1295,9 @@ class Window(QtWidgets.QMainWindow):
         con.close()
         if len(df) > 0:
             self.css_comboBox.clear()
-            last = len(df.index) - 1
             for i, index in enumerate(df.index):
                 self.css_comboBox.addItem(index)
-                if i == last:
+                if i == 0:
                     self.css_lineEdit.setText(index)
             windowQ.put([ui_num['C전략텍스트'], '매도전략 불러오기 완료'])
             self.css_pushButton_04.setStyleSheet(style_bc_st)
