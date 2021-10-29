@@ -516,7 +516,7 @@ if __name__ == "__main__":
         testperiod = int(sys.argv[2])
         starttime = int(sys.argv[3])
         endtime = int(sys.argv[4])
-        betting = int(sys.argv[5]) * 1000000
+        betting = float(sys.argv[5]) * 1000000
         avgtime = int(sys.argv[6])
         var = [startday, testperiod, starttime, endtime, betting, avgtime]
 
