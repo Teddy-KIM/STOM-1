@@ -3,7 +3,7 @@ import psutil
 import logging
 import subprocess
 from PyQt5.QtTest import QTest
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, freeze_support
 from coin.receiver_upbit import WebsTicker, WebsOrderbook
 from coin.collector_coin import CollectorCoin
 from coin.strategy_coin import StrategyCoin
@@ -1854,6 +1854,7 @@ class Writer(QtCore.QThread):
 
 
 if __name__ == '__main__':
+    freeze_support()
     windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ, sstgQ, cstgQ, tick1Q, \
         tick2Q, tick3Q, tick4Q, tick5Q, chartQ = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
         Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue()
