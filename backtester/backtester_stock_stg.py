@@ -59,9 +59,10 @@ class BackTesterStockStg:
     def Start(self):
         conn = sqlite3.connect(DB_STOCK_TICK)
         tcount = len(self.code_list)
-        end_day_dt = timedelta_day(-self.starttime)
+        end_day_dt = timedelta_day(-self.startday)
         end_day = int(strf_time('%Y%m%d', end_day_dt))
-        start_day = int(strf_time('%Y%m%d', timedelta_day(-self.endtime, end_day_dt)))
+        start_day = int(strf_time('%Y%m%d', timedelta_day(-self.testperiod, end_day_dt)))
+        print(start_day, end_day)
         for k, code in enumerate(self.code_list):
             self.code = code
             self.df = pd.read_sql(f"SELECT * FROM '{code}'", conn).set_index('index')
