@@ -21,7 +21,7 @@ class BackTesterStockStg:
         self.testperiod = var_[1]
         self.starttime = var_[2]
         self.endtime = var_[3]
-        self.betting = var_[4] * 1000000
+        self.betting = var_[4]
         self.avgtime = var_[5]
 
         conn = sqlite3.connect(DB_STOCK_STRATEGY)
@@ -498,7 +498,7 @@ if __name__ == "__main__":
         testperiod = int(sys.argv[2])
         starttime = int(sys.argv[3])
         endtime = int(sys.argv[4])
-        betting = int(sys.argv[5])
+        betting = int(sys.argv[5]) * 1000000
         avgtime = int(sys.argv[6])
         var = [startday, testperiod, starttime, endtime, betting, avgtime]
 
