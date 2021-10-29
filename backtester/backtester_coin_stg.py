@@ -445,7 +445,7 @@ class Total:
                     onegm = self.betting
                 tsp = round(tsg / onegm * 100, 4)
                 text = f" 종목당 배팅금액 {format(self.betting, ',')}원, 필요자금 {format(onegm, ',')}원,"\
-                       f" 거래횟수 {tc}회, 평균동시보유종목수 {avgholdcount}개, 평균보유기간 {avghold}초,\n 익절 {pc}회,"\
+                       f" 거래횟수 {tc}회, 최대보유종목수 {avgholdcount}개, 평균보유기간 {avghold}초,\n 익절 {pc}회,"\
                        f" 손절 {mc}회, 승률 {pper}%, 평균수익률 {avgsp}%, 수익률합계 {tsp}%, 수익금합계 {format(tsg, ',')}원"
                 print(text)
                 conn = sqlite3.connect(DB_BACKTEST)

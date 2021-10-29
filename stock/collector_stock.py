@@ -28,7 +28,6 @@ class CollectorStock:
         self.dict_set = DICT_SET
 
         self.dict_df = {}
-        self.dict_dm = {}
         self.dict_time = {
             '기록시간': now(),
             '저장시간': now()
