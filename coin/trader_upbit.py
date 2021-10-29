@@ -5,7 +5,7 @@ import pyupbit
 import sqlite3
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import now, strf_time, strp_time, timedelta_sec
+from utility.static import now, strf_time, strp_time, timedelta_sec, thread_decorator
 from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, DB_TRADELIST, DICT_SET
 
 
@@ -280,7 +280,11 @@ class TraderUpbit:
 
     """ 리시버가 보내온 현재가와 잔고목록의 현재가가 틀릴 경우만 잔고목록을 갱신하고 매도전략 확인용 데이터를 전략연산 프로세스로 보낸다. """
     def UpdateJango(self, code, c):
-        prec = self.df_jg['현재가'][code]
+        try:
+            prec = self.df_jg['현재가'][code]
+        except KeyError:
+            return
+
         if prec != c:
             bg = self.df_jg['매입금액'][code]
             oc = self.df_jg['보유수량'][code]
@@ -350,6 +354,7 @@ class TraderUpbit:
     체결확인 외 시드부족, 주문실패, 최소주문금액오류, 잔고종목매수신호가 발생하였을 경우도
     전략연산 프로세스가 가진 주문목록을 삭제하기 위해 매도수 취소 신호를 보낸다. 
     """
+    @thread_decorator
     def UpdateBuy(self, code, cp, cc, cancle=False):
         dt = strf_time('%Y%m%d%H%M%S%f')
         if dt in self.df_cj.index:
@@ -386,6 +391,7 @@ class TraderUpbit:
         df = pd.DataFrame([[code, order_gubun, cc, 0, cp, cp, dt]], columns=columns_cj, index=[dt])
         self.query1Q.put([2, df, 'c_chegeollist', 'append'])
 
+    @thread_decorator
     def UpdateSell(self, code, cp, cc):
         dt = strf_time('%Y%m%d%H%M%S%f')
         if dt in self.df_cj.index:
