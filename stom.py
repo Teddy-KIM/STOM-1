@@ -1240,7 +1240,7 @@ class Window(QtWidgets.QMainWindow):
             self.ButtonClicked_93()
 
     def ButtonClicked_56(self):
-        if self.backtester_proc is None or self.backtester_proc.poll() == 0:
+        if self.backtester_proc is None or not self.backtester_proc.is_alive():
             buttonReply = QtWidgets.QMessageBox.question(
                 self, '최적화 백테스터',
                 'backtester/backtester_coin_vc.py 파일을\n본인의 전략에 맞게 수정 후 사용해야합니다.\n계속하시겠습니까?\n',
