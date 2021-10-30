@@ -341,8 +341,8 @@ class BackTesterCoinStg:
                         plus_per, self.totalper, self.totaleyun])
             code, totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun = \
                 self.GetTotal(plus_per, self.totalholdday)
-            test = f"종목코드 {code} | 평균보유기간 {totalholdday}초 | 거래횟수 {totalcount}회 | "\
-                   f"익절 {totalcount_p}회 | 손절 {totalcount_m}회 | 승률 {plus_per}% | "\
+            test = f"종목코드 {code} | 보유기간합계  {totalholdday}초 | 거래횟수 {totalcount}회 | " \
+                   f"익절 {totalcount_p}회 | 손절 {totalcount_m}회 | 승률   {plus_per}% | " \
                    f"수익률 {totalper}% | 수익금 {totaleyun}원 [{count}/{tcount}]"
             self.wq.put([ui_num['C백테스트'], test])
         else:
@@ -355,41 +355,43 @@ class BackTesterCoinStg:
         code = code + '  ' if len(code) == 8 else code
         code = code + ' ' if len(code) == 9 else code
         totalcount = str(self.totalcount)
-        totalcount = '  ' + totalcount if len(totalcount) == 1 else totalcount
-        totalcount = ' ' + totalcount if len(totalcount) == 2 else totalcount
+        totalcount = '    ' + totalcount if len(totalcount) == 1 else totalcount
+        totalcount = '   ' + totalcount if len(totalcount) == 2 else totalcount
         totalholdday = str(totalholdday)
-        totalholdday = '   ' + totalholdday if len(totalholdday) == 1 else totalholdday
-        totalholdday = '  ' + totalholdday if len(totalholdday) == 2 else totalholdday
-        totalholdday = ' ' + totalholdday if len(totalholdday) == 3 else totalholdday
+        totalholdday = '      ' + totalholdday if len(totalholdday) == 1 else totalholdday
+        totalholdday = '    ' + totalholdday if len(totalholdday) == 2 else totalholdday
+        totalholdday = '  ' + totalholdday if len(totalholdday) == 3 else totalholdday
         totalholdday = totalholdday + '0' if len(totalholdday) == 1 else totalholdday
         totalcount_p = str(self.totalcount_p)
-        totalcount_p = '  ' + totalcount_p if len(totalcount_p) == 1 else totalcount_p
-        totalcount_p = ' ' + totalcount_p if len(totalcount_p) == 2 else totalcount_p
+        totalcount_p = '    ' + totalcount_p if len(totalcount_p) == 1 else totalcount_p
+        totalcount_p = '  ' + totalcount_p if len(totalcount_p) == 2 else totalcount_p
         totalcount_m = str(self.totalcount_m)
-        totalcount_m = '  ' + totalcount_m if len(totalcount_m) == 1 else totalcount_m
-        totalcount_m = ' ' + totalcount_m if len(totalcount_m) == 2 else totalcount_m
+        totalcount_m = '    ' + totalcount_m if len(totalcount_m) == 1 else totalcount_m
+        totalcount_m = '  ' + totalcount_m if len(totalcount_m) == 2 else totalcount_m
         plus_per = str(plus_per)
-        plus_per = '  ' + plus_per if len(plus_per.split('.')[0]) == 1 else plus_per
-        plus_per = ' ' + plus_per if len(plus_per.split('.')[0]) == 2 else plus_per
+        plus_per = '    ' + plus_per if len(plus_per.split('.')[0]) == 1 else plus_per
+        plus_per = '  ' + plus_per if len(plus_per.split('.')[0]) == 2 else plus_per
         plus_per = plus_per + '0' if len(plus_per.split('.')[1]) == 1 else plus_per
         totalper = str(self.totalper)
-        totalper = '   ' + totalper if len(totalper.split('.')[0]) == 1 else totalper
-        totalper = '  ' + totalper if len(totalper.split('.')[0]) == 2 else totalper
-        totalper = ' ' + totalper if len(totalper.split('.')[0]) == 3 else totalper
+        totalper = '      ' + totalper if len(totalper.split('.')[0]) == 1 else totalper
+        totalper = '    ' + totalper if len(totalper.split('.')[0]) == 2 else totalper
+        totalper = '  ' + totalper if len(totalper.split('.')[0]) == 3 else totalper
         totalper = totalper + '0' if len(totalper.split('.')[1]) == 1 else totalper
+        totalper = ' ' + totalper if '-' in totalper else totalper
         totaleyun = format(self.totaleyun, ',')
         if len(totaleyun.split(',')) == 1:
-            totaleyun = '         ' + totaleyun if len(totaleyun.split(',')[0]) == 1 else totaleyun
-            totaleyun = '        ' + totaleyun if len(totaleyun.split(',')[0]) == 2 else totaleyun
-            totaleyun = '       ' + totaleyun if len(totaleyun.split(',')[0]) == 3 else totaleyun
-            totaleyun = '      ' + totaleyun if len(totaleyun.split(',')[0]) == 4 else totaleyun
+            totaleyun = '                  ' + totaleyun if len(totaleyun.split(',')[0]) == 1 else totaleyun
+            totaleyun = '                ' + totaleyun if len(totaleyun.split(',')[0]) == 2 else totaleyun
+            totaleyun = '              ' + totaleyun if len(totaleyun.split(',')[0]) == 3 else totaleyun
+            totaleyun = '            ' + totaleyun if len(totaleyun.split(',')[0]) == 4 else totaleyun
         elif len(totaleyun.split(',')) == 2:
-            totaleyun = '     ' + totaleyun if len(totaleyun.split(',')[0]) == 1 else totaleyun
-            totaleyun = '    ' + totaleyun if len(totaleyun.split(',')[0]) == 2 else totaleyun
-            totaleyun = '   ' + totaleyun if len(totaleyun.split(',')[0]) == 3 else totaleyun
-            totaleyun = '  ' + totaleyun if len(totaleyun.split(',')[0]) == 4 else totaleyun
+            totaleyun = '          ' + totaleyun if len(totaleyun.split(',')[0]) == 1 else totaleyun
+            totaleyun = '        ' + totaleyun if len(totaleyun.split(',')[0]) == 2 else totaleyun
+            totaleyun = '      ' + totaleyun if len(totaleyun.split(',')[0]) == 3 else totaleyun
+            totaleyun = '    ' + totaleyun if len(totaleyun.split(',')[0]) == 4 else totaleyun
         elif len(totaleyun.split(',')) == 3:
-            totaleyun = ' ' + totaleyun if len(totaleyun.split(',')[0]) == 1 else totaleyun
+            totaleyun = '  ' + totaleyun if len(totaleyun.split(',')[0]) == 1 else totaleyun
+        totaleyun = ' ' + totaleyun if '-' in totaleyun else totaleyun
         return code, totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun
 
 
