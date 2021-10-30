@@ -472,7 +472,7 @@ class Total:
         if len(df_back) > 0:
             text = [self.gap_ch, self.avg_time, self.gap_sm, self.ch_low, self.dm_low,
                     self.per_low, self.per_high, self.sell_ratio]
-            print(f' {text}')
+            self.wq.put([ui_num['S백테스트'], text])
             df_back = df_back[df_back['거래횟수'] > 0]
             tc = df_back['거래횟수'].sum()
             if tc != 0:
@@ -585,7 +585,7 @@ def BacktesterStockVcMain(wq):
                 if sp >= htsp:
                     htsp = sp
                     high_var = num
-                    print(f' 최고수익률 갱신 {htsp}%')
+                    wq.put([ui_num['S백테스트'], f'최고수익률 갱신 {htsp}%'])
 
         gap_ch = [high_var[0] - 0.5, high_var[0] + 0.5, 0.5, 0.5]
         avg_time = [high_var[1], high_var[1] + 30, 30, 30]
@@ -616,7 +616,7 @@ def BacktesterStockVcMain(wq):
             if sp >= htsp:
                 htsp = sp
                 high_var = num[i][0]
-                print(f' 최고수익률 갱신 {htsp}%')
+                wq.put([ui_num['S백테스트'], f'최고수익률 갱신 {htsp}%'])
             if num[i][0] == num[i][1]:
                 num[i][0] = high_var
                 if num[i][2] != num[i][3]:
