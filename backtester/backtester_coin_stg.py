@@ -405,7 +405,7 @@ class Total:
         self.Start()
 
     def Start(self):
-        columns = ['거래횟수', '평균보유기간', '익절', '손절', '승률', '수익률', '수익금']
+        columns = ['거래횟수', '보유기간합계', '익절', '손절', '승률', '수익률', '수익금']
         df_back = pd.DataFrame(columns=columns)
         df_bct = pd.DataFrame(columns=['hold_count'])
         df_tsg = pd.DataFrame(columns=['종목명', '매수시간', '매도시간', '매수가', '매도가', '수익률', 'sgm'])
