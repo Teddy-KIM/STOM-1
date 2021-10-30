@@ -7,13 +7,14 @@ from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.setting import DB_STOCK_STRATEGY, DB_STOCK_TICK, DB_BACKTEST, DB_SETTING
+from utility.setting import DB_STOCK_STRATEGY, DB_STOCK_TICK, DB_BACKTEST, DB_SETTING, ui_num
 from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
 
 class BackTesterStockStg:
-    def __init__(self, q_, code_list_, var_, buystg_, sellstg_, df1_, df2_):
+    def __init__(self, q_, wq_, code_list_, var_, buystg_, sellstg_, df1_, df2_):
         self.q = q_
+        self.wq = wq_
         self.code_list = code_list_
         self.df_name = df1_
         self.df_mt = df2_
@@ -344,9 +345,10 @@ class BackTesterStockStg:
                         plus_per, self.totalper, self.totaleyun])
             totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun = \
                 self.GetTotal(plus_per, self.totalholdday)
-            print(f" 종목코드 {self.code} | 보유기간합계 {totalholdday}초 | 거래횟수 {totalcount}회 | "
-                  f" 익절 {totalcount_p}회 | 손절 {totalcount_m}회 | 승률 {plus_per}% |"
-                  f" 수익률 {totalper}% | 수익금 {totaleyun}원 [{count}/{tcount}]")
+            test = f"종목코드 {self.code} | 보유기간합계 {totalholdday}초 | 거래횟수 {totalcount}회 | " \
+                   f"익절 {totalcount_p}회 | 손절 {totalcount_m}회 | 승률 {plus_per}% | " \
+                   f"수익률 {totalper}% | 수익금 {totaleyun}원 [{count}/{tcount}]"
+            self.wq.put([ui_num['S백테스트'], test])
         else:
             self.q.put([self.code, 0, 0, 0, 0, 0., 0., 0])
 
@@ -391,9 +393,10 @@ class BackTesterStockStg:
 
 
 class Total:
-    def __init__(self, q_, last_, df1_, betting_):
+    def __init__(self, q_, wq_, last_, df1_, betting_):
         super().__init__()
         self.q = q_
+        self.wq = wq_
         self.last = last_
         self.name = df1_
         self.betting = betting_
@@ -445,10 +448,10 @@ class Total:
                 if onegm < self.betting:
                     onegm = self.betting
                 tsp = round(tsg / onegm * 100, 4)
-                text = f" 종목당 배팅금액 {format(self.betting, ',')}원, 필요자금 {format(onegm, ',')}원,"\
-                       f" 거래횟수 {tc}회, 최대보유종목수 {avgholdcount}개, 평균보유기간 {avghold}초,\n 익절 {pc}회,"\
-                       f" 손절 {mc}회, 승률 {pper}%, 평균수익률 {avgsp}%, 수익률합계 {tsp}%, 수익금합계 {format(tsg, ',')}원"
-                print(text)
+                text = f"종목당 배팅금액 {format(self.betting, ',')}원, 필요자금 {format(onegm, ',')}원, "\
+                       f"거래횟수 {tc}회, 최대보유종목수 {avgholdcount}개, 평균보유기간 {avghold}초,\n 익절 {pc}회, "\
+                       f"손절 {mc}회, 승률 {pper}%, 평균수익률 {avgsp}%, 수익률합계 {tsp}%, 수익금합계 {format(tsg, ',')}원"
+                self.wq.put([ui_num['S백테스트'], text])
                 conn = sqlite3.connect(DB_BACKTEST)
                 df_back.to_sql(f"stock_vj_code_{strf_time('%Y%m%d')}", conn, if_exists='append', chunksize=1000)
                 conn.close()
@@ -484,7 +487,7 @@ class Total:
             plt.show()
 
 
-if __name__ == "__main__":
+def BackTesterStockStgMain(wq, bq):
     start = datetime.datetime.now()
 
     con = sqlite3.connect(DB_STOCK_TICK)
@@ -512,24 +515,25 @@ if __name__ == "__main__":
     q = Queue()
 
     if len(table_list) > 0:
-        startday = int(sys.argv[1])
-        testperiod = int(sys.argv[2])
-        starttime = int(sys.argv[3])
-        endtime = int(sys.argv[4])
-        betting = float(sys.argv[5]) * 1000000
-        avgtime = int(sys.argv[6])
+        data = bq.get()
+        startday = int(data[0])
+        testperiod = int(data[1])
+        starttime = int(data[2])
+        endtime = int(data[3])
+        betting = float(data[4]) * 1000000
+        avgtime = int(data[5])
         var = [startday, testperiod, starttime, endtime, betting, avgtime]
 
-        buystg = sys.argv[8]
-        sellstg = sys.argv[9]
+        buystg = data[7]
+        sellstg = data[8]
 
-        w = Process(target=Total, args=(q, last, df1, betting))
+        w = Process(target=Total, args=(q, wq, last, df1, betting))
         w.start()
         procs = []
-        workcount = int(last / int(sys.argv[7])) + 1
+        workcount = int(last / int(data[6])) + 1
         for j in range(0, last, workcount):
             code_list = table_list[j:j + workcount]
-            p = Process(target=BackTesterStockStg, args=(q, code_list, var, buystg, sellstg, df1, df2))
+            p = Process(target=BackTesterStockStg, args=(q, wq, code_list, var, buystg, sellstg, df1, df2))
             procs.append(p)
             p.start()
         for p in procs:
@@ -538,4 +542,4 @@ if __name__ == "__main__":
 
     q.close()
     end = datetime.datetime.now()
-    print(f" 백테스팅 소요시간 {end - start}")
+    wq.put([ui_num['S백테스트'], f"백테스팅 소요시간 {end - start}"])

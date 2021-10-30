@@ -1,9 +1,11 @@
 import sys
 import psutil
 import logging
-import subprocess
 from PyQt5.QtTest import QTest
 from multiprocessing import Process, Queue, freeze_support
+
+from backtester.backtester_coin_vc import BacktesterCoinVcMain
+from backtester.backtester_stock_vc import BacktesterStockVcMain
 from coin.receiver_upbit import WebsTicker, WebsOrderbook
 from coin.collector_coin import CollectorCoin
 from coin.strategy_coin import StrategyCoin
@@ -14,6 +16,8 @@ from stock.collector_stock import CollectorStock
 from stock.strategy_stock import StrategyStock
 from stock.trader_kiwoom import TraderKiwoom
 from stock.trader_xing import TraderXing
+from backtester.backtester_coin_stg import BackTesterCoinStgMain
+from backtester.backtester_stock_stg import BackTesterStockStgMain
 from utility.setui import *
 from utility.sound import Sound
 from utility.query import Query
@@ -222,7 +226,7 @@ class Window(QtWidgets.QMainWindow):
             self.counter = 0
         self.counter += 1
         self.progressBar.setValue(int(self.cpu_per))
-        if self.backtester_proc is not None and self.backtester_proc.poll() != 0:
+        if self.backtester_proc is not None and self.backtester_proc.is_alive():
             if self.counter % 2 == 0:
                 self.sb_pushButton_01.setStyleSheet(style_bc_st)
                 self.sb_pushButton_02.setStyleSheet(style_bc_bt)
@@ -260,10 +264,14 @@ class Window(QtWidgets.QMainWindow):
             self.log2.info(text)
         elif data[0] == ui_num['C단순텍스트']:
             self.cc_textEdit.append(text)
-        elif data[0] == ui_num['S전략텍스트']:
+        elif data[0] == ui_num['S백테스트']:
             self.ss_textEdit_03.append(text)
-        elif data[0] == ui_num['C전략텍스트']:
+            if '백테스팅 소요시간' in data[1]:
+                self.ButtonClicked_90()
+        elif data[0] == ui_num['C백테스트']:
             self.cs_textEdit_03.append(text)
+            if '백테스팅 소요시간' in data[1]:
+                self.ButtonClicked_92()
 
     def UpdateTablewidget(self, data):
         gubun = data[0]
@@ -934,10 +942,7 @@ class Window(QtWidgets.QMainWindow):
                 self.ssb_comboBox.addItem(index)
                 if i == 0:
                     self.ssb_lineEdit.setText(index)
-            windowQ.put([ui_num['S전략텍스트'], '매수전략 불러오기 완료'])
             self.ssb_pushButton_04.setStyleSheet(style_bc_st)
-        else:
-            windowQ.put([ui_num['S전략텍스트'], '매수전략 없음'])
 
     def ButtonClicked_08(self):
         strategy_name = self.ssb_lineEdit.text()
@@ -950,13 +955,11 @@ class Window(QtWidgets.QMainWindow):
             query1Q.put([3, f"DELETE FROM buy WHERE `index` = '{strategy_name}'"])
             df = pd.DataFrame({'전략코드': [strategy]}, index=[strategy_name])
             query1Q.put([3, df, 'buy', 'append'])
-            windowQ.put([ui_num['S전략텍스트'], '매수전략 저장하기 완료'])
             self.ssb_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_09(self):
         self.ss_textEdit_01.clear()
         self.ss_textEdit_01.append(stock_buy_var)
-        windowQ.put([ui_num['S전략텍스트'], '매수변수 불러오기 완료'])
         self.ssb_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_10(self):
@@ -971,53 +974,41 @@ class Window(QtWidgets.QMainWindow):
             )
             if buttonReply == QtWidgets.QMessageBox.Yes:
                 sstgQ.put(['매수전략', strategy])
-                windowQ.put([ui_num['S전략텍스트'], '매수전략 시작하기 완료'])
                 self.ssb_pushButton_04.setStyleSheet(style_bc_dk)
                 self.ssb_pushButton_16.setStyleSheet(style_bc_st)
 
     def ButtonClicked_11(self):
         self.ss_textEdit_01.append(stock_buy1)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_12(self):
         self.ss_textEdit_01.append(stock_buy2)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_13(self):
         self.ss_textEdit_01.append(stock_buy3)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_14(self):
         self.ss_textEdit_01.append(stock_buy4)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_15(self):
         self.ss_textEdit_01.append(stock_buy5)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_16(self):
         self.ss_textEdit_01.append(stock_buy6)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_17(self):
         self.ss_textEdit_01.append(stock_buy7)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_18(self):
         self.ss_textEdit_01.append(stock_buy8)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_19(self):
         self.ss_textEdit_01.append(stock_buy9)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_20(self):
         self.ss_textEdit_01.append(stock_buy10)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_21(self):
         self.ss_textEdit_01.append(stock_buy_signal)
-        windowQ.put([ui_num['S전략텍스트'], '매수전략 모듈추가 완료'])
 
     # noinspection PyMethodMayBeStatic
     def ButtonClicked_22(self):
@@ -1026,7 +1017,7 @@ class Window(QtWidgets.QMainWindow):
         self.ssb_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_23(self):
-        if self.backtester_proc is not None and self.backtester_proc.poll() != 0:
+        if self.backtester_proc is not None and self.backtester_proc.is_alive():
             QtWidgets.QMessageBox.critical(self, '오류 알림', '현재 백테스터가 실행중입니다.\n중복 실행할 수 없습니다.\n')
         else:
             startday = self.ssb_lineEdit_01.text()
@@ -1045,20 +1036,22 @@ class Window(QtWidgets.QMainWindow):
             if buystg == '' or sellstg == '':
                 QtWidgets.QMessageBox.critical(self, '오류 알림', '전략을 저장하고 콤보박스에서 선택하십시오.\n')
                 return
-            self.backtester_proc = subprocess.Popen(
-                    f'python {SYSTEM_PATH}/backtester/backtester_stock_stg.py '
-                    f'{startday} {testperiod} {starttime} {endtime} {betting} {avgtime} {multi} {buystg} {sellstg}'
-            )
+            backQ.put([startday, testperiod, starttime, endtime, betting, avgtime, multi, buystg, sellstg])
+            self.backtester_proc = Process(target=BackTesterStockStgMain, args=(windowQ, backQ))
+            self.backtester_proc.start()
+            self.ButtonClicked_91()
 
     def ButtonClicked_24(self):
-        if self.backtester_proc is None or self.backtester_proc.poll() == 0:
+        if self.backtester_proc is None or not self.backtester_proc.is_alive():
             buttonReply = QtWidgets.QMessageBox.question(
                 self, '최적화 백테스터',
                 'backtester/backtester_stock_vc.py 파일을\n본인의 전략에 맞게 수정 후 사용해야합니다.\n계속하시겠습니까?\n',
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
             )
             if buttonReply == QtWidgets.QMessageBox.Yes:
-                self.backtester_proc = subprocess.Popen(f'python {SYSTEM_PATH}/backtester/backtester_stock_vc.py')
+                self.backtester_proc = Process(target=BacktesterStockVcMain, args=(windowQ,))
+                self.backtester_proc.start()
+                self.ButtonClicked_91()
 
     def ButtonClicked_25(self):
         con = sqlite3.connect(DB_STOCK_STRATEGY)
@@ -1070,10 +1063,7 @@ class Window(QtWidgets.QMainWindow):
                 self.sss_comboBox.addItem(index)
                 if i == 0:
                     self.sss_lineEdit.setText(index)
-            windowQ.put([ui_num['S전략텍스트'], '매도전략 불러오기 완료'])
             self.sss_pushButton_04.setStyleSheet(style_bc_st)
-        else:
-            windowQ.put([ui_num['S전략텍스트'], '매도전략 없음'])
 
     def ButtonClicked_26(self):
         strategy_name = self.sss_lineEdit.text()
@@ -1086,13 +1076,11 @@ class Window(QtWidgets.QMainWindow):
             query1Q.put([3, f"DELETE FROM sell WHERE `index` = '{strategy_name}'"])
             df = pd.DataFrame({'전략코드': [strategy]}, index=[strategy_name])
             query1Q.put([3, df, 'sell', 'append'])
-            windowQ.put([ui_num['S전략텍스트'], '매도전략 저장하기 완료'])
             self.sss_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_27(self):
         self.ss_textEdit_02.clear()
         self.ss_textEdit_02.append(stock_sell_var)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 불러오기 완료'])
         self.sss_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_28(self):
@@ -1107,45 +1095,35 @@ class Window(QtWidgets.QMainWindow):
             )
             if buttonReply == QtWidgets.QMessageBox.Yes:
                 sstgQ.put(['매도전략', strategy])
-                windowQ.put([ui_num['S전략텍스트'], '매도전략 시작하기 완료'])
                 self.sss_pushButton_04.setStyleSheet(style_bc_dk)
                 self.sss_pushButton_14.setStyleSheet(style_bc_st)
 
     def ButtonClicked_29(self):
         self.ss_textEdit_02.append(stock_sell1)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_30(self):
         self.ss_textEdit_02.append(stock_sell2)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_31(self):
         self.ss_textEdit_02.append(stock_sell3)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_32(self):
         self.ss_textEdit_02.append(stock_sell4)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_33(self):
         self.ss_textEdit_02.append(stock_sell5)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_34(self):
         self.ss_textEdit_02.append(stock_sell6)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_35(self):
         self.ss_textEdit_02.append(stock_sell7)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_36(self):
         self.ss_textEdit_02.append(stock_sell8)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_37(self):
         self.ss_textEdit_02.append(stock_sell_signal)
-        windowQ.put([ui_num['S전략텍스트'], '매도전략 모듈추가 완료'])
 
     # noinspection PyMethodMayBeStatic
     def ButtonClicked_38(self):
@@ -1163,10 +1141,7 @@ class Window(QtWidgets.QMainWindow):
                 self.csb_comboBox.addItem(index)
                 if i == 0:
                     self.csb_lineEdit.setText(index)
-            windowQ.put([ui_num['C전략텍스트'], '매수전략 불러오기 완료'])
             self.csb_pushButton_04.setStyleSheet(style_bc_st)
-        else:
-            windowQ.put([ui_num['C전략텍스트'], '매수전략 없음'])
 
     def ButtonClicked_40(self):
         strategy_name = self.csb_lineEdit.text()
@@ -1179,13 +1154,11 @@ class Window(QtWidgets.QMainWindow):
             query1Q.put([4, f"DELETE FROM buy WHERE `index` = '{strategy_name}'"])
             df = pd.DataFrame({'전략코드': [strategy]}, index=[strategy_name])
             query1Q.put([4, df, 'buy', 'append'])
-            windowQ.put([ui_num['C전략텍스트'], '매수전략 저장하기 완료'])
             self.csb_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_41(self):
         self.cs_textEdit_01.clear()
         self.cs_textEdit_01.append(coin_buy_var)
-        windowQ.put([ui_num['C전략텍스트'], '매수변수 불러오기 완료'])
         self.csb_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_42(self):
@@ -1200,53 +1173,41 @@ class Window(QtWidgets.QMainWindow):
             )
             if buttonReply == QtWidgets.QMessageBox.Yes:
                 cstgQ.put(['매수전략', strategy])
-                windowQ.put([ui_num['C전략텍스트'], '매수전략 시작하기 완료'])
                 self.csb_pushButton_04.setStyleSheet(style_bc_dk)
                 self.csb_pushButton_16.setStyleSheet(style_bc_st)
 
     def ButtonClicked_43(self):
         self.cs_textEdit_01.append(coin_buy1)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_44(self):
         self.cs_textEdit_01.append(coin_buy2)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_45(self):
         self.cs_textEdit_01.append(coin_buy3)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_46(self):
         self.cs_textEdit_01.append(coin_buy4)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_47(self):
         self.cs_textEdit_01.append(coin_buy5)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_48(self):
         self.cs_textEdit_01.append(coin_buy6)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_49(self):
         self.cs_textEdit_01.append(coin_buy7)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_50(self):
         self.cs_textEdit_01.append(coin_buy8)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_51(self):
         self.cs_textEdit_01.append(coin_buy9)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_52(self):
         self.cs_textEdit_01.append(coin_buy10)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     def ButtonClicked_53(self):
         self.cs_textEdit_01.append(coin_buy_signal)
-        windowQ.put([ui_num['C전략텍스트'], '매수전략 모듈추가 완료'])
 
     # noinspection PyMethodMayBeStatic
     def ButtonClicked_54(self):
@@ -1255,7 +1216,7 @@ class Window(QtWidgets.QMainWindow):
         self.csb_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_55(self):
-        if self.backtester_proc is not None and self.backtester_proc.poll() != 0:
+        if self.backtester_proc is not None and self.backtester_proc.is_alive():
             QtWidgets.QMessageBox.critical(self, '오류 알림', '현재 백테스터가 실행중입니다.\n중복 실행할 수 없습니다.\n')
         else:
             startday = self.csb_lineEdit_01.text()
@@ -1274,10 +1235,10 @@ class Window(QtWidgets.QMainWindow):
             if buystg == '' or sellstg == '':
                 QtWidgets.QMessageBox.critical(self, '오류 알림', '전략을 저장하고 콤보박스에서 선택하십시오.\n')
                 return
-            self.backtester_proc = subprocess.Popen(
-                    f'python {SYSTEM_PATH}/backtester/backtester_coin_stg.py '
-                    f'{startday} {testperiod} {starttime} {endtime} {betting} {avgtime} {multi} {buystg} {sellstg}'
-            )
+            backQ.put([startday, testperiod, starttime, endtime, betting, avgtime, multi, buystg, sellstg])
+            self.backtester_proc = Process(target=BackTesterCoinStgMain, args=(windowQ, backQ))
+            self.backtester_proc.start()
+            self.ButtonClicked_93()
 
     def ButtonClicked_56(self):
         if self.backtester_proc is None or self.backtester_proc.poll() == 0:
@@ -1287,7 +1248,9 @@ class Window(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
             )
             if buttonReply == QtWidgets.QMessageBox.Yes:
-                self.backtester_proc = subprocess.Popen(f'python {SYSTEM_PATH}/backtester/backtester_coin_vc.py')
+                self.backtester_proc = Process(target=BacktesterCoinVcMain, args=(windowQ,))
+                self.backtester_proc.start()
+                self.ButtonClicked_93()
 
     def ButtonClicked_57(self):
         con = sqlite3.connect(DB_COIN_STRATEGY)
@@ -1299,10 +1262,7 @@ class Window(QtWidgets.QMainWindow):
                 self.css_comboBox.addItem(index)
                 if i == 0:
                     self.css_lineEdit.setText(index)
-            windowQ.put([ui_num['C전략텍스트'], '매도전략 불러오기 완료'])
             self.css_pushButton_04.setStyleSheet(style_bc_st)
-        else:
-            windowQ.put([ui_num['C전략텍스트'], '매도전략 없음'])
 
     def ButtonClicked_58(self):
         strategy_name = self.css_lineEdit.text()
@@ -1315,13 +1275,11 @@ class Window(QtWidgets.QMainWindow):
             query1Q.put([4, f"DELETE FROM sell WHERE `index` = '{strategy_name}'"])
             df = pd.DataFrame({'전략코드': [strategy]}, index=[strategy_name])
             query1Q.put([4, df, 'sell', 'append'])
-            windowQ.put([ui_num['C전략텍스트'], '매도전략 저장하기 완료'])
             self.css_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_59(self):
         self.cs_textEdit_02.clear()
         self.cs_textEdit_02.append(coin_sell_var)
-        windowQ.put([ui_num['C전략텍스트'], '매도변수 불러오기 완료'])
         self.css_pushButton_04.setStyleSheet(style_bc_st)
 
     def ButtonClicked_60(self):
@@ -1336,45 +1294,35 @@ class Window(QtWidgets.QMainWindow):
             )
             if buttonReply == QtWidgets.QMessageBox.Yes:
                 cstgQ.put(['매도전략', strategy])
-                windowQ.put([ui_num['C전략텍스트'], '매도전략 시작하기 완료'])
                 self.css_pushButton_04.setStyleSheet(style_bc_dk)
                 self.css_pushButton_14.setStyleSheet(style_bc_st)
 
     def ButtonClicked_61(self):
         self.cs_textEdit_02.append(coin_sell1)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_62(self):
         self.cs_textEdit_02.append(coin_sell2)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_63(self):
         self.cs_textEdit_02.append(coin_sell3)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_64(self):
         self.cs_textEdit_02.append(coin_sell4)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_65(self):
         self.cs_textEdit_02.append(coin_sell5)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_66(self):
         self.cs_textEdit_02.append(coin_sell6)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_67(self):
         self.cs_textEdit_02.append(coin_sell7)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_68(self):
         self.cs_textEdit_02.append(coin_sell8)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_69(self):
         self.cs_textEdit_02.append(coin_sell_signal)
-        windowQ.put([ui_num['C전략텍스트'], '매도전략 모듈추가 완료'])
 
     def ButtonClicked_70(self):
         cstgQ.put(['매도전략중지', ''])
@@ -1731,6 +1679,34 @@ class Window(QtWidgets.QMainWindow):
             self.sj_load_pushButton_00.setText('계정 텍스트 보기')
             self.sj_load_pushButton_00.setStyleSheet(style_bc_bt)
 
+    def ButtonClicked_90(self):
+        self.ss_textEdit_01.setVisible(True)
+        self.ss_textEdit_02.setVisible(True)
+        self.ss_textEdit_03.setVisible(False)
+        self.sb_pushButton_03.setStyleSheet(style_bc_dk)
+        self.sb_pushButton_04.setStyleSheet(style_bc_st)
+
+    def ButtonClicked_91(self):
+        self.ss_textEdit_01.setVisible(False)
+        self.ss_textEdit_02.setVisible(False)
+        self.ss_textEdit_03.setVisible(True)
+        self.sb_pushButton_03.setStyleSheet(style_bc_st)
+        self.sb_pushButton_04.setStyleSheet(style_bc_dk)
+
+    def ButtonClicked_92(self):
+        self.cs_textEdit_01.setVisible(True)
+        self.cs_textEdit_02.setVisible(True)
+        self.cs_textEdit_03.setVisible(False)
+        self.cb_pushButton_03.setStyleSheet(style_bc_dk)
+        self.cb_pushButton_04.setStyleSheet(style_bc_st)
+
+    def ButtonClicked_93(self):
+        self.cs_textEdit_01.setVisible(False)
+        self.cs_textEdit_02.setVisible(False)
+        self.cs_textEdit_03.setVisible(True)
+        self.cb_pushButton_03.setStyleSheet(style_bc_st)
+        self.cb_pushButton_04.setStyleSheet(style_bc_dk)
+
     def CalendarClicked(self, gubun):
         if gubun == 'S':
             table = 's_tradelist'
@@ -1856,8 +1832,8 @@ class Writer(QtCore.QThread):
 if __name__ == '__main__':
     freeze_support()
     windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ, sstgQ, cstgQ, tick1Q, \
-        tick2Q, tick3Q, tick4Q, tick5Q, chartQ = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
-        Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue()
+        tick2Q, tick3Q, tick4Q, tick5Q, chartQ, backQ = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
+        Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue()
     qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q,
              stockQ, coinQ, sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
 

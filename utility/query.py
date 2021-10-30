@@ -60,7 +60,7 @@ class Query:
                     elif len(query) == 4:
                         query[1].to_sql(query[2], self.con3, if_exists=query[3], chunksize=1000, method='multi')
                 except Exception as e:
-                    self.windowQ.put([ui_num['S전략텍스트'], f'시스템 명령 오류 알림 - Query con3 {e}'])
+                    self.windowQ.put([ui_num['S로그텍스트'], f'시스템 명령 오류 알림 - Query con3 {e}'])
             elif query[0] == 4:
                 try:
                     if len(query) == 2:
@@ -69,4 +69,4 @@ class Query:
                     elif len(query) == 4:
                         query[1].to_sql(query[2], self.con4, if_exists=query[3], chunksize=1000, method='multi')
                 except Exception as e:
-                    self.windowQ.put([ui_num['C전략텍스트'], f'시스템 명령 오류 알림 - Query con4 {e}'])
+                    self.windowQ.put([ui_num['C로그텍스트'], f'시스템 명령 오류 알림 - Query con4 {e}'])

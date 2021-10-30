@@ -7,7 +7,7 @@ from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.setting import DB_COIN_TICK, DB_BACKTEST, GRAPH_PATH
+from utility.setting import DB_COIN_TICK, DB_BACKTEST, GRAPH_PATH, ui_num
 from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
 BETTING = 20000000     # 종목당 배팅금액
@@ -19,8 +19,9 @@ MULTI_COUNT = 6
 
 
 class BackTesterCoinVc:
-    def __init__(self, q_, code_list_, num_, df1_, high):
+    def __init__(self, q_, wq_, code_list_, num_, df1_, high):
         self.q = q_
+        self.wq = wq_
         self.code_list = code_list_
         self.df_mt = df1_
         self.high = high
@@ -352,9 +353,10 @@ class BackTesterCoinVc:
                         plus_per, self.totalper, self.totaleyun])
             code, totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun = \
                 self.GetTotal(plus_per, self.totalholdday)
-            print(f" 종목코드 {code} | 평균보유기간 {totalholdday}초 | 거래횟수 {totalcount}회 | "
-                  f" 익절 {totalcount_p}회 | 손절 {totalcount_m}회 | 승률 {plus_per}% |"
-                  f" 수익률 {totalper}% | 수익금 {totaleyun}원 [{count}/{tcount}]")
+            test = f"종목코드 {code} | 평균보유기간 {totalholdday}초 | 거래횟수 {totalcount}회 | "\
+                   f"익절 {totalcount_p}회 | 손절 {totalcount_m}회 | 승률 {plus_per}% | "\
+                   f"수익률 {totalper}% | 수익금 {totaleyun}원 [{count}/{tcount}]"
+            self.wq.put([ui_num['C백테스트'], test])
         else:
             self.q.put([self.code, 0, 0, 0, 0, 0., 0., 0])
 
@@ -403,9 +405,10 @@ class BackTesterCoinVc:
 
 
 class Total:
-    def __init__(self, q_, last_, num_):
+    def __init__(self, q_, wq_, last_, num_):
         super().__init__()
         self.q = q_
+        self.wq = wq_
         self.last = last_
 
         if type(num_[0]) == list:
@@ -481,10 +484,10 @@ class Total:
                 if onegm < BETTING:
                     onegm = BETTING
                 tsp = round(tsg / onegm * 100, 4)
-                text = f" 종목당 배팅금액 {format(BETTING, ',')}원, 필요자금 {format(onegm, ',')}원,"\
-                       f" 거래횟수 {tc}회, 최대보유종목수 {avgholdcount}개, 평균보유기간 {avghold}초,\n 익절 {pc}회,"\
-                       f" 손절 {mc}회, 승률 {pper}%, 평균수익률 {avgsp}%, 수익률합계 {tsp}%, 수익금합계 {format(tsg, ',')}원"
-                print(text)
+                text = f"종목당 배팅금액 {format(BETTING, ',')}원, 필요자금 {format(onegm, ',')}원, "\
+                       f"거래횟수 {tc}회, 최대보유종목수 {avgholdcount}개, 평균보유기간 {avghold}초,\n 익절 {pc}회, "\
+                       f"손절 {mc}회, 승률 {pper}%, 평균수익률 {avgsp}%, 수익률합계 {tsp}%, 수익금합계 {format(tsg, ',')}원"
+                self.wq.put([ui_num['C백테스트'], text])
                 df_back = pd.DataFrame(
                     [[tc, onegm, avgholdcount, avghold, pc, mc, pper, avgsp, tsp, tsg, self.gap_ch, self.avg_time,
                       self.gap_sm, self.ch_low, self.dm_low, self.per_low, self.per_high, self.sell_ratio]],
@@ -527,7 +530,7 @@ class Total:
             self.q.put(tsp)
 
 
-if __name__ == "__main__":
+def BacktesterCoinVcMain(wq):
     start = datetime.datetime.now()
 
     con = sqlite3.connect(DB_COIN_TICK)
@@ -558,13 +561,13 @@ if __name__ == "__main__":
         for gap_ch in gap_chs:
             for avg_time in avg_times:
                 num = [gap_ch, avg_time, 50, 50, 0, 0, 25, 0.5]
-                w = Process(target=Total, args=(q, last, num))
+                w = Process(target=Total, args=(q, wq, last, num))
                 w.start()
                 procs = []
                 workcount = int(last / MULTI_COUNT) + 1
                 for j in range(0, last, workcount):
                     code_list = table_list[j:j + workcount]
-                    p = Process(target=BackTesterCoinVc, args=(q, code_list, num, df1, False))
+                    p = Process(target=BackTesterCoinVc, args=(q, wq, code_list, num, df1, False))
                     procs.append(p)
                     p.start()
                 for p in procs:
@@ -589,13 +592,13 @@ if __name__ == "__main__":
 
         i = 0
         while True:
-            w = Process(target=Total, args=(q, last, num))
+            w = Process(target=Total, args=(q, wq, last, num))
             w.start()
             procs = []
             workcount = int(last / MULTI_COUNT) + 1
             for j in range(0, last, workcount):
                 code_list = table_list[j:j + workcount]
-                p = Process(target=BackTesterCoinVc, args=(q, code_list, num, df1, False))
+                p = Process(target=BackTesterCoinVc, args=(q, wq, code_list, num, df1, False))
                 procs.append(p)
                 p.start()
             for p in procs:
@@ -623,13 +626,13 @@ if __name__ == "__main__":
                     break
             num[i][0] = round(num[i][0] + num[i][2], 1)
 
-        w = Process(target=Total, args=(q, last, num))
+        w = Process(target=Total, args=(q, wq, last, num))
         w.start()
         procs = []
         workcount = int(last / MULTI_COUNT) + 1
         for j in range(0, last, workcount):
             db_list = table_list[j:j + workcount]
-            p = Process(target=BackTesterCoinVc, args=(q, db_list, num, df1, True))
+            p = Process(target=BackTesterCoinVc, args=(q, wq, db_list, num, df1, True))
             procs.append(p)
             p.start()
         for p in procs:
@@ -638,4 +641,4 @@ if __name__ == "__main__":
 
     q.close()
     end = datetime.datetime.now()
-    print(f" 백테스팅 소요시간 {end - start}")
+    wq.put([ui_num['C백테스트'], f"백테스팅 소요시간 {end - start}"])
