@@ -410,7 +410,7 @@ class Window(QtWidgets.QMainWindow):
                 gj_tableWidget.setItem(j, 0, item)
 
                 smavg = dict_df[code]['초당거래대금'][avgindex]
-                item = QtWidgets.QTableWidgetItem(changeFormat(smavg).split('.')[0])
+                item = QtWidgets.QTableWidgetItem(changeFormat(smavg, dotdowndel=True))
                 item.setTextAlignment(int(Qt.AlignVCenter | Qt.AlignRight))
                 gj_tableWidget.setItem(j, columns_gj_.index('sm_avg'), item)
 
