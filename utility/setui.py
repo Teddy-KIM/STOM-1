@@ -756,9 +756,9 @@ def SetUI(self):
     self.ssb_pushButton_15.setGeometry(1010, 280, 165, 30)
     self.ssb_pushButton_16.setGeometry(1180, 280, 165, 30)
 
-    self.ssb_labellll_01.setGeometry(1010, 315, 335, 20)
-    self.ssb_labellll_02.setGeometry(1010, 340, 335, 20)
-    self.ssb_labellll_03.setGeometry(1010, 365, 335, 20)
+    self.ssb_labellll_01.setGeometry(1010, 315, 340, 20)
+    self.ssb_labellll_02.setGeometry(1010, 340, 340, 20)
+    self.ssb_labellll_03.setGeometry(1010, 365, 340, 20)
 
     self.ssb_lineEdit_01.setGeometry(1110, 320, 35, 20)
     self.ssb_lineEdit_02.setGeometry(1230, 320, 35, 20)
@@ -812,9 +812,9 @@ def SetUI(self):
     self.csb_pushButton_15.setGeometry(1010, 280, 165, 30)
     self.csb_pushButton_16.setGeometry(1180, 280, 165, 30)
 
-    self.csb_labellll_01.setGeometry(1010, 315, 335, 20)
-    self.csb_labellll_02.setGeometry(1010, 340, 335, 20)
-    self.csb_labellll_03.setGeometry(1010, 365, 335, 20)
+    self.csb_labellll_01.setGeometry(1010, 315, 340, 20)
+    self.csb_labellll_02.setGeometry(1010, 340, 340, 20)
+    self.csb_labellll_03.setGeometry(1010, 365, 340, 20)
 
     self.csb_lineEdit_01.setGeometry(1110, 320, 35, 20)
     self.csb_lineEdit_02.setGeometry(1230, 320, 35, 20)
