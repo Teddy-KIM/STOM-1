@@ -3,9 +3,6 @@ import psutil
 import logging
 from PyQt5.QtTest import QTest
 from multiprocessing import Process, Queue, freeze_support
-
-from backtester.backtester_coin_vc import BacktesterCoinVcMain
-from backtester.backtester_stock_vc import BacktesterStockVcMain
 from coin.receiver_upbit import WebsTicker, WebsOrderbook
 from coin.collector_coin import CollectorCoin
 from coin.strategy_coin import StrategyCoin
@@ -16,7 +13,9 @@ from stock.collector_stock import CollectorStock
 from stock.strategy_stock import StrategyStock
 from stock.trader_kiwoom import TraderKiwoom
 from stock.trader_xing import TraderXing
+from backtester.backtester_coin_vc import BacktesterCoinVcMain
 from backtester.backtester_coin_stg import BackTesterCoinStgMain
+from backtester.backtester_stock_vc import BacktesterStockVcMain
 from backtester.backtester_stock_stg import BackTesterStockStgMain
 from utility.setui import *
 from utility.sound import Sound
