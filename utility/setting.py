@@ -274,7 +274,7 @@ stock_sell3 = '''if 최고수익률 > 3 and 수익률 < 최고수익률 * 0.75:\
 stock_sell4 = '''if now() > timedelta_sec(1800, 매수시간):\n    매도 = True'''
 stock_sell5 = '''if 현재가 > VI아래5호가 * 1.003:\n    매도 = True'''
 stock_sell6 = '''if 고저평균대비등락율 < 0:\n    매도 = True'''
-stock_sell7 = '''if 직전체결강도 >= 체결강도평균 > 체결강도:\n    매도 = True'''
+stock_sell7 = '''if 체결강도 <= 최고체결강도 - 5:\n    매도 = True'''
 stock_sell8 = '''if 매도총잔량 < 매수총잔량:\n    매도 = True'''
 
 coin_buy1 = '''if 등락율 < 3 or 등락율 > 25:\n    매수 = False'''
@@ -293,7 +293,7 @@ coin_sell2 = '''if 수익률 >= 3:\n    매도 = True'''
 coin_sell3 = '''if 최고수익률 > 3 and 수익률 < 최고수익률 * 0.75:\n    매도 = True'''
 coin_sell4 = '''if now() > timedelta_sec(1800, 매수시간):\n    매도 = True'''
 coin_sell5 = '''if 체결강도 < 체결강도평균 + 5:\n    매도 = True'''
-coin_sell6 = '''if 직전체결강도 >= 체결강도평균 > 체결강도:\n    매도 = True'''
+coin_sell6 = '''if 체결강도 <= 최고체결강도 - 5:\n    매도 = True'''
 coin_sell7 = '''if 고저평균대비등락율 < 0:\n    매도 = True'''
 coin_sell8 = '''if 매도총잔량 < 매수총잔량:\n    매도 = True'''
 
