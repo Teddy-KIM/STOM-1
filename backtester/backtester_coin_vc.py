@@ -351,21 +351,16 @@ class BackTesterCoinVc:
             plus_per = round((self.totalcount_p / self.totalcount) * 100, 2)
             self.q.put([self.code, self.totalcount, self.totalholdday, self.totalcount_p, self.totalcount_m,
                         plus_per, self.totalper, self.totaleyun])
-            code, totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun = \
+            totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun = \
                 self.GetTotal(plus_per, self.totalholdday)
-            test = f"종목코드 {code} | 보유기간합계  {totalholdday}초 | 거래횟수 {totalcount}회 | " \
+            test = f"보유기간합계  {totalholdday}초 | 거래횟수 {totalcount}회 | " \
                    f"익절 {totalcount_p}회 | 손절 {totalcount_m}회 | 승률   {plus_per}% | " \
-                   f"수익률 {totalper}% | 수익금 {totaleyun}원 [{count}/{tcount}]"
+                   f"수익률 {totalper}% | 수익금 {totaleyun}원 | 종목코드 {self.code} [{count}/{tcount}]"
             self.wq.put([ui_num['C백테스트'], test])
         else:
             self.q.put([self.code, 0, 0, 0, 0, 0., 0., 0])
 
     def GetTotal(self, plus_per, totalholdday):
-        code = str(self.code)
-        code = code + '    ' if len(code) == 6 else code
-        code = code + '   ' if len(code) == 7 else code
-        code = code + '  ' if len(code) == 8 else code
-        code = code + ' ' if len(code) == 9 else code
         totalcount = str(self.totalcount)
         totalcount = '    ' + totalcount if len(totalcount) == 1 else totalcount
         totalcount = '   ' + totalcount if len(totalcount) == 2 else totalcount
@@ -404,7 +399,7 @@ class BackTesterCoinVc:
         elif len(totaleyun.split(',')) == 3:
             totaleyun = '  ' + totaleyun if len(totaleyun.split(',')[0]) == 1 else totaleyun
         totaleyun = ' ' + totaleyun if '-' in totaleyun else totaleyun
-        return code, totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun
+        return totalcount, totalholdday, totalcount_p, totalcount_m, plus_per, totalper, totaleyun
 
 
 class Total:
