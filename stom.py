@@ -412,14 +412,15 @@ class Window(QtWidgets.QMainWindow):
                                 h = comma2int(self.hj_tableWidget.item(0, columns_hj.index('고가')).text())
                                 low = comma2int(self.hj_tableWidget.item(0, columns_hj.index('저가')).text())
                                 uvi = comma2int(self.hj_tableWidget.item(0, columns_hj.index('UVI')).text())
-                                if df[column][index] == o:
-                                    item.setIcon(self.icon_open)
-                                elif df[column][index] == h:
-                                    item.setIcon(self.icon_high)
-                                elif df[column][index] == low:
-                                    item.setIcon(self.icon_low)
-                                elif df[column][index] == uvi:
-                                    item.setIcon(self.icon_vi)
+                                if o != 0:
+                                    if df[column][index] == o:
+                                        item.setIcon(self.icon_open)
+                                    elif df[column][index] == h:
+                                        item.setIcon(self.icon_high)
+                                    elif df[column][index] == low:
+                                        item.setIcon(self.icon_low)
+                                    elif df[column][index] == uvi:
+                                        item.setIcon(self.icon_vi)
 
                 if '수익률' in df.columns:
                     if df['수익률'][index] >= 0:
