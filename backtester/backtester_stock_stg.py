@@ -7,8 +7,8 @@ from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from utility.static import strf_time, strp_time, timedelta_sec
 from utility.setting import DB_STOCK_STRATEGY, DB_STOCK_TICK, DB_BACKTEST, DB_SETTING, ui_num
-from utility.static import strf_time, strp_time, timedelta_day, timedelta_sec
 
 
 class BackTesterStockStg:
@@ -20,7 +20,7 @@ class BackTesterStockStg:
         self.df_mt = df2_
 
         self.startday = var_[0]
-        self.testperiod = var_[1]
+        self.endday = var_[1]
         self.starttime = var_[2]
         self.endtime = var_[3]
         self.betting = var_[4]
@@ -61,9 +61,6 @@ class BackTesterStockStg:
     def Start(self):
         conn = sqlite3.connect(DB_STOCK_TICK)
         tcount = len(self.code_list)
-        end_day_dt = timedelta_day(-self.startday)
-        end_day = int(strf_time('%Y%m%d', end_day_dt))
-        start_day = int(strf_time('%Y%m%d', timedelta_day(-self.testperiod, end_day_dt)))
         for k, code in enumerate(self.code_list):
             self.code = code
             self.df = pd.read_sql(f"SELECT * FROM '{code}'", conn).set_index('index')
@@ -102,7 +99,7 @@ class BackTesterStockStg:
             for h, index in enumerate(self.df.index):
                 if h != 0 and index[:8] != self.df.index[h - 1][:8]:
                     self.ccond = 0
-                if int(index[:8]) <= start_day or int(index[:8]) > end_day or \
+                if int(index[:8]) < self.startday or int(index[:8]) > self.endday or \
                         (not self.hold and (int(index[8:]) < self.starttime or self.endtime <= int(index[8:]))):
                     continue
                 self.index = index
@@ -519,12 +516,12 @@ def BackTesterStockStgMain(wq, bq):
     if len(table_list) > 0:
         data = bq.get()
         startday = int(data[0])
-        testperiod = int(data[1])
+        endday = int(data[1])
         starttime = int(data[2])
         endtime = int(data[3])
         betting = float(data[4]) * 1000000
         avgtime = int(data[5])
-        var = [startday, testperiod, starttime, endtime, betting, avgtime]
+        var = [startday, endday, starttime, endtime, betting, avgtime]
 
         buystg = data[7]
         sellstg = data[8]

@@ -1147,23 +1147,23 @@ class Window(QtWidgets.QMainWindow):
         if self.backtester_proc is not None and self.backtester_proc.is_alive():
             QtWidgets.QMessageBox.critical(self, '오류 알림', '현재 백테스터가 실행중입니다.\n중복 실행할 수 없습니다.\n')
         else:
-            startday = self.ssb_lineEdit_01.text()
-            testperiod = self.ssb_lineEdit_02.text()
-            starttime = self.ssb_lineEdit_03.text()
-            endtime = self.ssb_lineEdit_04.text()
-            betting = self.ssb_lineEdit_05.text()
-            avgtime = self.ssb_lineEdit_06.text()
-            multi = self.ssb_lineEdit_07.text()
+            startday = self.ssb_dateEdit_01.date().toString('yyyyMMdd')
+            endday = self.ssb_dateEdit_02.date().toString('yyyyMMdd')
+            starttime = self.ssb_lineEdit_01.text()
+            endtime = self.ssb_lineEdit_02.text()
+            betting = self.ssb_lineEdit_03.text()
+            avgtime = self.ssb_lineEdit_04.text()
+            multi = self.ssb_lineEdit_05.text()
             buystg = self.ssb_comboBox.currentText()
             sellstg = self.sss_comboBox.currentText()
-            if startday == '' or testperiod == '' or starttime == '' or endtime == '' or betting == '' or \
+            if startday == '' or endday == '' or starttime == '' or endtime == '' or betting == '' or \
                     avgtime == '' or multi == '':
                 QtWidgets.QMessageBox.critical(self, '오류 알림', '일부 설정값이 공백 상태입니다.\n')
                 return
             if buystg == '' or sellstg == '':
                 QtWidgets.QMessageBox.critical(self, '오류 알림', '전략을 저장하고 콤보박스에서 선택하십시오.\n')
                 return
-            backQ.put([startday, testperiod, starttime, endtime, betting, avgtime, multi, buystg, sellstg])
+            backQ.put([startday, endday, starttime, endtime, betting, avgtime, multi, buystg, sellstg])
             self.backtester_proc = Process(target=BackTesterStockStgMain, args=(windowQ, backQ))
             self.backtester_proc.start()
             self.ButtonClicked_91()
@@ -1346,23 +1346,23 @@ class Window(QtWidgets.QMainWindow):
         if self.backtester_proc is not None and self.backtester_proc.is_alive():
             QtWidgets.QMessageBox.critical(self, '오류 알림', '현재 백테스터가 실행중입니다.\n중복 실행할 수 없습니다.\n')
         else:
-            startday = self.csb_lineEdit_01.text()
-            testperiod = self.csb_lineEdit_02.text()
-            starttime = self.csb_lineEdit_03.text()
-            endtime = self.csb_lineEdit_04.text()
-            betting = self.csb_lineEdit_05.text()
-            avgtime = self.csb_lineEdit_06.text()
-            multi = self.csb_lineEdit_07.text()
+            startday = self.ssb_dateEdit_01.date().toString('yyyyMMdd')
+            endday = self.ssb_dateEdit_02.date().toString('yyyyMMdd')
+            starttime = self.csb_lineEdit_01.text()
+            endtime = self.csb_lineEdit_02.text()
+            betting = self.csb_lineEdit_03.text()
+            avgtime = self.csb_lineEdit_04.text()
+            multi = self.csb_lineEdit_05.text()
             buystg = self.csb_comboBox.currentText()
             sellstg = self.css_comboBox.currentText()
-            if startday == '' or testperiod == '' or starttime == '' or endtime == '' or betting == '' or \
+            if startday == '' or endday == '' or starttime == '' or endtime == '' or betting == '' or \
                     avgtime == '' or multi == '':
                 QtWidgets.QMessageBox.critical(self, '오류 알림', '일부 설정값이 공백 상태입니다.\n')
                 return
             if buystg == '' or sellstg == '':
                 QtWidgets.QMessageBox.critical(self, '오류 알림', '전략을 저장하고 콤보박스에서 선택하십시오.\n')
                 return
-            backQ.put([startday, testperiod, starttime, endtime, betting, avgtime, multi, buystg, sellstg])
+            backQ.put([startday, endday, starttime, endtime, betting, avgtime, multi, buystg, sellstg])
             self.backtester_proc = Process(target=BackTesterCoinStgMain, args=(windowQ, backQ))
             self.backtester_proc.start()
             self.ButtonClicked_93()
