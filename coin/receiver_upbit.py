@@ -102,6 +102,7 @@ class WebsTicker:
                 h = data['high_price']
                 low = data['low_price']
                 per = round(data['signed_change_rate'] * 100, 2)
+                dm = data['acc_trade_price']
                 try:
                     ch = round(tbids / tasks * 100, 2)
                 except ZeroDivisionError:
@@ -114,7 +115,6 @@ class WebsTicker:
                     self.hogaQ.put([code, v, ch])
 
                 if dt != pret:
-                    dm = data['acc_trade_price']
                     bids = dict_tsbc[code][1]
                     asks = dict_tsbc[code][2]
                     dict_tsbc[code] = [dt, 0, 0]

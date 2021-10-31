@@ -161,7 +161,6 @@ class ReceiverXing:
         df = pd.concat(df)
         self.df_pc = df[['전일종가']].copy()
         df = df[['종목명']].copy()
-        print(self.df_pc)
 
         for code in list(df.index):
             name = df['종목명'][code]
@@ -181,11 +180,11 @@ class ReceiverXing:
         self.query2Q.put('주식디비트리거시작')
         self.query1Q.put([1, df, 'codename', 'replace'])
 
-        df = self.xaq.BlockRequest('t1866', user_id=self.dict_set['아이디2'], gb='2', group_name='STOM')
         try:
+            df = self.xaq.BlockRequest('t1866', user_id=self.dict_set['아이디2'], gb='2', group_name='STOM')
             self.list_cond = [[df.index[0], df['query_name'][0]], [df.index[1], df['query_name'][1]]]
-        except KeyError:
-            print('시스템 명령 오류 알림 - 조건검색식 불러오기 실패')
+        except Exception as e:
+            print(f'시스템 명령 오류 알림 - 조건검색식 불러오기 실패 {e}')
             print('HTS로 조건검색식을 두개 만들어 전략관리 메뉴에서 전략서버에 업로드해야합니다.')
             print('첫번째는 트레이더가 사용할 관심종목용이고')
             print('두번째는 리시버가 사용할 감시종목용입니다.')
