@@ -764,13 +764,12 @@ class Window(QtWidgets.QMainWindow):
         item = tableWidget.item(row, 0)
         if item is None:
             return
-        if not self.dialog.isVisible():
-            self.dialog.show()
         name = item.text()
         if self.ct_lineEdit_01.text() == '':
             self.ct_lineEdit_01.setText('60')
         self.ct_lineEdit_02.setText(name)
         tickcount = int(self.ct_lineEdit_01.text())
+        self.ShowDialog()
         self.PutChart(name, tickcount, strf_time('%Y%m%d'), col)
 
     @QtCore.pyqtSlot(int)
@@ -818,12 +817,15 @@ class Window(QtWidgets.QMainWindow):
         item = tableWidget.item(row, 1)
         if item is None:
             return
-        if not self.dialog.isVisible():
-            self.dialog.show()
         name = item.text()
         linetext = self.ct_lineEdit_01.text()
         tickcount = int(linetext) if linetext != '' else 60
+        self.ShowDialog()
         self.PutChart(name, tickcount, searchdate, 4)
+
+    def ShowDialog(self):
+        if not self.dialog.isVisible():
+            self.dialog.show()
 
     def ReturnPress_01(self):
         searchdate = self.ct_dateEdit.date().toString('yyyyMMdd')
