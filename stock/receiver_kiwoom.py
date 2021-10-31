@@ -398,7 +398,7 @@ class ReceiverKiwoom:
             try:
                 c = abs(int(self.GetCommRealData(code, 10)))
                 o = abs(int(self.GetCommRealData(code, 16)))
-                v = int(self.GetCommRealData(code, 15))
+                v = self.GetCommRealData(code, 15)
                 dt = self.str_tday + self.GetCommRealData(code, 20)
             except Exception as e:
                 self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData 주식체결 {e}'])
@@ -415,10 +415,10 @@ class ReceiverKiwoom:
                     predt, bid_volumns, ask_volumns = self.dict_tick[code]
                 except KeyError:
                     predt, bid_volumns, ask_volumns = None, 0, 0
-                if v > 0:
-                    self.dict_tick[code] = [dt, bid_volumns + abs(v), ask_volumns]
-                else:
-                    self.dict_tick[code] = [dt, bid_volumns, ask_volumns + abs(v)]
+                if '+' in v:
+                    self.dict_tick[code] = [dt, bid_volumns + abs(int(v)), ask_volumns]
+                elif '-' in v:
+                    self.dict_tick[code] = [dt, bid_volumns, ask_volumns + abs(int(v))]
                 if dt != predt:
                     bids, asks = self.dict_tick[code][1:]
                     self.dict_tick[code] = [dt, 0, 0]

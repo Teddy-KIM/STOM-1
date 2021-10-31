@@ -419,7 +419,7 @@ class ReceiverXing:
                 predt, bid_volumns, ask_volumns = None, 0, 0
             if gubun == '+':
                 self.dict_tick[code] = [dt, bid_volumns + v, ask_volumns]
-            else:
+            elif gubun == '-':
                 self.dict_tick[code] = [dt, bid_volumns, ask_volumns + v]
             if dt != predt:
                 bids, asks = self.dict_tick[code][1:]
