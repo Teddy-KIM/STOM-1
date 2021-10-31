@@ -1,6 +1,7 @@
 import sys
 import psutil
 import logging
+import pyqtgraph as pg
 from PyQt5.QtTest import QTest
 from multiprocessing import Process, Queue, freeze_support
 from coin.receiver_upbit import WebsTicker, WebsOrderbook
@@ -82,6 +83,7 @@ class Window(QtWidgets.QMainWindow):
         self.chart4_data = None
         self.chart5_data = None
         self.chart6_data = None
+        self.close_line = None
 
         self.qtimer1 = QtCore.QTimer()
         self.qtimer1.setInterval(1000)
@@ -590,6 +592,10 @@ class Window(QtWidgets.QMainWindow):
             self.chart4 = self.ctpg_02.plot(x=xticks, y=df['최고체결강도'], pen=(200, 50, 50))
             self.chart5 = self.ctpg_03.plot(x=xticks, y=df['초당거래대금'], pen=(200, 50, 50))
             self.chart6 = self.ctpg_03.plot(x=xticks, y=df['초당거래대금평균'], pen=(50, 50, 200))
+            self.close_line = pg.InfiniteLine(angle=0)
+            self.close_line.setPen(pg.mkPen(color_fg_bt))
+            self.close_line.setPos(df['현재가'][-1])
+            self.ctpg_01.addItem(self.close_line)
             self.chart1_data = df['현재가']
             self.chart2_data = df['체결강도']
             self.chart3_data = df['체결강도평균']
@@ -631,6 +637,7 @@ class Window(QtWidgets.QMainWindow):
             self.chart4.setData(x=xticks, y=self.chart4_data)
             self.chart5.setData(x=xticks, y=self.chart5_data)
             self.chart6.setData(x=xticks, y=self.chart6_data)
+            self.close_line.setPos(df['현재가'][-1])
 
     def CheckboxChanged_01(self, state):
         if state == Qt.Checked:
