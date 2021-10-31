@@ -619,6 +619,7 @@ def SetUI(self):
     self.ct_dateEdit = QtWidgets.QDateEdit(self.ct_groupBox_01)
     self.ct_dateEdit.setDate(QtCore.QDate.currentDate())
     self.ct_dateEdit.setStyleSheet(style_bc_dk)
+    self.ct_dateEdit.setCalendarPopup(True)
     self.ct_labellll_01 = QtWidgets.QLabel('평균값계산틱수', self.ct_groupBox_01)
     self.ct_lineEdit_01 = setLineedit(self.ct_groupBox_01)
     self.ct_lineEdit_01.setStyleSheet(style_bc_dk)
@@ -656,9 +657,13 @@ def SetUI(self):
     ctpg_vboxLayout.setContentsMargins(3, 6, 3, 3)
     ctpg_vboxLayout.addWidget(ctpg)
 
-    self.ct_labellll_03 = QtWidgets.QLabel('현재가', self.ct_groupBox_02)
-    self.ct_labellll_04 = QtWidgets.QLabel('체결강도', self.ct_groupBox_02)
-    self.ct_labellll_05 = QtWidgets.QLabel('초당거래대금', self.ct_groupBox_02)
+    self.ct_labellll_03 = QtWidgets.QLabel('', self.ct_groupBox_02)
+    self.ct_labellll_04 = QtWidgets.QLabel('', self.ct_groupBox_02)
+    self.ct_labellll_05 = QtWidgets.QLabel('', self.ct_groupBox_02)
+
+    self.ct_labellll_06 = QtWidgets.QLabel('', self.ct_groupBox_02)
+    self.ct_labellll_07 = QtWidgets.QLabel('', self.ct_groupBox_02)
+    self.ct_labellll_08 = QtWidgets.QLabel('', self.ct_groupBox_02)
 
     self.dialog.setFixedSize(760, 1000)
     self.ct_groupBox_01.setGeometry(5, -10, 750, 62)
@@ -671,13 +676,13 @@ def SetUI(self):
     self.ct_lineEdit_02.setGeometry(520, 25, 120, 30)
     self.ct_pushButton_01.setGeometry(650, 25, 95, 30)
 
-    self.ct_labellll_03.setGeometry(30, 30, 200, 30)
-    self.ct_labellll_04.setGeometry(30, 345, 200, 30)
-    self.ct_labellll_05.setGeometry(30, 650, 200, 30)
+    self.ct_labellll_03.setGeometry(20, 40, 200, 15)
+    self.ct_labellll_04.setGeometry(20, 345, 200, 15)
+    self.ct_labellll_05.setGeometry(20, 650, 200, 15)
 
-    self.ct_labellll_03.setVisible(False)
-    self.ct_labellll_04.setVisible(False)
-    self.ct_labellll_05.setVisible(False)
+    self.ct_labellll_06.setGeometry(20, 65, 200, 15)
+    self.ct_labellll_07.setGeometry(20, 375, 200, 40)
+    self.ct_labellll_08.setGeometry(20, 680, 200, 25)
 
     self.setFixedSize(1403, 763)
     self.geometry().center()

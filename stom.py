@@ -438,25 +438,20 @@ class Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
             return
 
-        if not self.ct_labellll_03.isVisible():
-            self.ct_labellll_03.setVisible(True)
-            self.ct_labellll_04.setVisible(True)
-            self.ct_labellll_05.setVisible(True)
-
         def crosshair(main_pg, sub_pg1, sub_pg2):
             vLine1 = pyqtgraph.InfiniteLine()
-            vLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine1.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
             vLine2 = pyqtgraph.InfiniteLine()
-            vLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine2.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
             vLine3 = pyqtgraph.InfiniteLine()
-            vLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine3.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
 
             hLine1 = pyqtgraph.InfiniteLine(angle=0)
-            hLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine1.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
             hLine2 = pyqtgraph.InfiniteLine(angle=0)
-            hLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine2.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
             hLine3 = pyqtgraph.InfiniteLine(angle=0)
-            hLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine3.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
 
             main_pg.addItem(vLine1, ignoreBounds=True)
             main_pg.addItem(hLine1, ignoreBounds=True)
@@ -522,25 +517,20 @@ class Window(QtWidgets.QMainWindow):
             cstgQ.put('000000')
             return
 
-        if not self.ct_labellll_03.isVisible():
-            self.ct_labellll_03.setVisible(True)
-            self.ct_labellll_04.setVisible(True)
-            self.ct_labellll_05.setVisible(True)
-
         def crosshair(main_pg, sub_pg1, sub_pg2):
             vLine1 = pyqtgraph.InfiniteLine()
-            vLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine1.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
             vLine2 = pyqtgraph.InfiniteLine()
-            vLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine2.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
             vLine3 = pyqtgraph.InfiniteLine()
-            vLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine3.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
 
             hLine1 = pyqtgraph.InfiniteLine(angle=0)
-            hLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine1.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
             hLine2 = pyqtgraph.InfiniteLine(angle=0)
-            hLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine2.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
             hLine3 = pyqtgraph.InfiniteLine(angle=0)
-            hLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine3.setPen(pyqtgraph.mkPen(color_cs_hr, width=1))
 
             main_pg.addItem(vLine1, ignoreBounds=True)
             main_pg.addItem(hLine1, ignoreBounds=True)
@@ -557,21 +547,21 @@ class Window(QtWidgets.QMainWindow):
                 pos = evt[0]
                 if main_pg.sceneBoundingRect().contains(pos):
                     mousePoint = main_vb.mapSceneToView(pos)
-                    self.ct_labellll_03.setText(f"현재가 {format(round(mousePoint.y(), 2), ',')}")
+                    self.ct_labellll_03.setText(f"현재가+  {format(round(mousePoint.y(), 2), ',')}")
                     hLine1.setPos(mousePoint.y())
                     vLine1.setPos(mousePoint.x())
                     vLine2.setPos(mousePoint.x())
                     vLine3.setPos(mousePoint.x())
                 elif sub_pg1.sceneBoundingRect().contains(pos):
                     mousePoint = sub_vb1.mapSceneToView(pos)
-                    self.ct_labellll_04.setText(f"체결강도 {format(round(mousePoint.y(), 2), ',')}")
+                    self.ct_labellll_04.setText(f"체결강도+     {format(round(mousePoint.y(), 2), ',')}")
                     hLine2.setPos(mousePoint.y())
                     vLine1.setPos(mousePoint.x())
                     vLine2.setPos(mousePoint.x())
                     vLine3.setPos(mousePoint.x())
                 elif sub_pg2.sceneBoundingRect().contains(pos):
                     mousePoint = sub_vb2.mapSceneToView(pos)
-                    self.ct_labellll_05.setText(f"초당거래대금 {format(round(mousePoint.y(), 2), ',')}")
+                    self.ct_labellll_05.setText(f"초당거래대금+     {format(round(mousePoint.y(), 2), ',')}")
                     hLine3.setPos(mousePoint.y())
                     vLine1.setPos(mousePoint.x())
                     vLine3.setPos(mousePoint.x())
@@ -638,6 +628,12 @@ class Window(QtWidgets.QMainWindow):
             self.chart5.setData(x=xticks, y=self.chart5_data)
             self.chart6.setData(x=xticks, y=self.chart6_data)
             self.close_line.setPos(df['현재가'][-1])
+            self.ct_labellll_06.setText(f"현재가    {format(round(df['현재가'][-1], 2), ',')}")
+            self.ct_labellll_07.setText(f"최고체결강도 {format(round(df['최고체결강도'][-1], 2), ',')}\n"
+                                        f"체결강도평균 {format(round(df['체결강도평균'][-1], 2), ',')}\n"
+                                        f"체결강도       {format(round(df['체결강도'][-1], 2), ',')}")
+            self.ct_labellll_08.setText(f"초당거래대금평균 {format(df['초당거래대금평균'][-1], ',')}\n"
+                                        f"초당거래대금       {format(df['초당거래대금'][-1], ',')}")
 
     def CheckboxChanged_01(self, state):
         if state == Qt.Checked:

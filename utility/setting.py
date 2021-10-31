@@ -108,6 +108,8 @@ color_bg_bc = QColor(40, 40, 45)
 color_bg_dk = QColor(30, 30, 35)
 color_bg_bk = QColor(20, 20, 25)
 
+color_cs_hr = QColor(230, 230, 0)
+
 style_fc_bt = 'color: rgb(230, 230, 235);'
 style_bc_st = 'background-color: rgb(70, 70, 75);'
 style_bc_bt = 'background-color: rgb(50, 50, 55);'
