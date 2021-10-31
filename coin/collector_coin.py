@@ -20,7 +20,7 @@ class CollectorCoin:
         self.dict_set = DICT_SET
         self.dict_df = {}                   # 틱데이터 저장용 딕셔너리 key: code, value: datafame
         self.dict_ob = {}                   # 오더북 저장용 딕셔너리
-        self.time_save = timedelta_sec(60)  # 틱데이터 저장주기 확인용
+        self.time_save = timedelta_sec(int(self.dict_set['코인저장주기']))
         self.Start()
 
     def Start(self):

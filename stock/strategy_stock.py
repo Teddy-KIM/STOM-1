@@ -20,7 +20,9 @@ class StrategyStock:
         self.teleQ = qlist[4]
         self.stockQ = qlist[8]
         self.sstgQ = qlist[10]
+        self.chartQ = qlist[17]
         self.dict_set = DICT_SET
+        self.chart_name = None
 
         con = sqlite3.connect(DB_STOCK_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
@@ -60,7 +62,9 @@ class StrategyStock:
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 전략 연산 시작'])
         while True:
             data = self.sstgQ.get()
-            if type(data) == int:
+            if type(data) == str:
+                self.chart_name = data
+            elif type(data) == int:
                 self.int_tujagm = data
             elif type(data) == list:
                 if len(data) == 2:
@@ -89,11 +93,9 @@ class StrategyStock:
     def UpdateList(self, gubun, code):
         if '조건진입' in gubun:
             if code not in self.dict_gsjm.keys():
-                if int(strf_time('%H%M%S')) < 100000:
-                    data = np.zeros((self.dict_set['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
-                else:
-                    data = np.zeros((self.dict_set['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                data = np.zeros((301, len(columns_gj))).tolist()
                 df = pd.DataFrame(data, columns=columns_gj)
+                df['체결시간'] = strf_time('%Y%m%d%H%M%S')
                 self.dict_gsjm[code] = df.copy()
         elif gubun == '조건이탈':
             if code in self.dict_gsjm.keys():
@@ -146,15 +148,16 @@ class StrategyStock:
             평균값계산틱수 = self.dict_set['주식장초평균값계산틱수']
         else:
             평균값계산틱수 = self.dict_set['주식장중평균값계산틱수']
-        평균값인덱스 = 평균값계산틱수 + 1
 
         self.dict_gsjm[종목코드] = self.dict_gsjm[종목코드].shift(1)
-        self.dict_gsjm[종목코드].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 당일거래대금, 체결강도, 0.
         if self.dict_gsjm[종목코드]['체결강도'][평균값계산틱수] != 0.:
-            초당거래대금평균 = int(self.dict_gsjm[종목코드]['초당거래대금'][1:평균값인덱스].mean())
-            체결강도평균 = round(self.dict_gsjm[종목코드]['체결강도'][1:평균값인덱스].mean(), 2)
-            최고체결강도 = round(self.dict_gsjm[종목코드]['체결강도'][1:평균값인덱스].max(), 2)
-            self.dict_gsjm[종목코드].at[평균값인덱스] = 0., 0., 초당거래대금평균, 0, 체결강도평균, 최고체결강도
+            초당거래대금평균 = int(self.dict_gsjm[종목코드]['초당거래대금'][1:평균값계산틱수 + 1].mean())
+            체결강도평균 = round(self.dict_gsjm[종목코드]['체결강도'][1:평균값계산틱수 + 1].mean(), 2)
+            최고체결강도 = round(self.dict_gsjm[종목코드]['체결강도'][1:평균값계산틱수 + 1].max(), 2)
+            self.dict_gsjm[종목명].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 초당거래대금평균, 당일거래대금, \
+                체결강도, 체결강도평균, 최고체결강도, 현재가, 체결시간
+            if self.chart_name == 종목명:
+                self.chartQ.put([self.dict_gsjm[종목명], 종목명])
 
             매수 = True
             직전체결강도 = self.dict_gsjm[종목코드]['체결강도'][1]
@@ -182,6 +185,9 @@ class StrategyStock:
                         exec(self.buystrategy2, None, locals())
                     except Exception as e:
                         self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - BuyStrategy {e}'])
+        else:
+            self.dict_gsjm[종목명].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 0, 당일거래대금, \
+                체결강도, 0., 0., 현재가, 체결시간
 
         if now() > self.dict_time['연산시간']:
             gap = float2str1p6((now() - 틱수신시간).total_seconds())
@@ -222,20 +228,9 @@ class StrategyStock:
 
     def CheckStrategy(self):
         if int(strf_time('%H%M%S')) >= 100000 and not self.startjjstg:
-            self.UpdateGoansimJongmok()
             self.startjjstg = True
 
-    def UpdateGoansimJongmok(self):
-        for code in list(self.dict_gsjm.keys()):
-            if int(strf_time('%H%M%S')) < 100000:
-                data = np.zeros((self.dict_set['주식장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
-            else:
-                data = np.zeros((self.dict_set['주식장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
-            df = pd.DataFrame(data, columns=columns_gj)
-            self.dict_gsjm[code] = df.copy()
-
     def UpdateStrategy(self):
-        self.UpdateGoansimJongmok()
         con = sqlite3.connect(DB_STOCK_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')

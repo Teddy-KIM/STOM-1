@@ -161,9 +161,9 @@ def SetUI(self):
                 tableWidget.setColumnWidth(1, 55)
                 tableWidget.setColumnWidth(2, 55)
                 tableWidget.setColumnWidth(3, 90)
-                tableWidget.setColumnWidth(4, 126)
-                tableWidget.setColumnWidth(5, 55)
-                tableWidget.setColumnWidth(6, 90)
+                tableWidget.setColumnWidth(4, 90)
+                tableWidget.setColumnWidth(5, 126)
+                tableWidget.setColumnWidth(6, 55)
                 tableWidget.setColumnWidth(7, 55)
                 tableWidget.setColumnWidth(8, 55)
         elif columns[0] in ['기간', '일자']:

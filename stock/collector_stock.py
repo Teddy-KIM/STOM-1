@@ -30,7 +30,7 @@ class CollectorStock:
         self.dict_df = {}
         self.dict_time = {
             '기록시간': now(),
-            '저장시간': now()
+            '저장시간': timedelta_sec(int(self.dict_set['주식저장주기']))
         }
         self.time_info = now()
         self.str_tday = strf_time('%Y%m%d')

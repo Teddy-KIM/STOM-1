@@ -4,7 +4,7 @@ import sqlite3
 import numpy as np
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import now, strf_time, timedelta_sec, float2str1p6
+from utility.static import now, strf_time, timedelta_sec, float2str1p6, strp_time
 from utility.setting import DB_COIN_STRATEGY, DICT_SET, ui_num, columns_gj
 
 
@@ -20,7 +20,9 @@ class StrategyCoin:
         self.query2Q = qlist[3]
         self.coinQ = qlist[9]
         self.cstgQ = qlist[11]
+        self.chartQ = qlist[17]
         self.dict_set = DICT_SET
+        self.chart_name = None
 
         con = sqlite3.connect(DB_COIN_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
@@ -65,7 +67,9 @@ class StrategyCoin:
         self.windowQ.put([ui_num['C단순텍스트'], '시스템 명령 실행 알림 - 전략 연산 시작'])
         while True:
             data = self.cstgQ.get()
-            if type(data) == int:
+            if type(data) == str:
+                self.chart_name = data
+            elif type(data) == int:
                 self.int_tujagm = data
             elif type(data) == list:
                 if len(data) == 2:
@@ -88,11 +92,9 @@ class StrategyCoin:
     def UpdateList(self, gubun, code):
         if gubun == '조건진입':
             if code not in self.dict_gsjm.keys():
-                if 90000 < int(strf_time('%H%M%S')) < 100000:
-                    data = np.zeros((self.dict_set['코인장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
-                else:
-                    data = np.zeros((self.dict_set['코인장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
+                data = np.zeros((301, len(columns_gj))).tolist()
                 df = pd.DataFrame(data, columns=columns_gj)
+                df['체결시간'] = strf_time('%Y%m%d%H%M%S')
                 self.dict_gsjm[code] = df.copy()
         elif gubun == '조건이탈':
             if code in self.dict_gsjm.keys():
@@ -142,7 +144,6 @@ class StrategyCoin:
             평균값계산틱수 = self.dict_set['코인장초평균값계산틱수']
         else:
             평균값계산틱수 = self.dict_set['코인장중평균값계산틱수']
-        평균값인덱스 = 평균값계산틱수 + 1
 
         고저평균 = (고가 + 저가) / 2
         고저평균대비등락율 = round((현재가 / 고저평균 - 1) * 100, 2)
@@ -157,12 +158,14 @@ class StrategyCoin:
             체결강도 = 500.
 
         self.dict_gsjm[종목명] = self.dict_gsjm[종목명].shift(1)
-        self.dict_gsjm[종목명].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 당일거래대금, 체결강도, 0.
         if self.dict_gsjm[종목명]['체결강도'][평균값계산틱수] != 0.:
-            초당거래대금평균 = int(self.dict_gsjm[종목명]['초당거래대금'][1:평균값인덱스].mean())
-            체결강도평균 = round(self.dict_gsjm[종목명]['체결강도'][1:평균값인덱스].mean(), 2)
-            최고체결강도 = round(self.dict_gsjm[종목명]['체결강도'][1:평균값인덱스].max(), 2)
-            self.dict_gsjm[종목명].at[평균값인덱스] = 0., 0., 초당거래대금평균, 0, 체결강도평균, 최고체결강도
+            초당거래대금평균 = int(self.dict_gsjm[종목명]['초당거래대금'][1:평균값계산틱수 + 1].mean())
+            체결강도평균 = round(self.dict_gsjm[종목명]['체결강도'][1:평균값계산틱수 + 1].mean(), 2)
+            최고체결강도 = round(self.dict_gsjm[종목명]['체결강도'][1:평균값계산틱수 + 1].max(), 2)
+            self.dict_gsjm[종목명].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 초당거래대금평균, 당일거래대금, \
+                체결강도, 체결강도평균, 최고체결강도, 현재가, 체결시간
+            if self.chart_name == 종목명:
+                self.chartQ.put([self.dict_gsjm[종목명], 종목명])
 
             매수 = True
             직전체결강도 = self.dict_gsjm[종목명]['체결강도'][1]
@@ -176,7 +179,6 @@ class StrategyCoin:
                 매도호가5, 매도호가4, 매도호가3, 매도호가2, 매도호가1, 매수호가1, 매수호가2, 매수호가3, 매수호가4, 매수호가5,
                 매도잔량5, 매도잔량4, 매도잔량3, 매도잔량2, 매도잔량1, 매수잔량1, 매수잔량2, 매수잔량3, 매수잔량4, 매수잔량5
             ]
-
             if 잔고종목:
                 return
             if 종목명 in self.list_buy:
@@ -194,6 +196,9 @@ class StrategyCoin:
                         exec(self.buystrategy2, None, locals())
                     except Exception as e:
                         self.windowQ.put([ui_num['C단순텍스트'], f'전략스 설정 오류 알림 - BuyStrategy {e}'])
+        else:
+            self.dict_gsjm[종목명].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 0, 당일거래대금, \
+                체결강도, 0., 0., 현재가, 체결시간
 
         if now() > self.dict_time['연산시간']:
             gap = float2str1p6((now() - 수신시간).total_seconds())
@@ -235,26 +240,14 @@ class StrategyCoin:
     def CheckStrategy(self):
         if 90000 < int(strf_time('%H%M%S')) < 100000:
             if not self.dict_bool['장초전략시작']:
-                self.UpdateGoansimJongmok()
                 self.dict_bool['장초전략시작'] = True
                 self.dict_bool['장중전략시작'] = False
         else:
             if not self.dict_bool['장중전략시작']:
-                self.UpdateGoansimJongmok()
                 self.dict_bool['장중전략시작'] = True
                 self.dict_bool['장초전략시작'] = False
 
-    def UpdateGoansimJongmok(self):
-        for code in list(self.dict_gsjm.keys()):
-            if 90000 < int(strf_time('%H%M%S')) < 100000:
-                data = np.zeros((self.dict_set['코인장초평균값계산틱수'] + 2, len(columns_gj))).tolist()
-            else:
-                data = np.zeros((self.dict_set['코인장중평균값계산틱수'] + 2, len(columns_gj))).tolist()
-            df = pd.DataFrame(data, columns=columns_gj)
-            self.dict_gsjm[code] = df.copy()
-
     def UpdateStrategy(self):
-        self.UpdateGoansimJongmok()
         con = sqlite3.connect(DB_COIN_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
         dfs = pd.read_sql('SELECT * FROM sell', con).set_index('index')

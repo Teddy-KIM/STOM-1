@@ -8,7 +8,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5.QAxContainer import QAxWidget
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from utility.static import now, strf_time, strp_time, timedelta_sec, readEnc, parseDat, thread_decorator
+from utility.static import now, strf_time, strp_time, timedelta_sec, readEnc, parseDat
 from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, sn_oper, sn_brrq, \
     sn_brrd, DB_TRADELIST, DICT_SET
 
@@ -520,7 +520,6 @@ class TraderKiwoom:
                 cp = 0
             self.UpdateChejanData(code, name, ot, og, op, cp, oc, omc, on)
 
-    @thread_decorator
     def UpdateChejanData(self, code, name, ot, og, op, cp, oc, omc, on):
         if ot == '체결' and omc == 0 and cp != 0:
             if og == '매수':

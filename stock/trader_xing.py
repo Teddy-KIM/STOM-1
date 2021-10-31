@@ -5,7 +5,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from utility.xing import *
-from utility.static import now, strf_time, strp_time, timedelta_sec, thread_decorator
+from utility.static import now, strf_time, strp_time, timedelta_sec
 from utility.setting import columns_cj, columns_tj, columns_jg, columns_td, columns_tt, ui_num, dict_oper, \
     DB_TRADELIST, DICT_SET
 
@@ -449,7 +449,6 @@ class TraderXing:
         else:
             self.UpdateChejanData(code, name, '체결', og, op, cp, oc, omc, on)
 
-    @thread_decorator
     def UpdateChejanData(self, code, name, ot, og, op, cp, oc, omc, on):
         if ot == '체결' and omc == 0 and cp != 0:
             if og == '매수':

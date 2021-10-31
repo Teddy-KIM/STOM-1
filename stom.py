@@ -68,7 +68,20 @@ class Window(QtWidgets.QMainWindow):
         self.ct_lineEdit_02.setCompleter(QtWidgets.QCompleter(codenamelist))
 
         self.showQsize = False
+        self.chart_name = None
         self.backtester_proc = None
+        self.chart1 = None
+        self.chart2 = None
+        self.chart3 = None
+        self.chart4 = None
+        self.chart5 = None
+        self.chart6 = None
+        self.chart1_data = None
+        self.chart2_data = None
+        self.chart3_data = None
+        self.chart4_data = None
+        self.chart5_data = None
+        self.chart6_data = None
 
         self.qtimer1 = QtCore.QTimer()
         self.qtimer1.setInterval(1000)
@@ -90,6 +103,7 @@ class Window(QtWidgets.QMainWindow):
         self.writer.data2.connect(self.UpdateTablewidget)
         self.writer.data3.connect(self.UpdateGaonsimJongmok)
         self.writer.data4.connect(self.DrawChart)
+        self.writer.data5.connect(self.DrawRealChart)
         self.writer.start()
 
         self.receiver_coin_proc1 = Process(target=WebsTicker, args=(qlist,))
@@ -383,16 +397,8 @@ class Window(QtWidgets.QMainWindow):
 
         if gubun == ui_num['S관심종목']:
             gj_tableWidget = self.sgj_tableWidget
-            if int(strf_time('%H%M%S')) < 100000:
-                avgindex = self.dict_set['주식장초평균값계산틱수'] + 1
-            else:
-                avgindex = self.dict_set['주식장중평균값계산틱수'] + 1
         else:
             gj_tableWidget = self.cgj_tableWidget
-            if 90000 < int(strf_time('%H%M%S')) < 100000:
-                avgindex = self.dict_set['코인장초평균값계산틱수'] + 1
-            else:
-                avgindex = self.dict_set['코인장중평균값계산틱수'] + 1
 
         if len(dict_df) == 0:
             gj_tableWidget.clearContents()
@@ -408,23 +414,8 @@ class Window(QtWidgets.QMainWindow):
                 item.setTextAlignment(int(Qt.AlignVCenter | Qt.AlignLeft))
                 gj_tableWidget.setItem(j, 0, item)
 
-                smavg = dict_df[code]['초당거래대금'][avgindex]
-                item = QtWidgets.QTableWidgetItem(changeFormat(smavg, dotdowndel=True))
-                item.setTextAlignment(int(Qt.AlignVCenter | Qt.AlignRight))
-                gj_tableWidget.setItem(j, columns_gj_.index('sm_avg'), item)
-
-                chavg = dict_df[code]['체결강도'][avgindex]
-                item = QtWidgets.QTableWidgetItem(changeFormat(chavg))
-                item.setTextAlignment(int(Qt.AlignVCenter | Qt.AlignRight))
-                gj_tableWidget.setItem(j, columns_gj_.index('ch_avg'), item)
-
-                chhigh = dict_df[code]['최고체결강도'][avgindex]
-                item = QtWidgets.QTableWidgetItem(changeFormat(chhigh))
-                item.setTextAlignment(int(Qt.AlignVCenter | Qt.AlignRight))
-                gj_tableWidget.setItem(j, columns_gj_.index('ch_high'), item)
-
                 for i, column in enumerate(columns_gj[:-1]):
-                    if column in ['초당거래대금', '당일거래대금']:
+                    if column in ['초당거래대금', '초당거래대금평균', '당일거래대금']:
                         item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0], dotdowndel=True))
                     else:
                         item = QtWidgets.QTableWidgetItem(changeFormat(dict_df[code][column][0]))
@@ -439,7 +430,7 @@ class Window(QtWidgets.QMainWindow):
     def DrawChart(self, data):
         df = data[1]
         name = data[2]
-        unix_ts = data[3]
+        xticks = data[3]
 
         if type(df) == str:
             QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
@@ -507,14 +498,139 @@ class Window(QtWidgets.QMainWindow):
         self.ctpg_01.clear()
         self.ctpg_02.clear()
         self.ctpg_03.clear()
-        self.ctpg_01.plot(x=unix_ts, y=df['현재가'], pen=(200, 50, 50))
-        self.ctpg_02.plot(x=unix_ts, y=df['체결강도'], pen=(50, 200, 50))
-        self.ctpg_02.plot(x=unix_ts, y=df['체결강도평균'], pen=(50, 200, 200))
-        self.ctpg_02.plot(x=unix_ts, y=df['최고체결강도'], pen=(200, 50, 50))
-        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금'], pen=(200, 50, 50))
-        self.ctpg_03.plot(x=unix_ts, y=df['초당거래대금평균'], pen=(50, 50, 200))
+        self.ctpg_01.plot(x=xticks, y=df['현재가'], pen=(200, 50, 50))
+        self.ctpg_02.plot(x=xticks, y=df['체결강도'], pen=(50, 200, 50))
+        self.ctpg_02.plot(x=xticks, y=df['체결강도평균'], pen=(50, 200, 200))
+        self.ctpg_02.plot(x=xticks, y=df['최고체결강도'], pen=(200, 50, 50))
+        self.ctpg_03.plot(x=xticks, y=df['초당거래대금'], pen=(200, 50, 50))
+        self.ctpg_03.plot(x=xticks, y=df['초당거래대금평균'], pen=(50, 50, 200))
         self.ctpg_01.getAxis('bottom').setLabel(text=name)
         crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
+        self.ctpg_01.enableAutoRange(enable=True)
+        self.ctpg_02.enableAutoRange(enable=True)
+        self.ctpg_03.enableAutoRange(enable=True)
+        self.chart_name = '000000'
+
+    def DrawRealChart(self, data):
+        df = data[1]
+        name = data[2]
+
+        if not self.dialog.isVisible():
+            sstgQ.put('000000')
+            cstgQ.put('000000')
+            return
+
+        if not self.ct_labellll_03.isVisible():
+            self.ct_labellll_03.setVisible(True)
+            self.ct_labellll_04.setVisible(True)
+            self.ct_labellll_05.setVisible(True)
+
+        def crosshair(main_pg, sub_pg1, sub_pg2):
+            vLine1 = pyqtgraph.InfiniteLine()
+            vLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine2 = pyqtgraph.InfiniteLine()
+            vLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            vLine3 = pyqtgraph.InfiniteLine()
+            vLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+
+            hLine1 = pyqtgraph.InfiniteLine(angle=0)
+            hLine1.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine2 = pyqtgraph.InfiniteLine(angle=0)
+            hLine2.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+            hLine3 = pyqtgraph.InfiniteLine(angle=0)
+            hLine3.setPen(pyqtgraph.mkPen(color_fg_bt, width=1))
+
+            main_pg.addItem(vLine1, ignoreBounds=True)
+            main_pg.addItem(hLine1, ignoreBounds=True)
+            sub_pg1.addItem(vLine2, ignoreBounds=True)
+            sub_pg1.addItem(hLine2, ignoreBounds=True)
+            sub_pg2.addItem(vLine3, ignoreBounds=True)
+            sub_pg2.addItem(hLine3, ignoreBounds=True)
+
+            main_vb = main_pg.getViewBox()
+            sub_vb1 = sub_pg1.getViewBox()
+            sub_vb2 = sub_pg2.getViewBox()
+
+            def mouseMoved(evt):
+                pos = evt[0]
+                if main_pg.sceneBoundingRect().contains(pos):
+                    mousePoint = main_vb.mapSceneToView(pos)
+                    self.ct_labellll_03.setText(f"현재가 {format(round(mousePoint.y(), 2), ',')}")
+                    hLine1.setPos(mousePoint.y())
+                    vLine1.setPos(mousePoint.x())
+                    vLine2.setPos(mousePoint.x())
+                    vLine3.setPos(mousePoint.x())
+                elif sub_pg1.sceneBoundingRect().contains(pos):
+                    mousePoint = sub_vb1.mapSceneToView(pos)
+                    self.ct_labellll_04.setText(f"체결강도 {format(round(mousePoint.y(), 2), ',')}")
+                    hLine2.setPos(mousePoint.y())
+                    vLine1.setPos(mousePoint.x())
+                    vLine2.setPos(mousePoint.x())
+                    vLine3.setPos(mousePoint.x())
+                elif sub_pg2.sceneBoundingRect().contains(pos):
+                    mousePoint = sub_vb2.mapSceneToView(pos)
+                    self.ct_labellll_05.setText(f"초당거래대금 {format(round(mousePoint.y(), 2), ',')}")
+                    hLine3.setPos(mousePoint.y())
+                    vLine1.setPos(mousePoint.x())
+                    vLine3.setPos(mousePoint.x())
+                    vLine2.setPos(mousePoint.x())
+
+            main_pg.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+            sub_pg1.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+            sub_pg2.proxy = pyqtgraph.SignalProxy(main_pg.scene().sigMouseMoved, rateLimit=20, slot=mouseMoved)
+
+        if self.chart_name != name:
+            self.ctpg_01.clear()
+            self.ctpg_02.clear()
+            self.ctpg_03.clear()
+            xticks = [x.timestamp() - 32400 for x in df.index]
+            self.chart1 = self.ctpg_01.plot(x=xticks, y=df['현재가'], pen=(200, 50, 50))
+            self.chart2 = self.ctpg_02.plot(x=xticks, y=df['체결강도'], pen=(50, 200, 50))
+            self.chart3 = self.ctpg_02.plot(x=xticks, y=df['체결강도평균'], pen=(50, 200, 200))
+            self.chart4 = self.ctpg_02.plot(x=xticks, y=df['최고체결강도'], pen=(200, 50, 50))
+            self.chart5 = self.ctpg_03.plot(x=xticks, y=df['초당거래대금'], pen=(200, 50, 50))
+            self.chart6 = self.ctpg_03.plot(x=xticks, y=df['초당거래대금평균'], pen=(50, 50, 200))
+            self.chart1_data = df['현재가']
+            self.chart2_data = df['체결강도']
+            self.chart3_data = df['체결강도평균']
+            self.chart4_data = df['최고체결강도']
+            self.chart5_data = df['초당거래대금']
+            self.chart6_data = df['초당거래대금평균']
+            self.ctpg_01.getAxis('bottom').setLabel(text=name)
+            crosshair(main_pg=self.ctpg_01, sub_pg1=self.ctpg_02, sub_pg2=self.ctpg_03)
+            self.ctpg_01.enableAutoRange(enable=True)
+            self.ctpg_02.enableAutoRange(enable=True)
+            self.ctpg_03.enableAutoRange(enable=True)
+            self.chart_name = name
+        else:
+            count = len(df)
+            if len(self.chart1_data) >= 300:
+                pdf1 = self.chart1_data[count:]
+                pdf2 = self.chart2_data[count:]
+                pdf3 = self.chart3_data[count:]
+                pdf4 = self.chart4_data[count:]
+                pdf5 = self.chart5_data[count:]
+                pdf6 = self.chart6_data[count:]
+            else:
+                pdf1 = self.chart1_data
+                pdf2 = self.chart2_data
+                pdf3 = self.chart3_data
+                pdf4 = self.chart4_data
+                pdf5 = self.chart5_data
+                pdf6 = self.chart6_data
+            self.chart1_data = pdf1.append(df['현재가'])
+            self.chart2_data = pdf2.append(df['체결강도'])
+            self.chart3_data = pdf3.append(df['체결강도평균'])
+            self.chart4_data = pdf4.append(df['최고체결강도'])
+            self.chart5_data = pdf5.append(df['초당거래대금'])
+            self.chart6_data = pdf6.append(df['초당거래대금평균'])
+            xticks = [x.timestamp() - 32400 for x in self.chart1_data.index]
+            self.chart1.setData(x=xticks, y=self.chart1_data)
+            self.chart2.setData(x=xticks, y=self.chart2_data)
+            self.chart3.setData(x=xticks, y=self.chart3_data)
+            self.chart4.setData(x=xticks, y=self.chart4_data)
+            self.chart5.setData(x=xticks, y=self.chart5_data)
+            self.chart6.setData(x=xticks, y=self.chart6_data)
 
     def CheckboxChanged_01(self, state):
         if state == Qt.Checked:
@@ -625,8 +741,8 @@ class Window(QtWidgets.QMainWindow):
             self.sj_coin_checkBox_01.nextCheckState()
             QtWidgets.QMessageBox.critical(self, '오류 알림', '트레이더 실행 중에는 모의모드를 해제할 수 없습니다.\n')
 
-    @QtCore.pyqtSlot(int)
-    def CellClicked_01(self, row):
+    @QtCore.pyqtSlot(int, int)
+    def CellClicked_01(self, row, col):
         tableWidget = None
         if self.focusWidget() == self.std_tableWidget:
             tableWidget = self.std_tableWidget
@@ -649,7 +765,7 @@ class Window(QtWidgets.QMainWindow):
         name = item.text()
         linetext = self.ct_lineEdit_01.text()
         tickcount = int(linetext) if linetext != '' else 60
-        self.PutChart(name, tickcount, strf_time('%Y%m%d'))
+        self.PutChart(name, tickcount, strf_time('%Y%m%d'), col)
 
     @QtCore.pyqtSlot(int)
     def CellClicked_02(self, row):
@@ -700,7 +816,7 @@ class Window(QtWidgets.QMainWindow):
         name = item.text()
         linetext = self.ct_lineEdit_01.text()
         tickcount = int(linetext) if linetext != '' else 60
-        self.PutChart(name, tickcount, searchdate)
+        self.PutChart(name, tickcount, searchdate, 4)
 
     def ShowDialog(self):
         if not self.dialog.isVisible():
@@ -713,9 +829,9 @@ class Window(QtWidgets.QMainWindow):
         name = self.ct_lineEdit_02.text()
         if name == '':
             return
-        self.PutChart(name, int(tickcount), searchdate)
+        self.PutChart(name, int(tickcount), searchdate, 4)
 
-    def PutChart(self, name, tickcount, searchdate):
+    def PutChart(self, name, tickcount, searchdate, col):
         coin = False
         if name in self.dict_code.keys():
             code = self.dict_code[name]
@@ -725,7 +841,14 @@ class Window(QtWidgets.QMainWindow):
         else:
             code = name
             coin = True
-        chartQ.put([coin, code, name, tickcount, searchdate])
+
+        if col < 4:
+            if coin:
+                cstgQ.put(code)
+            else:
+                sstgQ.put(code)
+        else:
+            chartQ.put([coin, code, name, tickcount, searchdate])
 
     def ButtonClicked_01(self):
         if self.main_tabWidget.currentWidget() == self.st_tab:
@@ -1807,6 +1930,7 @@ class Writer(QtCore.QThread):
     data2 = QtCore.pyqtSignal(list)
     data3 = QtCore.pyqtSignal(list)
     data4 = QtCore.pyqtSignal(list)
+    data5 = QtCore.pyqtSignal(list)
 
     def __init__(self):
         super().__init__()
@@ -1826,6 +1950,8 @@ class Writer(QtCore.QThread):
                 self.data3.emit(data)
             elif data[0] == 40:
                 self.data4.emit(data)
+            elif data[0] == 41:
+                self.data5.emit(data)
 
 
 if __name__ == '__main__':
