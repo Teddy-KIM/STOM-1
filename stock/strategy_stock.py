@@ -154,10 +154,10 @@ class StrategyStock:
             초당거래대금평균 = int(self.dict_gsjm[종목코드]['초당거래대금'][1:평균값계산틱수 + 1].mean())
             체결강도평균 = round(self.dict_gsjm[종목코드]['체결강도'][1:평균값계산틱수 + 1].mean(), 2)
             최고체결강도 = round(self.dict_gsjm[종목코드]['체결강도'][1:평균값계산틱수 + 1].max(), 2)
-            self.dict_gsjm[종목명].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 초당거래대금평균, 당일거래대금, \
+            self.dict_gsjm[종목코드].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 초당거래대금평균, 당일거래대금, \
                 체결강도, 체결강도평균, 최고체결강도, 현재가, 체결시간
             if self.chart_name == 종목명:
-                self.chartQ.put([self.dict_gsjm[종목명], 종목명])
+                self.chartQ.put([self.dict_gsjm[종목코드], 종목명])
 
             매수 = True
             직전체결강도 = self.dict_gsjm[종목코드]['체결강도'][1]
@@ -186,7 +186,7 @@ class StrategyStock:
                     except Exception as e:
                         self.windowQ.put([ui_num['S단순텍스트'], f'전략스 설정 오류 알림 - BuyStrategy {e}'])
         else:
-            self.dict_gsjm[종목명].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 0, 당일거래대금, \
+            self.dict_gsjm[종목코드].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 0, 당일거래대금, \
                 체결강도, 0., 0., 현재가, 체결시간
 
         if now() > self.dict_time['연산시간']:
