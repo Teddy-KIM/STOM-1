@@ -470,7 +470,7 @@ class Window(QtWidgets.QMainWindow):
                                 item.setForeground(color_fg_bt)
                             else:
                                 item.setForeground(color_fg_dk)
-                        elif j == 21:
+                        elif j == 11:
                             if df[column][index] > df[column][0]:
                                 item.setForeground(color_fg_bt)
                             else:
