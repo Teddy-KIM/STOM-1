@@ -80,6 +80,8 @@ class Chart:
                             df = df[['현재가', '체결강도', '체결강도평균', '최고체결강도', '초당거래대금', '초당거래대금평균']].copy()
                             self.windowQ.put([ui_num['차트'], df, name, xticks])
                             self.chart_name = '000000'
+                            self.cstgQ.put('000000')
+                            self.sstgQ.put('000000')
                         except Exception as e:
                             text = f'시스템 명령 오류 알림 - Chart {e}'
                             if coin:
