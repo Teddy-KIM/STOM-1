@@ -108,9 +108,13 @@ color_bg_bc = QColor(40, 40, 45)
 color_bg_dk = QColor(30, 30, 35)
 color_bg_bk = QColor(20, 20, 25)
 
+color_bf_bt = QColor(110, 110, 115)
+color_bf_dk = QColor(70, 70, 75)
+
 color_cs_hr = QColor(230, 230, 0)
 
 style_fc_bt = 'color: rgb(230, 230, 235);'
+style_fc_dk = 'color: rgb(150, 150, 155);'
 style_bc_st = 'background-color: rgb(70, 70, 75);'
 style_bc_bt = 'background-color: rgb(50, 50, 55);'
 style_bc_dk = 'background-color: rgb(30, 30, 35);'
@@ -124,7 +128,9 @@ ui_num = {'설정텍스트': 0, 'S단순텍스트': 1, 'S로그텍스트': 2, 'S
           'S당일합계': 16, 'S당일상세': 17, 'S누적합계': 18, 'S누적상세': 19, 'S관심종목': 20,
           'C실현손익': 21, 'C거래목록': 22, 'C잔고평가': 23, 'C잔고목록': 24, 'C체결목록': 25,
           'C당일합계': 26, 'C당일상세': 27, 'C누적합계': 28, 'C누적상세': 29, 'C관심종목': 30,
-          '차트': 40, '실시간차트': 41}
+          '차트': 40, '실시간차트': 41,
+          'S호가종목': 42, 'S호가체결': 43, 'S호가잔량': 44,
+          'C호가종목': 45, 'C호가체결': 46, 'C호가잔량': 47}
 
 columns_tt = ['거래횟수', '총매수금액', '총매도금액', '총수익금액', '총손실금액', '수익률', '수익금합계']
 columns_td = ['종목명', '매수금액', '매도금액', '주문수량', '수익률', '수익금', '체결시간']
@@ -145,6 +151,10 @@ columns_sm = ['증권사', '주식리시버', '주식콜렉터', '주식트레�
 columns_sk = ['아이디1', '비밀번호1', '인증서비밀번호1', '계좌비밀번호1', '아이디2', '비밀번호2', '인증서비밀번호2', '계좌비밀번호2']
 columns_su = ['Access_key', 'Secret_key']
 columns_st = ['str_bot', 'int_id']
+
+columns_hj = ['종목명', '현재가', '등락율', 'UVI', '시가', '고가', '저가']
+columns_hc = ['체결수량', '체결강도']
+columns_hg = ['잔량', '호가']
 
 stock_buy_var = '''"""
 def BuyStrategy(self, *args)

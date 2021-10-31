@@ -34,8 +34,8 @@ class ReceiverKiwoom:
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
-                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
-                   10    11      12      13      14      15      16      17
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ, hogaQ]
+                   10    11      12      13      14      15      16      17     18
         """
         self.windowQ = qlist[0]
         self.query1Q = qlist[2]
@@ -47,6 +47,7 @@ class ReceiverKiwoom:
         self.tick2Q = qlist[13]
         self.tick3Q = qlist[14]
         self.tick4Q = qlist[15]
+        self.hogaQ = qlist[18]
         self.dict_set = DICT_SET
 
         self.dict_bool = {
@@ -68,6 +69,7 @@ class ReceiverKiwoom:
         self.dict_cond = {}
         self.dict_name = {}
         self.dict_code = {}
+        self.dict_sghg = {}
 
         self.list_gsjm1 = []
         self.list_gsjm2 = []
@@ -80,6 +82,7 @@ class ReceiverKiwoom:
         self.list_code2 = None
         self.list_code3 = None
         self.list_code4 = None
+        self.hoga_code = None
 
         self.df_tr = None
         self.dict_item = None
@@ -180,17 +183,20 @@ class ReceiverKiwoom:
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
     def UpdateJangolist(self, data):
-        code = data.split(' ')[1]
-        if '잔고편입' in data and code not in self.list_jang:
-            self.list_jang.append(code)
-            if code not in self.list_gsjm2:
-                self.sstgQ.put(['조건진입', code])
-                self.list_gsjm2.append(code)
-        elif '잔고청산' in data and code in self.list_jang:
-            self.list_jang.remove(code)
-            if code not in self.list_gsjm1 and code in self.list_gsjm2:
-                self.sstgQ.put(['조건이탈', code])
-                self.list_gsjm2.remove(code)
+        if '잔고편입' in data or '잔고청산' in data:
+            code = data.split(' ')[1]
+            if '잔고편입' in data and code not in self.list_jang:
+                self.list_jang.append(code)
+                if code not in self.list_gsjm2:
+                    self.sstgQ.put(['조건진입', code])
+                    self.list_gsjm2.append(code)
+            elif '잔고청산' in data and code in self.list_jang:
+                self.list_jang.remove(code)
+                if code not in self.list_gsjm1 and code in self.list_gsjm2:
+                    self.sstgQ.put(['조건이탈', code])
+                    self.list_gsjm2.remove(code)
+        else:
+            self.hoga_code = data
 
     def UpdateDictset(self, data):
         self.dict_set = data
@@ -398,8 +404,14 @@ class ReceiverKiwoom:
             try:
                 c = abs(int(self.GetCommRealData(code, 10)))
                 o = abs(int(self.GetCommRealData(code, 16)))
+                h = abs(int(self.GetCommRealData(code, 17)))
+                low = abs(int(self.GetCommRealData(code, 18)))
+                per = float(self.GetCommRealData(code, 12))
+                dm = int(self.GetCommRealData(code, 14))
                 v = self.GetCommRealData(code, 15)
                 dt = self.str_tday + self.GetCommRealData(code, 20)
+                ch = float(self.GetCommRealData(code, 228))
+                name = self.GetMasterCodeName(code)
             except Exception as e:
                 self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData 주식체결 {e}'])
             else:
@@ -407,33 +419,31 @@ class ReceiverKiwoom:
                     self.operation = 3
                 if dt != self.str_jcct and int(dt) > int(self.str_jcct):
                     self.str_jcct = dt
+
                 if code not in self.dict_vipr.keys():
                     self.InsertViPrice(code, o)
-                if code in self.dict_vipr.keys() and not self.dict_vipr[code][0] and now() > self.dict_vipr[code][1]:
+                elif not self.dict_vipr[code][0] and now() > self.dict_vipr[code][1]:
                     self.UpdateViPrice(code, c)
+
                 try:
                     predt, bid_volumns, ask_volumns = self.dict_tick[code]
                 except KeyError:
                     predt, bid_volumns, ask_volumns = None, 0, 0
+
                 if '+' in v:
                     self.dict_tick[code] = [dt, bid_volumns + abs(int(v)), ask_volumns]
                 elif '-' in v:
                     self.dict_tick[code] = [dt, bid_volumns, ask_volumns + abs(int(v))]
+
+                if self.hoga_code == code:
+                    self.hogaQ.put([code, c, per, self.dict_vipr[code][2], o, h, low])
+                    self.hogaQ.put([code, int(v), ch])
+
                 if dt != predt:
                     bids, asks = self.dict_tick[code][1:]
                     self.dict_tick[code] = [dt, 0, 0]
-                    try:
-                        h = abs(int(self.GetCommRealData(code, 17)))
-                        low = abs(int(self.GetCommRealData(code, 18)))
-                        per = float(self.GetCommRealData(code, 12))
-                        dm = int(self.GetCommRealData(code, 14))
-                        ch = float(self.GetCommRealData(code, 228))
-                        name = self.GetMasterCodeName(code)
-                    except Exception as e:
-                        self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData 주식체결 {e}'])
-                    else:
-                        if code in self.dict_hoga.keys():
-                            self.UpdateTickData(code, name, c, o, h, low, per, dm, ch, bids, asks, dt, now())
+                    if code in self.dict_hoga.keys():
+                        self.UpdateTickData(code, name, c, o, h, low, per, dm, ch, bids, asks, dt, now())
         elif realtype == '주식호가잔량':
             try:
                 tsjr = int(self.GetCommRealData(code, 121))
@@ -454,6 +464,11 @@ class ReceiverKiwoom:
                 self.dict_hoga[code] = [tsjr, tbjr,
                                         s5hg, s4hg, s3hg, s2hg, s1hg, b1hg, b2hg, b3hg, b4hg, b5hg,
                                         s5jr, s4jr, s3jr, s2jr, s1jr, b1jr, b2jr, b3jr, b4jr, b5jr]
+
+                if self.hoga_code == code:
+                    if code not in self.dict_sghg.keys():
+                        self.dict_sghg[code] = [self.GetSangHahanga(code)]
+                    self.hogaQ.put([code] + self.dict_hoga[code] + self.dict_sghg[code])
 
     def InsertViPrice(self, code, o):
         uvi, dvi, vid5price = self.GetVIPrice(code, o)
@@ -538,6 +553,18 @@ class ReceiverKiwoom:
             elif code in self.list_code4:
                 self.tick4Q.put(data)
 
+    def GetSangHahanga(self, code):
+        predayclose = self.GetMasterLastPrice(code)
+        uplimitprice = predayclose * 1.30
+        x = self.GetHogaunit(code, uplimitprice)
+        if uplimitprice % x != 0:
+            uplimitprice -= uplimitprice % x
+        downlimitprice = predayclose * 0.70
+        x = self.GetHogaunit(code, downlimitprice)
+        if downlimitprice % x != 0:
+            downlimitprice += x - downlimitprice % x
+        return int(uplimitprice), int(downlimitprice)
+
     def OnReceiveTrData(self, screen, rqname, trcode, record, nnext):
         if screen == '' and record == '':
             return
@@ -606,3 +633,6 @@ class ReceiverKiwoom:
 
     def GetCommRealData(self, code, fid):
         return self.ocx.dynamicCall('GetCommRealData(QString, int)', code, fid)
+
+    def GetMasterLastPrice(self, code):
+        return int(self.ocx.dynamicCall('GetMasterLastPrice(QString)', code))

@@ -5,7 +5,7 @@ from utility import syntax
 from utility.static import CustomViewBox
 from utility.setting import qfont12, qfont14, style_bc_st, style_bc_bt, style_bc_dk, style_fc_bt, style_pgbar, \
     columns_tt, columns_td, columns_tj, columns_jg, columns_gj_, columns_cj, columns_dt, columns_dd, columns_nt, \
-    columns_nd, ICON_PATH, style_bc_by, style_bc_sl
+    columns_nd, ICON_PATH, style_bc_by, style_bc_sl, columns_hj, columns_hc, columns_hg, style_fc_dk
 
 
 class TabBar(QtWidgets.QTabBar):
@@ -83,6 +83,13 @@ def SetUI(self):
         if tip is not None:
             pushbutton.setToolTip(tip)
         return pushbutton
+
+    def setLine(tab, width):
+        line = QtWidgets.QFrame(tab)
+        line.setLineWidth(width)
+        line.setStyleSheet(style_fc_dk)
+        line.setFrameShape(QtWidgets.QFrame.HLine)
+        return line
 
     def setTextEdit(tab):
         textedit = QtWidgets.QTextEdit(tab)
@@ -199,6 +206,17 @@ def SetUI(self):
             tableWidget.setColumnWidth(4, 105)
             tableWidget.setColumnWidth(5, 105)
             tableWidget.setColumnWidth(6, 90)
+        elif columns == columns_hj:
+            tableWidget.setColumnWidth(0, 140)
+            tableWidget.setColumnWidth(1, 140)
+            tableWidget.setColumnWidth(2, 140)
+            tableWidget.setColumnWidth(3, 140)
+            tableWidget.setColumnWidth(4, 140)
+            tableWidget.setColumnWidth(5, 140)
+            tableWidget.setColumnWidth(6, 140)
+        elif columns == columns_hc or columns == columns_hg:
+            tableWidget.setColumnWidth(0, 140)
+            tableWidget.setColumnWidth(1, 140)
         else:
             tableWidget.setColumnWidth(0, 126)
             tableWidget.setColumnWidth(1, 90)
@@ -223,6 +241,15 @@ def SetUI(self):
     icon_accdel = QtGui.QIcon(f'{ICON_PATH}/accdel.png')
     icon_stocks = QtGui.QIcon(f'{ICON_PATH}/stocks.png')
     icon_coins = QtGui.QIcon(f'{ICON_PATH}/coins.png')
+
+    self.icon_open = QtGui.QIcon(f'{ICON_PATH}/open.bmp')
+    self.icon_high = QtGui.QIcon(f'{ICON_PATH}/high.bmp')
+    self.icon_low = QtGui.QIcon(f'{ICON_PATH}/low.bmp')
+    self.icon_up = QtGui.QIcon(f'{ICON_PATH}/up.bmp')
+    self.icon_down = QtGui.QIcon(f'{ICON_PATH}/down.bmp')
+    self.icon_vi = QtGui.QIcon(f'{ICON_PATH}/vi.bmp')
+    self.icon_totals = QtGui.QIcon(f'{ICON_PATH}/totals.bmp')
+    self.icon_totalb = QtGui.QIcon(f'{ICON_PATH}/totalb.bmp')
 
     self.setFont(qfont12)
     self.setWindowTitle('STOM')
@@ -261,7 +288,8 @@ def SetUI(self):
     self.dd_pushButton = setPushbutton('', click=self.ButtonClicked_04, icon=icon_dbdel, tip='  거래목록 데이터 삭제 및 초기화')
     self.sd_pushButton = setPushbutton('', click=self.ButtonClicked_05, icon=icon_accdel, tip='  모든 계정 설정 삭제 및 초기화')
     self.qs_pushButton = setPushbutton('', click=self.ShowQsize)
-    self.ct_pushButton = setPushbutton('', click=self.ShowDialog)
+    self.ct_pushButton = setPushbutton('', click=self.ShowDialogChart)
+    self.hg_pushButton = setPushbutton('', click=self.ShowDialogHoga)
     self.tt_pushButton.setShortcut('Alt+T')
     self.ms_pushButton.setShortcut('Alt+S')
     self.zo_pushButton.setShortcut('Alt+Z')
@@ -269,6 +297,7 @@ def SetUI(self):
     self.sd_pushButton.setShortcut('Alt+A')
     self.qs_pushButton.setShortcut('Alt+Q')
     self.ct_pushButton.setShortcut('Alt+C')
+    self.hg_pushButton.setShortcut('Alt+H')
 
     self.progressBar = QtWidgets.QProgressBar(self)
     self.progressBar.setAlignment(Qt.AlignCenter)
@@ -611,14 +640,14 @@ def SetUI(self):
     self.sj_save_pushButton_05 = setPushbutton('저장하기', box=self.sj_groupBox_05, click=self.ButtonClicked_81)
     self.sj_save_pushButton_06 = setPushbutton('저장하기', box=self.sj_groupBox_06, click=self.ButtonClicked_82)
 
-    self.dialog = QtWidgets.QDialog()
-    self.dialog.setWindowTitle('STOM CHART')
-    self.dialog.setWindowModality(Qt.NonModal)
-    self.dialog.setWindowIcon(QtGui.QIcon(f'{ICON_PATH}/python.png'))
-    self.dialog.geometry().center()
+    self.dialog_chart = QtWidgets.QDialog()
+    self.dialog_chart.setWindowTitle('STOM CHART')
+    self.dialog_chart.setWindowModality(Qt.NonModal)
+    self.dialog_chart.setWindowIcon(QtGui.QIcon(f'{ICON_PATH}/python.png'))
+    self.dialog_chart.geometry().center()
 
-    self.ct_groupBox_01 = QtWidgets.QGroupBox(' ', self.dialog)
-    self.ct_groupBox_02 = QtWidgets.QGroupBox(' ', self.dialog)
+    self.ct_groupBox_01 = QtWidgets.QGroupBox(' ', self.dialog_chart)
+    self.ct_groupBox_02 = QtWidgets.QGroupBox(' ', self.dialog_chart)
 
     self.ct_dateEdit = QtWidgets.QDateEdit(self.ct_groupBox_01)
     self.ct_dateEdit.setDate(QtCore.QDate.currentDate())
@@ -668,24 +697,16 @@ def SetUI(self):
     self.ct_labellll_07 = QtWidgets.QLabel('', self.ct_groupBox_02)
     self.ct_labellll_08 = QtWidgets.QLabel('', self.ct_groupBox_02)
 
-    self.dialog.setFixedSize(760, 1000)
-    self.ct_groupBox_01.setGeometry(5, -10, 750, 62)
-    self.ct_groupBox_02.setGeometry(5, 40, 750, 955)
+    self.dialog_hoga = QtWidgets.QDialog()
+    self.dialog_hoga.setWindowTitle('STOM HOGA')
+    self.dialog_hoga.setWindowModality(Qt.NonModal)
+    self.dialog_hoga.setWindowIcon(QtGui.QIcon(f'{ICON_PATH}/python.png'))
+    self.dialog_hoga.geometry().center()
 
-    self.ct_dateEdit.setGeometry(10, 25, 160, 30)
-    self.ct_labellll_01.setGeometry(190, 25, 90, 30)
-    self.ct_lineEdit_01.setGeometry(290, 25, 80, 30)
-    self.ct_labellll_02.setGeometry(390, 25, 120, 30)
-    self.ct_lineEdit_02.setGeometry(520, 25, 120, 30)
-    self.ct_pushButton_01.setGeometry(650, 25, 95, 30)
-
-    self.ct_labellll_03.setGeometry(20, 40, 200, 15)
-    self.ct_labellll_04.setGeometry(20, 345, 200, 15)
-    self.ct_labellll_05.setGeometry(20, 650, 200, 15)
-
-    self.ct_labellll_06.setGeometry(20, 65, 200, 15)
-    self.ct_labellll_07.setGeometry(20, 375, 200, 40)
-    self.ct_labellll_08.setGeometry(20, 680, 200, 25)
+    self.hj_tableWidget = setTablewidget(self.dialog_hoga, columns_hj, 1)
+    self.hc_tableWidget = setTablewidget(self.dialog_hoga, columns_hc, 12)
+    self.hg_tableWidget = setTablewidget(self.dialog_hoga, columns_hg, 12)
+    self.hg_line = setLine(self.dialog_hoga, 1)
 
     self.setFixedSize(1403, 763)
     self.geometry().center()
@@ -698,6 +719,7 @@ def SetUI(self):
     self.sd_pushButton.setGeometry(5, 724, 35, 32)
     self.qs_pushButton.setGeometry(0, 0, 0, 0)
     self.ct_pushButton.setGeometry(0, 0, 0, 0)
+    self.hg_pushButton.setGeometry(0, 0, 0, 0)
 
     self.stt_tableWidget.setGeometry(5, 5, 668, 42)
     self.std_tableWidget.setGeometry(5, 52, 668, 320)
@@ -945,3 +967,28 @@ def SetUI(self):
     self.sj_save_pushButton_04.setGeometry(1260, 30, 70, 22)
     self.sj_save_pushButton_05.setGeometry(1260, 30, 70, 22)
     self.sj_save_pushButton_06.setGeometry(1260, 30, 70, 22)
+
+    self.dialog_chart.setFixedSize(760, 1000)
+    self.ct_groupBox_01.setGeometry(5, -10, 750, 62)
+    self.ct_groupBox_02.setGeometry(5, 40, 750, 955)
+
+    self.ct_dateEdit.setGeometry(10, 25, 160, 30)
+    self.ct_labellll_01.setGeometry(190, 25, 90, 30)
+    self.ct_lineEdit_01.setGeometry(290, 25, 80, 30)
+    self.ct_labellll_02.setGeometry(390, 25, 120, 30)
+    self.ct_lineEdit_02.setGeometry(520, 25, 120, 30)
+    self.ct_pushButton_01.setGeometry(650, 25, 95, 30)
+
+    self.ct_labellll_03.setGeometry(20, 40, 200, 15)
+    self.ct_labellll_04.setGeometry(20, 345, 200, 15)
+    self.ct_labellll_05.setGeometry(20, 650, 200, 15)
+
+    self.ct_labellll_06.setGeometry(20, 65, 200, 15)
+    self.ct_labellll_07.setGeometry(20, 375, 200, 40)
+    self.ct_labellll_08.setGeometry(20, 680, 200, 25)
+
+    self.dialog_hoga.setFixedSize(572, 355)
+    self.hj_tableWidget.setGeometry(5, 5, 562, 42)
+    self.hc_tableWidget.setGeometry(5, 52, 282, 297)
+    self.hg_tableWidget.setGeometry(285, 52, 282, 297)
+    self.hg_line.setGeometry(5, 209, 562, 1)

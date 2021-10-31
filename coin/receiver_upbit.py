@@ -24,6 +24,7 @@ class WebsTicker:
         self.coinQ = qlist[9]
         self.cstgQ = qlist[11]
         self.tick5Q = qlist[16]
+        self.hogaQ = qlist[18]
         self.dict_set = DICT_SET
 
         self.dict_cdjm = {}
@@ -43,6 +44,7 @@ class WebsTicker:
 
         self.str_jcct = strf_time('%Y%m%d') + '000000'
         self.dt_mtct = None
+        self.hoga_code = None
         self.websQ_ticker = None
         self.codes = None
 
@@ -59,9 +61,12 @@ class WebsTicker:
         while True:
             if not self.creceiv1Q.empty():
                 data = self.creceiv1Q.get()
-                if type(data) == str and data == 'terminate':
-                    self.websQ_ticker.terminate()
-                    break
+                if type(data) == str:
+                    if data == 'terminate':
+                        self.websQ_ticker.terminate()
+                        break
+                    else:
+                        self.hoga_code = data
                 elif type(data) == list:
                     self.UpdateJangolist(data)
                 elif type(data) == dict:
@@ -79,31 +84,41 @@ class WebsTicker:
                 dt = strf_time('%Y%m%d%H%M%S', timedelta_hour(9, strp_time('%Y%m%d%H%M%S', dt)))
                 if dt != self.str_jcct and int(dt) > int(self.str_jcct):
                     self.str_jcct = dt
+
                 try:
-                    pret = dict_tsbc[code][0]
-                    bids = dict_tsbc[code][1]
-                    asks = dict_tsbc[code][2]
+                    pret, bids, asks = dict_tsbc[code]
                 except KeyError:
-                    pret = None
-                    bids = 0
-                    asks = 0
+                    pret, bids, asks = None, 0, 0
                 if gubun == 'BID':
-                    dict_tsbc[code] = [dt, bids + float(v), asks]
+                    dict_tsbc[code] = [dt, bids + v, asks]
                 else:
-                    dict_tsbc[code] = [dt, bids, asks + float(v)]
+                    dict_tsbc[code] = [dt, bids, asks + v]
+                    v = -v
+
+                tbids = data['acc_bid_volume']
+                tasks = data['acc_ask_volume']
+                c = data['trade_price']
+                o = data['opening_price']
+                h = data['high_price']
+                low = data['low_price']
+                per = round(data['signed_change_rate'] * 100, 2)
+                try:
+                    ch = round(tbids / tasks * 100, 2)
+                except ZeroDivisionError:
+                    ch = 500.
+                if ch > 500:
+                    ch = 500.
+
+                if self.hoga_code == code:
+                    self.hogaQ.put([code, c, per, 0, o, h, low])
+                    self.hogaQ.put([code, v, ch])
+
                 if dt != pret:
-                    c = data['trade_price']
-                    o = data['opening_price']
-                    h = data['high_price']
-                    low = data['low_price']
-                    per = round(data['signed_change_rate'] * 100, 2)
                     dm = data['acc_trade_price']
                     bids = dict_tsbc[code][1]
                     asks = dict_tsbc[code][2]
-                    tbids = data['acc_bid_volume']
-                    tasks = data['acc_ask_volume']
                     dict_tsbc[code] = [dt, 0, 0]
-                    self.UpdateTickData(c, o, h, low, per, dm, bids, asks, tbids, tasks, code, dt, now())
+                    self.UpdateTickData(c, o, h, low, per, dm, ch, bids, asks, tbids, tasks, code, dt, now())
 
                 if now() > self.dict_time['거래대금순위기록']:
                     if len(self.list_gsjm1) > 0:
@@ -208,7 +223,7 @@ class WebsTicker:
             self.df_mt = pd.DataFrame(columns=['거래대금순위'])
             self.dict_time['거래대금순위저장'] = timedelta_sec(10)
 
-    def UpdateTickData(self, c, o, h, low, per, dm, bids, asks, tbids, tasks, code, dt, receivetime):
+    def UpdateTickData(self, c, o, h, low, per, dm, ch, bids, asks, tbids, tasks, code, dt, receivetime):
         dt_ = dt[:13]
         if code not in self.dict_cdjm.keys():
             columns = ['10초누적거래대금', '10초전당일거래대금']
@@ -223,7 +238,7 @@ class WebsTicker:
                     self.df_mc.drop(index=code, inplace=True)
                 self.dict_cdjm[code].drop(index=self.dict_cdjm[code].index[0], inplace=True)
 
-        data = [c, o, h, low, per, dm, bids, asks, tbids, tasks, code, dt, receivetime]
+        data = [c, o, h, low, per, dm, ch, bids, asks, tbids, tasks, code, dt, receivetime]
         if self.dict_set['코인트레이더'] and code in self.list_gsjm2:
             injango = code in self.list_jang
             self.cstgQ.put(data + [injango])
@@ -231,6 +246,7 @@ class WebsTicker:
                 self.coinQ.put([code, c])
 
         if self.dict_set['코인콜렉터']:
+            del data[6]
             self.tick5Q.put(data)
 
 
@@ -239,16 +255,18 @@ class WebsOrderbook:
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
-                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
-                   10    11      12      13      14      15      16      17
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ, hogaQ]
+                   10    11      12      13      14      15      16      17     18
         """
         self.windowQ = qlist[0]
         self.creceiv2Q = qlist[7]
         self.coinQ = qlist[9]
         self.cstgQ = qlist[11]
         self.tick5Q = qlist[16]
+        self.hogaQ = qlist[18]
         self.dict_set = DICT_SET
         self.time_tickers = now()
+        self.hoga_code = None
         self.websQ_order = None
         self.Start()
 
@@ -265,9 +283,12 @@ class WebsOrderbook:
         while True:
             if not self.creceiv2Q.empty():
                 data = self.creceiv2Q.get()
-                if type(data) == str and data == 'terminate':
-                    self.websQ_order.terminate()
-                    break
+                if type(data) == str:
+                    if data == 'terminate':
+                        self.websQ_order.terminate()
+                        break
+                    else:
+                        self.hoga_code = data
                 elif type(data) == dict:
                     self.dict_set = data
 
@@ -306,6 +327,8 @@ class WebsOrderbook:
                     self.tick5Q.put(data)
                 if self.dict_set['코인트레이더']:
                     self.cstgQ.put(data)
+                if self.hoga_code == code:
+                    self.hogaQ.put(data)
 
             if now() > self.time_tickers:
                 codes2 = pyupbit.get_tickers(fiat="KRW")

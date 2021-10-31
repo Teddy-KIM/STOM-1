@@ -6,8 +6,8 @@ class Sound:
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
-                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
-                   10    11      12      13      14      15      16      17
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ, hogaQ]
+                   10    11      12      13      14      15      16      17     18
         """
         self.soundQ = qlist[1]
         self.text2speak = pyttsx3.init()

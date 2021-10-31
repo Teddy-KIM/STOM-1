@@ -13,8 +13,8 @@ class StrategyCoin:
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
-                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
-                   10    11      12      13      14      15      16      17
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ, hogaQ]
+                   10    11      12      13      14      15      16      17     18
         """
         self.windowQ = qlist[0]
         self.query2Q = qlist[3]
@@ -76,9 +76,9 @@ class StrategyCoin:
                     self.UpdateList(data[0], data[1])
                 elif len(data) == 23:
                     self.UpdateOrderbook(data)
-                elif len(data) == 14:
+                elif len(data) == 15:
                     self.BuyStrategy(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
-                                     data[8], data[9], data[10], data[11], data[12], data[13])
+                                     data[8], data[9], data[10], data[11], data[12], data[13], data[14])
                 elif len(data) == 5:
                     self.SellStrategy(data[0], data[1], data[2], data[3], data[4])
             elif type(data) == dict:
@@ -133,7 +133,7 @@ class StrategyCoin:
         data.remove(code)
         self.dict_hgjr[code] = data
 
-    def BuyStrategy(self, 현재가, 시가, 고가, 저가, 등락율, 당일거래대금, 초당매수수량, 초당매도수량,
+    def BuyStrategy(self, 현재가, 시가, 고가, 저가, 등락율, 당일거래대금, 체결강도, 초당매수수량, 초당매도수량,
                     누적매수량, 누적매도량, 종목명, 체결시간, 수신시간, 잔고종목):
         if 종목명 not in self.dict_gsjm.keys():
             return
@@ -149,13 +149,6 @@ class StrategyCoin:
         고저평균대비등락율 = round((현재가 / 고저평균 - 1) * 100, 2)
         직전당일거래대금 = self.dict_gsjm[종목명]['당일거래대금'][0]
         초당거래대금 = 0 if 직전당일거래대금 == 0 else int(당일거래대금 - 직전당일거래대금)
-
-        try:
-            체결강도 = round(누적매수량 / 누적매도량 * 100, 2)
-        except ZeroDivisionError:
-            체결강도 = 500.
-        if 체결강도 > 500:
-            체결강도 = 500.
 
         self.dict_gsjm[종목명] = self.dict_gsjm[종목명].shift(1)
         if self.dict_gsjm[종목명]['체결강도'][평균값계산틱수] != 0.:

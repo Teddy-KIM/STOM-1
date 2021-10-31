@@ -32,8 +32,8 @@ class ReceiverXing:
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
-                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
-                   10    11      12      13      14      15      16      17
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ, hogaQ]
+                   10    11      12      13      14      15      16      17     18
         """
         self.windowQ = qlist[0]
         self.query1Q = qlist[2]
@@ -45,6 +45,7 @@ class ReceiverXing:
         self.tick2Q = qlist[13]
         self.tick3Q = qlist[14]
         self.tick4Q = qlist[15]
+        self.hogaQ = qlist[18]
         self.dict_set = DICT_SET
 
         self.dict_bool = {
@@ -59,6 +60,7 @@ class ReceiverXing:
         self.dict_hoga = {}
         self.dict_name = {}
         self.dict_code = {}
+        self.dict_sghg = {}
 
         self.list_gsjm1 = []
         self.list_gsjm2 = []
@@ -72,12 +74,14 @@ class ReceiverXing:
         self.list_code2 = None
         self.list_code3 = None
         self.list_code4 = None
+        self.hoga_code = None
 
         self.df_mt = pd.DataFrame(columns=['거래대금순위'])
         self.df_mc = pd.DataFrame(columns=['최근거래대금'])
         self.operation = 1
         self.str_tday = strf_time('%Y%m%d')
         self.str_jcct = self.str_tday + '090000'
+        self.df_pc = None
         self.dt_mtct = None
 
         remaintime = (strp_time('%Y%m%d%H%M%S', self.str_tday + '090100') - now()).total_seconds()
@@ -143,19 +147,21 @@ class ReceiverXing:
 
         df = []
         df2 = self.xaq.BlockRequest("t8430", gubun=2)
-        df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
+        df2.rename(columns={'shcode': 'index', 'hname': '종목명', 'jnilclose': '전일종가'}, inplace=True)
         df2 = df2.set_index('index')
         df.append(df2)
 
         self.list_kosd = list(df2.index)
 
         df2 = self.xaq.BlockRequest("t8430", gubun=1)
-        df2.rename(columns={'shcode': 'index', 'hname': '종목명'}, inplace=True)
+        df2.rename(columns={'shcode': 'index', 'hname': '종목명', 'jnilclose': '전일종가'}, inplace=True)
         df2 = df2.set_index('index')
         df.append(df2)
 
         df = pd.concat(df)
+        self.df_pc = df[['전일종가']].copy()
         df = df[['종목명']].copy()
+        print(self.df_pc)
 
         for code in list(df.index):
             name = df['종목명'][code]
@@ -187,17 +193,20 @@ class ReceiverXing:
         self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - OpenAPI 로그인 완료'])
 
     def UpdateJangolist(self, data):
-        code = data.split(' ')[1]
-        if '잔고편입' in data and code not in self.list_jang:
-            self.list_jang.append(code)
-            if code not in self.list_gsjm2:
-                self.sstgQ.put(['조건진입', code])
-                self.list_gsjm2.append(code)
-        elif '잔고청산' in data and code in self.list_jang:
-            self.list_jang.remove(code)
-            if code not in self.list_gsjm1 and code in self.list_gsjm2:
-                self.sstgQ.put(['조건이탈', code])
-                self.list_gsjm2.remove(code)
+        if '잔고편입' in data or '잔고청산' in data:
+            code = data.split(' ')[1]
+            if '잔고편입' in data and code not in self.list_jang:
+                self.list_jang.append(code)
+                if code not in self.list_gsjm2:
+                    self.sstgQ.put(['조건진입', code])
+                    self.list_gsjm2.append(code)
+            elif '잔고청산' in data and code in self.list_jang:
+                self.list_jang.remove(code)
+                if code not in self.list_gsjm1 and code in self.list_gsjm2:
+                    self.sstgQ.put(['조건이탈', code])
+                    self.list_gsjm2.remove(code)
+        else:
+            self.hoga_code = data
 
     def UpdateDictset(self, data):
         self.dict_set = data
@@ -399,9 +408,15 @@ class ReceiverXing:
             code = data['shcode']
             c = int(data['price'])
             o = int(data['open'])
+            h = int(data['high'])
+            low = int(data['low'])
             v = int(data['cvolume'])
             gubun = data['cgubun']
+            per = float(data['drate'])
+            dm = int(data['value'])
+            ch = float(data['cpower'])
             dt = self.str_tday + data['chetime']
+            name = self.dict_name[code]
         except Exception as e:
             self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData {e}'])
         else:
@@ -409,10 +424,12 @@ class ReceiverXing:
                 self.operation = 21
             if dt != self.str_jcct and int(dt) > int(self.str_jcct):
                 self.str_jcct = dt
+
             if code not in self.dict_vipr.keys():
                 self.InsertViPrice(code, o)
             elif not self.dict_vipr[code][0] and now() > self.dict_vipr[code][1]:
                 self.UpdateViPrice(code, c)
+
             try:
                 predt, bid_volumns, ask_volumns = self.dict_tick[code]
             except KeyError:
@@ -421,21 +438,17 @@ class ReceiverXing:
                 self.dict_tick[code] = [dt, bid_volumns + v, ask_volumns]
             elif gubun == '-':
                 self.dict_tick[code] = [dt, bid_volumns, ask_volumns + v]
+                v = -v
+
+            if self.hoga_code == code:
+                self.hogaQ.put([code, c, per, self.dict_vipr[code][2], o, h, low])
+                self.hogaQ.put([code, v, ch])
+
             if dt != predt:
                 bids, asks = self.dict_tick[code][1:]
                 self.dict_tick[code] = [dt, 0, 0]
-                try:
-                    h = int(data['high'])
-                    low = int(data['low'])
-                    per = float(data['drate'])
-                    dm = int(data['value'])
-                    ch = float(data['cpower'])
-                    name = self.dict_name[code]
-                except Exception as e:
-                    self.windowQ.put([ui_num['S단순텍스트'], f'OnReceiveRealData {e}'])
-                else:
-                    if code in self.dict_hoga.keys():
-                        self.UpdateTickData(code, name, c, o, h, low, per, dm, ch, bids, asks, dt, now())
+                if code in self.dict_hoga.keys():
+                    self.UpdateTickData(code, name, c, o, h, low, per, dm, ch, bids, asks, dt, now())
 
     def OnReceiveHogaData(self, data):
         try:
@@ -452,6 +465,11 @@ class ReceiverXing:
             self.dict_hoga[code] = [tsjr, tbjr,
                                     s5hg, s4hg, s3hg, s2hg, s1hg, b1hg, b2hg, b3hg, b4hg, b5hg,
                                     s5jr, s4jr, s3jr, s2jr, s1jr, b1jr, b2jr, b3jr, b4jr, b5jr]
+
+            if self.hoga_code == code:
+                if code not in self.dict_sghg.keys():
+                    self.dict_sghg[code] = [self.GetSangHahanga(code)]
+                self.hogaQ.put([code] + self.dict_hoga[code] + self.dict_sghg[code])
 
     def InsertViPrice(self, code, o):
         uvi, dvi, vid5price = self.GetVIPrice(code, o)
@@ -535,3 +553,15 @@ class ReceiverXing:
                 self.tick3Q.put(data)
             elif code in self.list_code4:
                 self.tick4Q.put(data)
+
+    def GetSangHahanga(self, code):
+        predayclose = self.df_pc['전일종가'][code]
+        uplimitprice = predayclose * 1.30
+        x = self.GetHogaunit(code, uplimitprice)
+        if uplimitprice % x != 0:
+            uplimitprice -= uplimitprice % x
+        downlimitprice = predayclose * 0.70
+        x = self.GetHogaunit(code, downlimitprice)
+        if downlimitprice % x != 0:
+            downlimitprice += x - downlimitprice % x
+        return int(uplimitprice), int(downlimitprice)

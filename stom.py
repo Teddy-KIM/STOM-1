@@ -18,6 +18,7 @@ from backtester.backtester_coin_vc import BacktesterCoinVcMain
 from backtester.backtester_coin_stg import BackTesterCoinStgMain
 from backtester.backtester_stock_vc import BacktesterStockVcMain
 from backtester.backtester_stock_stg import BackTesterStockStgMain
+from utility.hoga import Hoga
 from utility.setui import *
 from utility.sound import Sound
 from utility.query import Query
@@ -329,6 +330,17 @@ class Window(QtWidgets.QMainWindow):
             tableWidget = self.cnt_tableWidget
         elif gubun == ui_num['C누적상세']:
             tableWidget = self.cns_tableWidget
+        elif gubun in [ui_num['C호가종목'], ui_num['S호가종목']]:
+            tableWidget = self.hj_tableWidget
+        elif gubun in [ui_num['C호가체결'], ui_num['S호가체결']]:
+            if not self.dialog_hoga.isVisible():
+                sreceivQ.put('000000')
+                creceiv1Q.put('000000')
+                creceiv2Q.put('000000')
+                return
+            tableWidget = self.hc_tableWidget
+        elif gubun in [ui_num['C호가잔량'], ui_num['S호가잔량']]:
+            tableWidget = self.hg_tableWidget
         if tableWidget is None:
             return
 
@@ -352,7 +364,9 @@ class Window(QtWidgets.QMainWindow):
                     item = QtWidgets.QTableWidgetItem(str(df[column][index]))
                 elif (gubun == ui_num['C잔고목록'] and column == '보유수량') or \
                         (gubun == ui_num['C체결목록'] and column == '주문수량') or \
-                        (gubun == ui_num['C거래목록'] and column == '주문수량'):
+                        (gubun == ui_num['C거래목록'] and column == '주문수량') or \
+                        (gubun == ui_num['C호가체결'] and column == '체결수량') or \
+                        (gubun == ui_num['C호가잔량'] and column == '잔량'):
                     item = QtWidgets.QTableWidgetItem(changeFormat(df[column][index], dotdown8=True))
                 elif (gubun == ui_num['C잔고목록'] and column in ['매입가', '현재가']) or \
                         (gubun == ui_num['C체결목록'] and column in ['체결가', '주문가격']):
@@ -370,6 +384,43 @@ class Window(QtWidgets.QMainWindow):
                 else:
                     item.setTextAlignment(int(Qt.AlignVCenter | Qt.AlignRight))
 
+                if gubun in [ui_num['C호가체결'], ui_num['S호가체결']]:
+                    if column == '체결수량':
+                        if j == 0:
+                            item.setIcon(self.icon_totalb)
+                        elif j == 11:
+                            item.setIcon(self.icon_totals)
+                    elif column == '체결강도':
+                        if j == 0:
+                            item.setIcon(self.icon_up)
+                        elif j == 11:
+                            item.setIcon(self.icon_down)
+                elif gubun in [ui_num['C호가잔량'], ui_num['S호가잔량']]:
+                    if column == '잔량':
+                        if j == 0:
+                            item.setIcon(self.icon_totalb)
+                        elif j == 11:
+                            item.setIcon(self.icon_totals)
+                    elif column == '호가':
+                        if j == 0:
+                            item.setIcon(self.icon_up)
+                        elif j == 11:
+                            item.setIcon(self.icon_down)
+                        else:
+                            if self.hj_tableWidget.item(0, 0) is not None:
+                                o = comma2int(self.hj_tableWidget.item(0, columns_hj.index('시가')).text())
+                                h = comma2int(self.hj_tableWidget.item(0, columns_hj.index('고가')).text())
+                                low = comma2int(self.hj_tableWidget.item(0, columns_hj.index('저가')).text())
+                                uvi = comma2int(self.hj_tableWidget.item(0, columns_hj.index('UVI')).text())
+                                if df[column][index] == o:
+                                    item.setIcon(self.icon_open)
+                                elif df[column][index] == h:
+                                    item.setIcon(self.icon_high)
+                                elif df[column][index] == low:
+                                    item.setIcon(self.icon_low)
+                                elif df[column][index] == uvi:
+                                    item.setIcon(self.icon_vi)
+
                 if '수익률' in df.columns:
                     if df['수익률'][index] >= 0:
                         item.setForeground(color_fg_bt)
@@ -382,6 +433,57 @@ class Window(QtWidgets.QMainWindow):
                         item.setForeground(color_fg_dk)
                     elif df['주문구분'][index] in ['매도취소', '매수취소']:
                         item.setForeground(color_fg_bc)
+                elif gubun in [ui_num['C호가체결'], ui_num['S호가체결']]:
+                    if column == '체결수량':
+                        if j == 0:
+                            if df[column][index] > df[column][11]:
+                                item.setForeground(color_fg_bt)
+                            else:
+                                item.setForeground(color_fg_dk)
+                        elif j == 11:
+                            if df[column][index] > df[column][0]:
+                                item.setForeground(color_fg_bt)
+                            else:
+                                item.setForeground(color_fg_dk)
+                        else:
+                            if self.hg_tableWidget.item(0, 0) is not None and \
+                                    self.hg_tableWidget.item(5, columns_hg.index('호가')).text() != '':
+                                c = comma2int(self.hg_tableWidget.item(5, columns_hg.index('호가')).text())
+                                if df[column][index] > 0:
+                                    item.setForeground(color_fg_bt)
+                                    if df[column][index] * c > 90000000:
+                                        item.setBackground(color_bf_bt)
+                                elif df[column][index] < 0:
+                                    item.setForeground(color_fg_dk)
+                                    if df[column][index] * c < -90000000:
+                                        item.setBackground(color_bf_dk)
+                    elif column == '체결강도':
+                        if df[column][index] >= 100:
+                            item.setForeground(color_fg_bt)
+                        else:
+                            item.setForeground(color_fg_dk)
+                elif gubun in [ui_num['C호가잔량'], ui_num['S호가잔량']]:
+                    if column == '잔량':
+                        if j == 0:
+                            if df[column][index] > df[column][11]:
+                                item.setForeground(color_fg_bt)
+                            else:
+                                item.setForeground(color_fg_dk)
+                        elif j == 21:
+                            if df[column][index] > df[column][0]:
+                                item.setForeground(color_fg_bt)
+                            else:
+                                item.setForeground(color_fg_dk)
+                        elif j < 11:
+                            item.setForeground(color_fg_bt)
+                        else:
+                            item.setForeground(color_fg_dk)
+                    elif column == '호가':
+                        if column == '호가' and df[column][index] != 0:
+                            if self.hj_tableWidget.item(0, 0) is not None:
+                                c = comma2int(self.hj_tableWidget.item(0, columns_hj.index('현재가')).text())
+                                if j not in [0, 11] and df[column][index] == c:
+                                    item.setBackground(color_bf_bt)
                 tableWidget.setItem(j, i, item)
 
         if len(df) < 13 and gubun in [ui_num['S거래목록'], ui_num['S잔고목록'], ui_num['C거래목록'], ui_num['C잔고목록']]:
@@ -435,7 +537,7 @@ class Window(QtWidgets.QMainWindow):
         xticks = data[3]
 
         if type(df) == str:
-            QtWidgets.QMessageBox.critical(self.dialog, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
+            QtWidgets.QMessageBox.critical(self.dialog_chart, '오류 알림', '해당 날짜의 데이터가 존재하지 않습니다.\n')
             return
 
         def crosshair(main_pg, sub_pg1, sub_pg2):
@@ -512,7 +614,7 @@ class Window(QtWidgets.QMainWindow):
         df = data[1]
         name = data[2]
 
-        if not self.dialog.isVisible():
+        if not self.dialog_chart.isVisible():
             sstgQ.put('000000')
             cstgQ.put('000000')
             return
@@ -769,7 +871,7 @@ class Window(QtWidgets.QMainWindow):
             self.ct_lineEdit_01.setText('60')
         self.ct_lineEdit_02.setText(name)
         tickcount = int(self.ct_lineEdit_01.text())
-        self.ShowDialog()
+        self.ShowDialogChart()
         self.PutChart(name, tickcount, strf_time('%Y%m%d'), col)
 
     @QtCore.pyqtSlot(int)
@@ -820,12 +922,16 @@ class Window(QtWidgets.QMainWindow):
         name = item.text()
         linetext = self.ct_lineEdit_01.text()
         tickcount = int(linetext) if linetext != '' else 60
-        self.ShowDialog()
+        self.ShowDialogChart()
         self.PutChart(name, tickcount, searchdate, 4)
 
-    def ShowDialog(self):
-        if not self.dialog.isVisible():
-            self.dialog.show()
+    def ShowDialogChart(self):
+        if not self.dialog_chart.isVisible():
+            self.dialog_chart.show()
+
+    def ShowDialogHoga(self):
+        if not self.dialog_hoga.isVisible():
+            self.dialog_hoga.show()
 
     def ReturnPress_01(self):
         searchdate = self.ct_dateEdit.date().toString('yyyyMMdd')
@@ -852,8 +958,20 @@ class Window(QtWidgets.QMainWindow):
                 cstgQ.put(code)
             else:
                 sstgQ.put(code)
+            if self.dialog_hoga.isVisible():
+                if coin:
+                    creceiv1Q.put(code)
+                    creceiv2Q.put(code)
+                else:
+                    sreceivQ.put(code)
+                self.ct_labellll_06.setVisible(True)
+                self.ct_labellll_07.setVisible(True)
+                self.ct_labellll_08.setVisible(True)
         else:
             chartQ.put([coin, code, name, tickcount, searchdate])
+            self.ct_labellll_06.setVisible(False)
+            self.ct_labellll_07.setVisible(False)
+            self.ct_labellll_08.setVisible(False)
 
     def ButtonClicked_01(self):
         if self.main_tabWidget.currentWidget() == self.st_tab:
@@ -1886,9 +2004,12 @@ class Window(QtWidgets.QMainWindow):
             query_proc1.kill()
             query_proc2.kill()
             chart_proc.kill()
+            hoga_proc.kill()
             tele_proc.kill()
-            if self.dialog.isVisible():
-                self.dialog.close()
+            if self.dialog_chart.isVisible():
+                self.dialog_chart.close()
+            if self.dialog_hoga.isVisible():
+                self.dialog_hoga.close()
             if self.qtimer1.isActive():
                 self.qtimer1.stop()
             if self.qtimer2.isActive():
@@ -1945,7 +2066,7 @@ class Writer(QtCore.QThread):
             data = windowQ.get()
             if data[0] <= 10:
                 self.data1.emit(data)
-            elif data[0] < 20:
+            elif data[0] < 20 or 42 <= data[0] <= 47:
                 self.data2.emit(data)
             elif data[0] == 20:
                 self.data3.emit(data)
@@ -1962,20 +2083,23 @@ class Writer(QtCore.QThread):
 if __name__ == '__main__':
     freeze_support()
     windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ, sstgQ, cstgQ, tick1Q, \
-        tick2Q, tick3Q, tick4Q, tick5Q, chartQ, backQ = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
-        Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue()
-    qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q,
-             stockQ, coinQ, sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
+        tick2Q, tick3Q, tick4Q, tick5Q, chartQ, backQ, hogaQ = Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
+        Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), Queue(), \
+        Queue(), Queue()
+    qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
+             sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ, hogaQ]
 
     sound_proc = Process(target=Sound, args=(qlist,), daemon=True)
     query_proc1 = Process(target=Query, args=(qlist,), daemon=True)
     query_proc2 = Process(target=QueryTick, args=(qlist,), daemon=True)
     chart_proc = Process(target=Chart, args=(qlist,), daemon=True)
+    hoga_proc = Process(target=Hoga, args=(qlist,), daemon=True)
     tele_proc = Process(target=TelegramMsg, args=(qlist,), daemon=True)
     sound_proc.start()
     query_proc1.start()
     query_proc2.start()
     chart_proc.start()
+    hoga_proc.start()
     tele_proc.start()
 
     app = QtWidgets.QApplication(sys.argv)

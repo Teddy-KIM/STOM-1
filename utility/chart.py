@@ -9,8 +9,8 @@ class Chart:
         """
                     0        1       2        3       4       5          6          7        8      9
         qlist = [windowQ, soundQ, query1Q, query2Q, teleQ, sreceivQ, creceiv1Q, creceiv2Q, stockQ, coinQ,
-                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ]
-                   10    11      12      13      14      15      16      17
+                 sstgQ, cstgQ, tick1Q, tick2Q, tick3Q, tick4Q, tick5Q, chartQ, hogaQ]
+                   10    11      12      13      14      15      16      17     18
         """
         self.windowQ = qlist[0]
         self.sstgQ = qlist[10]
@@ -79,9 +79,9 @@ class Chart:
                             xticks = [x.timestamp() - 32400 for x in df.index]
                             df = df[['현재가', '체결강도', '체결강도평균', '최고체결강도', '초당거래대금', '초당거래대금평균']].copy()
                             self.windowQ.put([ui_num['차트'], df, name, xticks])
-                            self.chart_name = '000000'
-                            self.cstgQ.put('000000')
-                            self.sstgQ.put('000000')
+                            self.chart_name = ''
+                            self.cstgQ.put('')
+                            self.sstgQ.put('')
                         except Exception as e:
                             text = f'시스템 명령 오류 알림 - Chart {e}'
                             if coin:
