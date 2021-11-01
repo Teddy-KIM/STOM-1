@@ -278,6 +278,7 @@ class ReceiverKiwoom:
                 self.DeleteGsjmlist(code)
         self.list_prmt = list_top
         self.qtimer2.start()
+        self.windowQ.put([ui_num['S단순텍스트'], '시스템 명령 실행 알림 - 장중 단타 전략 시작'])
 
     def RemoveAllRealreg(self):
         self.SetRealRemove(['ALL', 'ALL'])
