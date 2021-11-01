@@ -471,7 +471,8 @@ class ReceiverXing:
 
             if self.hoga_code == code:
                 if code not in self.dict_sghg.keys():
-                    self.dict_sghg[code] = [self.GetSangHahanga(code)]
+                    shg, hhg = self.GetSangHahanga(code)
+                    self.dict_sghg[code] = [shg, hhg]
                 self.hogaQ.put([code] + self.dict_hoga[code] + self.dict_sghg[code])
 
     def InsertViPrice(self, code, o):

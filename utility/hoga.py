@@ -111,10 +111,14 @@ class Hoga:
             self.InitHoga()
             self.hoga_name = data[0]
         if 'KRW' in self.hoga_name:
-            jc = data[1:2] + data[13:] + data[2:3]
+            jr = data[1:2] + data[13:] + data[2:3]
             hg = [self.df_hj['고가'][0]] + data[3:13] + [self.df_hj['저가'][0]]
         else:
-            jc = data[1:2] + data[13:23] + data[2:3]
+            jr = data[1:2] + data[13:23] + data[2:3]
             hg = data[23:24] + data[3:13] + data[24:25]
-        self.df_hg = pd.DataFrame({'잔량': jc, '호가': hg})
-        self.bool_hgup = True
+        try:
+            self.df_hg = pd.DataFrame({'잔량': jr, '호가': hg})
+            self.bool_hgup = True
+        except ValueError:
+            print(jr)
+            print(hg)
