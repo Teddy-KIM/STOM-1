@@ -22,7 +22,7 @@ class StrategyCoin:
         self.cstgQ = qlist[11]
         self.chartQ = qlist[17]
         self.dict_set = DICT_SET
-        self.chart_name = None
+        self.chart_code = None
 
         con = sqlite3.connect(DB_COIN_STRATEGY)
         dfb = pd.read_sql('SELECT * FROM buy', con).set_index('index')
@@ -68,7 +68,7 @@ class StrategyCoin:
         while True:
             data = self.cstgQ.get()
             if type(data) == str:
-                self.chart_name = data
+                self.chart_code = data
             elif type(data) == int:
                 self.int_tujagm = data
             elif type(data) == list:
@@ -157,7 +157,7 @@ class StrategyCoin:
             최고체결강도 = round(self.dict_gsjm[종목명]['체결강도'][1:평균값계산틱수 + 1].max(), 2)
             self.dict_gsjm[종목명].at[0] = 등락율, 고저평균대비등락율, 초당거래대금, 초당거래대금평균, 당일거래대금, \
                 체결강도, 체결강도평균, 최고체결강도, 현재가, 체결시간
-            if self.chart_name == 종목명:
+            if self.chart_code == 종목명:
                 self.chartQ.put([self.dict_gsjm[종목명], 종목명])
 
             매수 = True
