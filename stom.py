@@ -360,7 +360,12 @@ class Window(QtWidgets.QMainWindow):
                     if '.' not in day:
                         day = day[:4] + '.' + day[4:6] + '.' + day[6:]
                     item = QtWidgets.QTableWidgetItem(day)
-                elif column in ['종목명', '주문구분', '기간']:
+                elif column == '종목명':
+                    try:
+                        item = QtWidgets.QTableWidgetItem(self.dict_name[df[column][index]])
+                    except KeyError:
+                        item = QtWidgets.QTableWidgetItem(df[column][index])
+                elif column in ['주문구분', '기간']:
                     item = QtWidgets.QTableWidgetItem(str(df[column][index]))
                 elif (gubun == ui_num['C잔고목록'] and column == '보유수량') or \
                         (gubun == ui_num['C체결목록'] and column == '주문수량') or \
