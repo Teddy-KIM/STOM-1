@@ -440,7 +440,10 @@ class ReceiverKiwoom:
                     self.hogaQ.put([code, int(v), ch])
 
                 if dt != predt:
-                    bids, asks = self.dict_tick[code][1:]
+                    try:
+                        bids, asks = self.dict_tick[code][1:]
+                    except KeyError:
+                        bids, asks = 0, 0
                     self.dict_tick[code] = [dt, 0, 0]
                     if code in self.dict_hoga.keys():
                         self.UpdateTickData(code, name, c, o, h, low, per, dm, ch, bids, asks, dt, now())
