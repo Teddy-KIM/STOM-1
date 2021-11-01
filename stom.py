@@ -959,15 +959,16 @@ class Window(QtWidgets.QMainWindow):
                 cstgQ.put(code)
             else:
                 sstgQ.put(code)
+            self.ct_labellll_06.setVisible(True)
+            self.ct_labellll_07.setVisible(True)
+            self.ct_labellll_08.setVisible(True)
+
             if self.dialog_hoga.isVisible():
                 if coin:
                     creceiv1Q.put(code)
                     creceiv2Q.put(code)
                 else:
                     sreceivQ.put(code)
-                self.ct_labellll_06.setVisible(True)
-                self.ct_labellll_07.setVisible(True)
-                self.ct_labellll_08.setVisible(True)
         else:
             chartQ.put([coin, code, name, tickcount, searchdate])
             self.ct_labellll_06.setVisible(False)
