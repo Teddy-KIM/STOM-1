@@ -159,6 +159,7 @@ class ReceiverXing:
         df.append(df2)
 
         df = pd.concat(df)
+        df[['전일종가']] = df[['전일종가']].astype(int)
         self.df_pc = df[['전일종가']].copy()
         df = df[['종목명']].copy()
 
